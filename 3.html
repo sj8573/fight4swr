@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>社會工作概論 題庫測驗</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Include jsPDF and html2canvas for PDF export functionality -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles for the macaron color theme and overall look */
+        body {
+            background-color: #FEFBF6; /* Creamy background */
+            font-family: 'Noto Sans TC', sans-serif;
+            color: #5C5470; /* Muted purple text */
+        }
+        .macaron-card {
+            background-color: #FAF0E4; /* Soft peach card */
+            border: 1px solid #E4D5C7;
+        }
+        .macaron-btn {
+            background-color: #B2D8B2; /* Pistachio green */
+            color: #354F52;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        .macaron-btn:hover {
+            background-color: #A1C7A1; /* Darker pistachio */
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .macaron-option {
+            background-color: #FFFFFF;
+            border: 2px solid #EAD7D7; /* Soft pink border */
+            transition: all 0.3s ease;
+        }
+        .macaron-option:hover {
+            border-color: #B2D8B2; /* Pistachio green on hover */
+            background-color: #F7FDF7;
+        }
+        .macaron-option input:checked + label {
+            border-color: #79A379;
+            background-color: #E9F5E9;
+            font-weight: 500;
+        }
+        .correct-answer {
+            background-color: #D4EDDA !important; /* Light green for correct */
+            border-color: #C3E6CB !important;
+        }
+        .incorrect-answer {
+            background-color: #F8D7DA !important; /* Light red for incorrect */
+            border-color: #F5C6CB !important;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <div id="app-container" class="w-full max-w-4xl mx-auto">
+        <!-- Start Screen: Visible by default -->
+        <div id="start-screen" class="text-center p-8 sm:p-12 macaron-card rounded-2xl shadow-lg">
+            <h1 class="text-4xl sm:text-5xl font-bold mb-2 text-[#354F52]">社會工作概論</h1>
+            <p class="text-lg sm:text-xl mb-8 text-[#5C5470]">(從總題庫抽出80題)</p>
+            <p class="text-xl mb-6">請選擇測驗題數：</p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <button onclick="startQuiz(5)" class="macaron-btn text-2xl py-4 px-10 rounded-full shadow-md">5 題</button>
+                <button onclick="startQuiz(10)" class="macaron-btn text-2xl py-4 px-10 rounded-full shadow-md">10 題</button>
+            </div>
+        </div>
+
+        <!-- Quiz Screen: Hidden by default -->
+        <div id="quiz-screen" class="hidden p-6 sm:p-10 macaron-card rounded-2xl shadow-lg">
+            <div class="flex justify-between items-center mb-6">
+                <div id="progress" class="text-xl font-bold">第 1 / 10 題</div>
+                <div id="timer" class="text-2xl font-bold text-[#354F52]">00:00</div>
+            </div>
+            <div id="question-container" class="mb-8">
+                <h2 id="question-text" class="text-2xl sm:text-3xl font-semibold mb-2"></h2>
+                <p id="question-source" class="text-sm text-gray-500 mb-6"></p>
+                <div id="options-container" class="space-y-4"></div>
+            </div>
+            <div class="flex justify-between mt-8">
+                <button id="prev-btn" onclick="prevQuestion()" class="macaron-btn text-lg py-3 px-8 rounded-full">上一頁</button>
+                <button id="next-btn" onclick="nextQuestion()" class="macaron-btn text-lg py-3 px-8 rounded-full">下一頁</button>
+                <button id="submit-btn" onclick="submitQuiz()" class="hidden macaron-btn text-lg bg-[#E8A0A0] hover:bg-[#D78F8F] text-white py-3 px-8 rounded-full">繳交</button>
+            </div>
+        </div>
+
+        <!-- Results Screen: Hidden by default -->
+        <div id="results-screen" class="hidden p-6 sm:p-10 macaron-card rounded-2xl shadow-lg">
+            <div id="summary-section" class="text-center mb-8">
+                <h2 class="text-4xl font-bold mb-4">測驗完成！</h2>
+                <p id="score" class="text-3xl mb-2"></p>
+                <p id="time-taken" class="text-xl mb-6"></p>
+                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <button onclick="downloadResults('pdf')" class="macaron-btn text-lg py-3 px-6 rounded-full">下載 PDF</button>
+                    <button onclick="downloadResults('csv')" class="macaron-btn text-lg py-3 px-6 rounded-full">下載 CSV</button>
+                    <button onclick="window.location.reload()" class="macaron-btn text-lg py-3 px-6 rounded-full">再測一次</button>
+                </div>
+            </div>
+            <div id="details-section" class="space-y-6">
+                <!-- Detailed results will be injected here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // The entire application logic is contained within this script tag.
+        
+        const rawData = `
+4,下列那項敘述，比較貼近格林伍德(Ernest Greenwood)對於專業特質的闡釋？(105師1_22),⑴一個專業應該有其基本知識並發展出系統的理論來引導實務工作的說法，忽略了自然助人法,⑵一個專業應該避免建立用以規範自身社群的各式標準，以防止專業造成自身的壓迫,⑶一個專業只要具強制力的、明確的、和有系統的倫理守則，就是一種權力的宰制,⑷一個專業必須在正式與非正式的組織網絡中提供文化價值、規範及象徵，以便發揮其功能與成效
+1,當社會工作人員在幫助案主精確地了解需求、澄清與認定其問題、探討解決問題的策略、選定適用的策略，並發展處理問題的有效策略之能量。請問社會工作(101障特四4),⑴使能者,⑵教育者,⑶倡導者,⑷充權者
+4,下列那一項不是社會工作之主要功能？(102師1_24),⑴受創復原的功能(restoration),⑵提供資源的功能(provision of resources),⑶預防的功能(prevention),⑷社會再建構的功能(social re-construction)
+3,針對次級創傷(secondary trauma)的陳述和說明，下列那一個答案是錯誤的？(99師2_9),⑴工作性質、暴露在創傷事務中的程度和個人的情況等因素是造成社會工作人員次級創傷的原因,⑵社會工作人員懷疑自己所提供的一切服務是沒有用的，會變得沒有自信和無助；不敢結婚怕受虐；怕小孩會得癌症而不敢生育等，這些都是次級創傷的一些症狀,⑶所有提供服務的社會工作人員都會有次級創傷的情況,⑷社會工作人員從事專業服務的時間尚短，卻可能會因人手不足、案量激增等因素，不得不投入災變、兒少保護、受暴等性質的工作，也可能因缺乏有足夠經驗資深社工督導的指導與協助等各種因素，較易受到次級創傷而離開工作崗位
+2,下列何者不是一位社會工作者適當的專業舉止？(106師3_12),⑴社會工作者釐定並負責維持與案主的清楚界線,⑵社會工作者可將相關資源優先提供給機構長期服務的案主,⑶案主的需求是雙方關係和工作的首要重點,⑷社會工作者明白與案主溝通時隱含的意圖，也知道案主如何理解那個意圖
+3,有些學者將社會工作的核心使命簡化為3Cs，下列何者是所謂的3Cs？①照顧(caring) ②治療(curing)③改變社會(changing the society) ④連結(connecting) ⑤合作(collaborating)(108特五4),⑴①②④,⑵②④⑤,⑶①②③,⑷①③⑤
+1,莫勒斯與西佛(Morales & Sheafor)提出社會工作的3個主要使命，包括：照顧、治療與下列何者？(104特四1),⑴改變,⑵控制,⑶教化,⑷適應
+1,下列有關社會工作演進的敘述，何者錯誤？(101特四2),⑴由綜融性的社會工作發展到專精的個案工作,⑵由地方性工作發展到全國性措施,⑶由慈善到專業,⑷由消極的救濟工作發展到積極的福利措施
+4,下列敘述何者符合社會工作專業界線要求？(105特五9),⑴基於華人文化的人情義理和關係建立需求，接受案主的適當回饋是可接受的,⑵案主的親屬並非直接服務對象，社會工作者可以與他們有性方面的接觸,⑶社會工作者在下班之後，只要不涉及服務內涵，可以和案主一起用餐,⑷社會工作者應該盡量避免與案主有不適當身體接觸
+3,將社會工作方法分為直接服務與間接服務是常有的分類，下列何者不屬於直接服務的範圍？(103警20),⑴輔導及諮商,⑵治療,⑶社區組織工作,⑷團體工作
+1,古林伍德(Greenwood，1957)認為所有專業共享的特質，下列敘述何者正確？(112初6),⑴理論體系、專業權威、社區認可、倫理守則、專業文化,⑵理論體系、專業權威、社區倡議、倫理守則、專業文化,⑶理論體系、專業文化、社區認可、倫理法規、主流專業,⑷理論體系、專業權威、社區倡議、倫理法規、主流專業
+2,對於社會工作者的角色職責之敘述，下列何者正確？①住院病人醫療費用困難，護理站轉介家屬到社會服務室尋求協助 ②在十點過後的夜市發現家長帶著幼兒販售茶葉蛋，市民通報113，期望社會工作者出現，停止對兒童不適當照顧 ③機構以招人困難為由，社會工作者職位長期懸缺，工作由其他行政人員處理，理由是寧缺勿濫 ④人力不足，受過培訓的志工協助危機家庭的接案與訪視，社會工作者負責督導，這是合於專業責信分工(111師2_8),⑴①④,⑵①②,⑶②③,⑷①③
+3,社會工作與其他學科關注重點的比較，何者正確？(101師2_18),⑴與社會學相較，社會工作更重視發掘或解釋人與人之間某種行為如何、以及為何產生的說明,⑵與精神醫學相較，社會工作更重視運用醫療模式深入病人的潛意識、並且為病人開處方,⑶與心理學相較，社會工作更重視案主的社會功能與人際關係，並運用社區資源協助其解決個人或社會問題,⑷與諮商工作者相較，社會工作者更重視謹守界限，並使用各種測驗，以更加深入內在心理的方式來協助案主
+3,在社會工作的助人關係中，應遵守下列那個原則，方能建立助人的專業關係情境？(107警23),⑴自我批判的態度,⑵投入的情感表達,⑶個別化原則,⑷情感性的轉移
+4,社會工作的發展受到社會變遷之影響，關於社會工作發展之敘述，下列何者正確？①社會工作以人為服務對象，高科技不會影響社會工作處遇 ②因為社會運動興起，我國各項福利服務自1960年開始蓬勃發展 ③在社會變遷迅速下，社會工作實施領域應擴大，工作模式或方法應求新或適度修正 ④為因應多元文化社會發展趨勢，社會工作者應具備多元文化素養(113師二2),⑴①③,⑵②③,⑶①④,⑷③④
+2,美國社會工作人員協會(NASW)整理出社會工作的四個主要目標，其中「連結人與環境體系，以獲得資源、服務與機會」，與下列那項社會工作者角色最為對應？(113普2),⑴使能者(enabler),⑵經紀人(broker),⑶倡議者(advocate),⑷分析者(analyster)
+3,社會工作專業的實踐中，下列何者不在思考範圍之內？(105師1_15),⑴如何有效幫助,⑵選擇何種方式幫助,⑶要不要幫助,⑷幫助什麼樣的人
+3,Ernest Greenwood提出了社會工作五項專業特質，不包含下列何者？(109警14),⑴專業權威,⑵社會或社區認可,⑶薪資待遇標準,⑷共同信守的倫理守則
+3,社會工作者運用衝突、協商和抗爭方法為弱勢團體爭取福利或為政策與立法辯護，係扮演何種角色？(106特五6),⑴團體催化者,⑵教育者,⑶倡議者,⑷協商者
+3,社會工作者瞭解人和人之間的關係是改變的重要原動力，並努力去增進案主個人、團體、家庭等扶助，這是屬於下列何種社會工作原則？(110特四9),⑴社會正義,⑵個人的尊嚴與價值,⑶人際關係的重要性,⑷廉正
+4,關於社會工作發展的敘述，下列何者錯誤？(110普5),⑴睦鄰運動的工作人員須與工作對象共同生活以建立信任,⑵社區睦鄰運動對社區工作方法的發展具有貢獻,⑶診斷學派是1917年由Mary Richmond所發展,⑷診斷學派認為人的問題受社會與政治的壓迫影響，因此需要診斷環境不利於人發展的因素
+4,下列何者不是社會工作基本哲學精神的三大支柱之一？(102特四3),⑴人道主義,⑵實證主義,⑶烏托邦理想,⑷菁英主義
+2,下列何者不屬於社會工作的功能？(101原1),⑴恢復的功能,⑵陪伴的功能,⑶預防的功能,⑷發展的功能
+4,透過教育使人們認識所處環境各種社會資源，並對現有資源有效運用，進而激發個人潛能，以提升社會大眾生活品質，是社會工作的何種功能？(110警24),⑴恢復,⑵預防,⑶治療,⑷發展
+4,有人將社會工作專業在全球的發展分為四階段，當一社會中社工專業的發展已達成「配合社會發展的需要提供服務」此階段，其下一個階段將會是： (100師1_13),⑴博愛助人的階段,⑵專業主義的階段,⑶本土化的階段,⑷多元統整的階段
+3,關於社會工作特質的敘述，下列何者正確？(108特五6),⑴多數社會工作者是自行開業的,⑵社會工作者經常必須跟其他專業人員合作並在團隊中擔任領導者,⑶社會工作相信社會問題與社會制度密不可分,⑷在某些社會工作方法中，「關係」完全沒有關注的必要
+3,Abraham Flexner於1915年發表主題為「社會工作是專業嗎」的演講，提出六項專業的特徵，並指出當時社會工作尚未符合成為一項專業的標準，下列何者不是他所提出的專業特徵？(112特五3),⑴要有利他的動機,⑵要可以透過教育來溝通和傳遞知識,⑶要具備共同信守的倫理守則,⑷要有組織自我管理
+1,透過以下何組織之努力，美國第一個社會工作教育課程於1898年開課，並持續發展成為紐約慈善學院？(102特四1),⑴紐約慈善組織會社,⑵紐約聯合勸募協會,⑶紐約睦鄰組織中心,⑷紐 York州立大學
+3,有關社會工作專業目標之敘述，下列何者錯誤？(111師2_10),⑴增強人們解決問題、抗衡與發展的能量,⑵連結人與環境體系，使體系運作獲得資源、服務與機會,⑶推動社會大眾投入志願服務工作,⑷促進環境體系有效與人性運作
+4,學者Skidmore & Thackeray(1994)認為社會工作專業具有一些重要的特質，下列何者不屬於前述的特質？(100師1_22),⑴強調家庭對個人及社會的重要性,⑵社會工作者與案主關係的建立是助人過程中重要的一環,⑶社會工作者需要運用社區資源，來解決人們的問題,⑷社會工作不傾向運用精神病理、心理治療的方法，來瞭解與分析人類行為
+3,科技在社會工作中可能扮演的角色，下列敘述何者正確？(105師2_39),⑴烏托邦的觀點認為我們不能迷信科技，它必須受到質疑和解構,⑵社會建構論的觀點認為科技可以改善現存的社會問題,⑶科技決定論認為科技是帶動社會變遷的新興力量,⑷後現代的觀點認為科技並非中立的工具，其價值是社會所建構的
+3,有關社會工作專業化的整體發展趨勢，下列敘述何者錯誤？(111師1_2),⑴從消極的救濟工作發展到積極的福利措施,⑵從傳統個案工作為主發展到整體、綜合性的福利行政、立法與制度,⑶從講究方案成本效益的評估分析到低估成本不計代價的工作,⑷從事後的補救、治療發展到事先的預防
+3,下列敘述何者正確？(108師2_22),⑴社會工作者可以以自己的價值成為案主的目標,⑵當社會工作者與案主的價值觀不同時，社會工作者不需要告訴案主自己的價值觀,⑶社會工作者的價值影響界定案主問題的形成因素,⑷價值衝突只會發生在社會工作者專業價值與案主價值之間
+4,傳統上所謂社會工作的五大工作方法為下列何者？(107警12),⑴個案、團體、社區、行政、倡導,⑵個案、團體、社區、行政、政策,⑶個案、團體、方案、社區、行政,⑷個案、團體、社區、行政、研究
+1,社會工作者透過服務，使一位人際關係不良，致無法在工作上好好表現的案主，知道如何與別人相處，安心工作。此項工作屬於社會工作者的下列那個功能？(109普1),⑴復原,⑵預防,⑶提供資源,⑷調解
+3,Skidmore和Thackeray(1994)認為社會工作的存在乃基於一些假設前提(premise)，下列何者非Skidmore和Thackeray 對社會工作所持之基本假設？(110_師1_6),⑴社會工作肯定每個人的重要性,⑵人與人的互動過程可能產生問題,⑶社會工作協助案主接受物競天擇的生存法則,⑷社會工作的介入將有助於問題解決
+2,下列關於社會工作意涵的敘述，何者正確？(108師2_4),⑴社會工作者尊重服務對象的自我抉擇，且這個過程中並不會與社會工作者的專家角色產生矛盾,⑵社會工作與其他專業最大區別在於社會工作服務協助的重點同時兼顧個人與環境，以及兩者之間的互動,⑶社會工作在致力協助人們，以及改善社會的各種做法時，並不會與其他專業重疊,⑷社會工作主要是待在辦公室內等待服務對象前來尋求協助，並不需要在辦公室外的各種場所執行業務
+4,社會工作者的角色體系中，下列那個角色不是直接服務工作者的角色？(102特四6),⑴家庭問題的輔導者,⑵直接服務的提供者,⑶體系連結的角色,⑷研究者
+4,關於社會工作實務的敘述，下列何者錯誤？(110障五6),⑴社會工作者必須掌握社會服務資源,⑵有關人類行為的理論對於社會工作實務有相當幫助,⑶社會工作者的自我了解對於實務工作實施是重要的,⑷從事直接服務的社會工作者未必需要了解社會政策的立法背景
+1,社會工作專業，是一種什麼專業？(100初25),⑴助人的專業,⑵行政的專業,⑶醫療的專業,⑷法律的專業
+3,「慈善無法取代正義。」這句話和Reynolds(1951)主張社會工作者的應有作為非常類似。請問下列那一個選項不是Reynolds的主張？(105警19),⑴社會工作者應該參與政治活動以實踐公民權,⑵社會工作者應動員案主與社會資源去改變現實,⑶社會工作專業應重新找回先驅們留下的遺產,⑷社會工作者應促成改變，同時兼顧人與環境
+2,下列關於社會工作起源與發展的敘述，何者錯誤？(101障五36),⑴社會工作的起源是志願服務與慈善事業,⑵社會工作的起源是一群領有專業證照的人所從事的專業助人工作,⑶社會工作是為解決貧窮問題而開始的,⑷一般學者咸認社會工作是起源於英、美的慈善組織會社與睦鄰組織兩大傳統
+4,下列何者不是黑普渥斯等人(Hepworth)所指的直接服務提供者？(113普13),⑴個人問題解決,⑵婚姻與家族治療,⑶團體工作服務,⑷個案管理
+3,有關運用科技達成社會工作促成改變的敘述，下列何者錯誤？(109師2_40),⑴可透過創造虛擬社區，減少社會孤立感,⑵可透過創辦網路虛擬團體，使成員支持互助,⑶可建立即時通訊軟體群組，做為篩選案主的管道,⑷需謹慎運用，注意資訊保密與保存等倫理議題
+4,下列何者敘述是正確的？(100師1_22),⑴社會工作是社會學的一個分支，所以必須以社會學為主,⑵社會工作僅是在替政府把關，避免財政的過度支出,⑶社會工作者應謹守倫理分寸，不應該促成社會運動，以避免無謂的動亂,⑷社會工作是一種綜融的領域，需要許多學科的整合
+3,國際社會工作人員協會(IFSW)及國際社會工作學院聯盟(IASSW)在2014年提出了社會工作的全球性定義，下列何者不屬於社會工作的核心原則？(110普2),⑴社會正義,⑵人權,⑶家庭責任,⑷尊重差異
+4,社會工作者是串連服務對象與社區資源，將個案的需求與提供服務的機構進行媒合，非只是提供資源名單給個案，而是讓轉介發揮最大效益。此為社會工作者的何項角色？(108師2_9),⑴諮商者,⑵倡導者,⑶團體催化者,⑷經紀人
+3,在社會工作各個實務領域中，社會工作者都有機會與其他專業人員共同合作，並組成「跨專業團隊」。跨專業團隊由不同訓練及不同專業的人所組成，是一項要求高度內部合作的工作。下列關於跨專業團隊的敘述，何者為錯誤？(100師1_40),⑴跨專業團隊運作中，通常會受到專業人員位階與權力差異的影響,⑵透過跨專業團隊的運作，專業得以有機會學習其他專業的介入技巧,⑶跨專業團隊永遠知道什麼是服務對象的最佳介入方式,⑷跨專業團隊要能有效運作，團隊成員瞭解彼此的角色與功能，是重要的因素之一
+4,社會工作的專業自主及認可來源，下列何者不被視為重點？(105師1_5),⑴專業判斷的能力,⑵社區及社會認可,⑶專業教育訓練的制度,⑷支持同僚照顧案主
+4,社會工作應該以案主真實情況，而非社會工作者所期待的狀況看待案主，這主要是展現下列那個專業關係原則？(110特四12),⑴案主自決,⑵保密,⑶控制情感反應,⑷接納
+2,社會工作者與案主的專業關係是處遇成敗的重要關鍵，這種關係是從人文取向的基礎去看待人與人之間的相處之道。因此，從人文取向的觀點來看，下列何者是社會工作專業的「靈魂」？(104師2_21),⑴技術與績效,⑵信任與同理心,⑶程序與法規,⑷倫理守則與理論
+4,全球化與後工業化的衝擊下，社會工作處理社會問題時要同時探討深層的社會變化，2014 年國際社會工作者聯盟(IFSW)對社會工作提出不同內涵的定義，下列何者非其定義？(111師2_1),⑴社會工作是以實踐為本的專業及學術領域,⑵社會工作專業核心任務為推動社會變遷、社會發展、社會凝聚、人民的充權及解放,⑶社會工作協同個人與組織，面對人生挑戰促進人類的福祉,⑷社會工作協助個人、團體、社區增強或恢復其社會功能
+4,在社會工作實務中，社會工作者可發揮之功能相當多，下列何者主要是協助案主發展資源的工作？(108師2_5),⑴慢性精神疾病患者參與職能訓練工作坊,⑵自閉症學童參與語言治療,⑶即將結婚的伴侶參加婚前教育和成長團體,⑷憂鬱症患者擴展了社會網絡
+3,社會工作的角色不是單一的，而是多元的。將服務對象的需求與最適當的提供服務的機構或個人連結上，所指的是下列何種角色？(112特五2),⑴倡導者,⑵協商者,⑶經紀人,⑷協調者
+2,格林伍德(E. Greenwood)提出5項專業基本特質，下列何者不在其中？(105普2),⑴共同遵守的倫理原則,⑵長期的養成教育,⑶社會或社區認可,⑷專業的文化
+3,有關世界各國社會工作專業發展趨勢之說明，下列何者正確？(109師1_2),⑴從有理論發展為無理論,⑵從大眾參與工作發展到少數人參與工作,⑶從不計成本的工作發展到講究方案的評估及成本效益的分析,⑷從事先的預防到事後補救、治療
+2,有關社會工作者與服務對象在專業關係分際的敘述，下列何者錯誤？(107特四7),⑴社會工作者有義務與其服務對象維持一個界線清楚與明確的專業關係,⑵為取得服務對象的信任，社會工作者可以借款給個案以鼓勵其振作,⑶社會工作者不可以拿性關係來交換對案主提供的任何服務,⑷社會工作者不應從任何專業關係獲得不當得利
+2,經濟全球化可能影響之一是國與國之間的貧富差距擴大，社會工作者如何看待全球化在這個社會議題的影響，下列敘述何者錯誤？(108特四5),⑴重視全球化產生勞動就業不安全的影響,⑵強調國與國的邊界，阻止全球化的擴散,⑶促進社會的融合為目標,⑷重視全球化對於國際社會帶來負面的影響
+1,在1930年代末，社會工作的三種基本工作方法成型，請問是那三種工作方法？1個案工作2團體工作3社區工作4社會工作管理(108師2_6),⑴123,⑵234,⑶124,⑷134
+3,下列何者不屬於社會工作專業的三大基本工作方法？(100特五36),⑴社區組織工作,⑵社會團體工作,⑶社會福利行政,⑷社會個案工作
+4,社會工作者為案主的權益與需求而辯護，這是屬於下列何種角色？(111初8),⑴教育角色,⑵諮詢角色,⑶治療角色,⑷倡導角色
+3,社會工作者與個人、家庭和小團體的個案系統一起工作，協助個案解決在社會功能與適應上的挑戰，以提高個人的社會功能。這是屬於社會工作的何種角色?(101警12),⑴催化者,⑵規劃者,⑶使能者,⑷監督者
+2,下列何種社會工作服務措施或活動屬於間接服務之範疇？1研究工作2親職教育3方案評估4團體工作5制定政策(103師2_22),⑴③④⑤,⑵①③⑤,⑶②③④,⑷①④⑤
+3,下列何者不屬於巨視(marco)社會工作方法？(103特五2),⑴身心障礙者福利服務之倡導,⑵兒童人權之宣導活動,⑶社區獨居老人訪視,⑷非營利組織經營管理
+4,下列何者不屬於R. Skidmore和M. Thackeray提出的社會工作預防功能？(110_師2_5),⑴恢復,⑵預防,⑶發展,⑷倡導
+3,格林伍드(E. Greenwood)所提專業特質，除了理論體系、專業權威、倫理守則、社會認可外，還包括下列何項特質？(103障8),⑴科學方法,⑵社會立法,⑶專業文化,⑷國家證照
+4,關於社會工作是否為一門專業的論述，下列何者正確？(109師1_3),⑴過程論判斷社會工作是否為專業學門的方法，是以理想上專業應出現的特質加以衡量,⑵權力論在探討社會工作是否為專業時，是以專業的發展過程來檢視,⑶依據特質論，如果職業團體可以在決策行政、界定需求及問題、資源獲取、對人群、對工作領域有影響力，即是一門專業,⑷社會工作專業化的挑戰之一即是缺乏實務有效性的明證
+2,有關社會工作專業教育的發展，下列敘述何者不符合當前趨勢？(113師一3),⑴透過社會工作實習制度，提升學生於理論與實務方面的整合能力,⑵證照制度的實施造成人才的斷層與壟斷，應加以廢除,⑶社會工作應兼具國際化與國情化，以提升專業性,⑷社會工作應落實以證據為基礎的實務實施
+4,有關社會工作服務對象的敘述，下列何者錯誤？(107特五5),⑴社會工作的服務對象通常為社會功能有待恢復或增強者,⑵社會工作通常稱呼服務對象為「案主」,⑶社會工作的服務對象隨著社會變遷可能會有所改變,⑷以個人為服務對象
+4,當社會工作者認為依照規則與程序行事，會讓自己較不致產生業務過失，且盡責完成對機構的義務，而非做自己認為道德正確的事。此種實務工作者係屬下列何種類型？(111師1_26),⑴反思型,⑵責任型,⑶反身型,⑷防禦型
+2,佩恩(Payne)曾依國際社會工作定義將社會工作者的工作面向區分為三類，當社會工作者主張「透過提供協助與服務來解決人民的問題，他們就會更適當地回應社會期待」，這是下列何種社會工作觀點？(110障五2),⑴治療觀點,⑵社會秩序觀點,⑶轉型觀點,⑷基進觀點
+2,社會工作方法的分類，下列何者將不會是未來的趨勢？(105師1_1),⑴個案、團體、社區漸趨整合,⑵面對案主時，專業能力愈趨去脈絡化,⑶直接服務與間接服務的合作,⑷專科化證照帶來更精深的專業能力
+2,對於社會工作者應具備的知識與技巧，下列敘述何者錯誤？(109普3),⑴社會工作者應熟悉個案與團體工作技巧,⑵社會工作者專心於臨床工作，不需具備研究能力,⑶社會工作者應具備協助衝突雙方調解或談判的技巧,⑷社會工作者應具備方案設計與評估的能力
+2,巴雷特(Bartlett)於1970年所提出的社會工作實施基礎，以下列何者為建立基點？(112師一11),⑴社會問題,⑵社會功能,⑶社會價值,⑷社會評估
+1,社會工作者必須確保案主在經歷專業關係期間，擁有最大程度的生理與情感安全。以上敘述，比較偏向下列那種義務的表現？(109普9),⑴照顧,⑵警告,⑶保密,⑷公正
+1,以能力為基礎(competency-based)的社會工作教育意涵，下列敘述何者錯誤？(113師一36),⑴著重以技術為核心的實用性,⑵關注實務導向的多元性與差異性,⑶從事實務導向的研究,⑷應有能力展現倫理與專業行為
+3,Adams(2010)指出社會工作實務主要有三大面向工作。其中創造工作之內涵，下列敘述何者錯誤？(113師一14),⑴跳脫例行性與程序性工作,⑵綜理不同情境的訊息,⑶適時地參與社會行動,⑷分析複雜情境和問題
+1,在「相信每個人都是獨特的個體」價值觀的前提下，社會工作者須具備下列何種能力？(111特五13),⑴文化敏感度,⑵資源盤點,⑶跨專業合作,⑷批判思辨
+4,Beckett認為社會工作的角色可分為三大類：倡導者、直接改變代理者與執行者；其中，執行者的角色內涵包括那些？1諮商治療者 2居間協調者 3責任擔負者 4控制代理者 5直接倡導者(111師1_10),⑴①②⑤,⑵②③⑤,⑶①③④,⑷②③④
+`;
+
+        let allQuestions = [];
+        let currentQuizQuestions = [];
+        let userAnswers = {};
+        let currentQuestionIndex = 0;
+        let timerInterval;
+        let seconds = 0;
+
+        // Helper function to shuffle an array
+        const shuffleArray = (array) => {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        };
+
+        // Parse the raw text data into a structured question bank
+        const parseData = () => {
+             const lines = rawData.trim().split('\n').filter(line => line.trim() !== '');
+            
+            allQuestions = lines.map((line, index) => {
+                const parts = line.split(',');
+                if (parts.length < 3) {
+                    console.error(`Skipping invalid line ${index + 1}:`, line);
+                    return null;
+                }
+
+                const answerIndex = parseInt(parts[0], 10) - 1;
+                const questionPart = parts[1];
+                
+                const qMatch = questionPart.match(/(.*)(\(.*\))/);
+                const questionText = qMatch ? qMatch[1].trim() : questionPart.trim();
+                const source = qMatch ? qMatch[2] : '';
+                
+                const options = parts.slice(2).map(opt => opt.substring(1).trim());
+                
+                if (isNaN(answerIndex) || answerIndex < 0 || answerIndex >= options.length) {
+                    console.error(`Parsing error on line ${index + 1} (Invalid Answer Index):`, line);
+                    return null;
+                }
+                const answer = options[answerIndex];
+
+                return { id: index, question: questionText, source, options, answer };
+            }).filter(q => q !== null);
+        };
+
+        // Functions to manage UI visibility
+        const showScreen = (screenId) => {
+            ['start-screen', 'quiz-screen', 'results-screen'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById(screenId).classList.remove('hidden');
+        };
+
+        const formatTime = (totalSeconds) => {
+            const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+            const seconds = (totalSeconds % 60).toString().padStart(2, '0');
+            return `${minutes}:${seconds}`;
+        };
+
+        const startTimer = () => {
+            seconds = 0;
+            document.getElementById('timer').textContent = formatTime(seconds);
+            timerInterval = setInterval(() => {
+                seconds++;
+                document.getElementById('timer').textContent = formatTime(seconds);
+            }, 1000);
+        };
+        
+        // Main function to start the quiz
+        const startQuiz = (numQuestions) => {
+            userAnswers = {};
+            currentQuestionIndex = 0;
+            
+            const shuffled = shuffleArray([...allQuestions]);
+            currentQuizQuestions = shuffled.slice(0, numQuestions);
+            currentQuizQuestions.forEach(q => {
+                q.options = shuffleArray([...q.options]);
+            });
+
+            showScreen('quiz-screen');
+            renderQuestion(currentQuestionIndex);
+            startTimer();
+        };
+
+        // Render a single question on the screen
+        const renderQuestion = (index) => {
+            const question = currentQuizQuestions[index];
+            document.getElementById('question-text').textContent = question.question;
+            document.getElementById('question-source').textContent = question.source;
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            question.options.forEach((option, i) => {
+                const optionId = `q${index}_opt${i}`;
+                const checked = userAnswers[index] === option ? 'checked' : '';
+                optionsContainer.innerHTML += `
+                    <div class="macaron-option rounded-lg">
+                        <input type="radio" name="q${index}" id="${optionId}" value="${option}" class="hidden" ${checked} onchange="selectAnswer(${index}, '${option}')">
+                        <label for="${optionId}" class="block w-full text-left p-4 text-xl rounded-lg cursor-pointer">
+                            ${option}
+                        </label>
+                    </div>
+                `;
+            });
+
+            document.getElementById('progress').textContent = `第 ${index + 1} / ${currentQuizQuestions.length} 題`;
+            document.getElementById('prev-btn').style.visibility = index === 0 ? 'hidden' : 'visible';
+            document.getElementById('next-btn').style.display = index === currentQuizQuestions.length - 1 ? 'none' : 'block';
+            document.getElementById('submit-btn').style.display = index === currentQuizQuestions.length - 1 ? 'block' : 'none';
+        };
+
+        const selectAnswer = (index, answer) => {
+            userAnswers[index] = answer;
+        };
+
+        const prevQuestion = () => {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuestion(currentQuestionIndex);
+            }
+        };
+
+        const nextQuestion = () => {
+            if (currentQuestionIndex < currentQuizQuestions.length - 1) {
+                currentQuestionIndex++;
+                renderQuestion(currentQuestionIndex);
+            }
+        };
+        
+        const submitQuiz = () => {
+            clearInterval(timerInterval);
+            showScreen('results-screen');
+            renderResults();
+        };
+
+        const renderResults = () => {
+            let score = 0;
+            currentQuizQuestions.forEach((q, i) => {
+                if (userAnswers[i] === q.answer) {
+                    score++;
+                }
+            });
+
+            document.getElementById('score').textContent = `你的分數: ${score} / ${currentQuizQuestions.length}`;
+            document.getElementById('time-taken').textContent = `測驗時間: ${formatTime(seconds)}`;
+
+            const detailsContainer = document.getElementById('details-section');
+            detailsContainer.innerHTML = '';
+
+            currentQuizQuestions.forEach((q, i) => {
+                const userAnswer = userAnswers[i] || "未作答";
+                const isCorrect = userAnswer === q.answer;
+                
+                detailsContainer.innerHTML += `
+                    <div class="p-5 rounded-lg border macaron-card">
+                        <p class="text-xl font-semibold mb-3">${i + 1}. ${q.question} <span class="text-sm text-gray-500">${q.source}</span></p>
+                        <p class="p-3 rounded-md ${isCorrect ? 'correct-answer' : 'incorrect-answer'}">你的答案：${userAnswer}</p>
+                        ${!isCorrect ? `<p class="p-3 mt-2 rounded-md correct-answer">正確答案：${q.answer}</p>` : ''}
+                    </div>
+                `;
+            });
+        };
+        
+        // Functions to download results as PDF or CSV
+        const downloadResults = async (format) => {
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const filename = `social-work-introduction-quiz-results-${timestamp}`;
+
+            if (format === 'pdf') {
+                 try {
+                    const { jsPDF } = window.jspdf;
+                    const pdf = new jsPDF('p', 'mm', 'a4');
+                    const content = document.getElementById('results-screen');
+                    
+                    pdf.setFont('helvetica'); // Using a standard font
+                    pdf.setFontSize(20);
+                     // Using a placeholder text as jsPDF has issues with unicode without proper fonts
+                    pdf.text('Quiz Results', 105, 20, null, null, 'center');
+                    
+                    const canvas = await html2canvas(content, { 
+                        scale: 2,
+                        useCORS: true, 
+                        allowTaint: true 
+                    });
+                    const imgData = canvas.toDataURL('image/png');
+                    const imgProps= pdf.getImageProperties(imgData);
+                    const pdfWidth = pdf.internal.pageSize.getWidth() - 20; // with margin
+                    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+                    
+                    pdf.addImage(imgData, 'PNG', 10, 30, pdfWidth, pdfHeight);
+                    pdf.save(`${filename}.pdf`);
+                } catch (e) {
+                    console.error("Error generating PDF:", e);
+                    alert("抱歉，PDF下載功能目前無法使用。請嘗試下載CSV或截圖保存。");
+                }
+            } else if (format === 'csv') {
+                let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; // \uFEFF for BOM
+                csvContent += "題號,題目,你的答案,正確答案\n";
+
+                currentQuizQuestions.forEach((q, i) => {
+                    const userAnswer = userAnswers[i] || "未作答";
+                    const row = [
+                        i + 1,
+                        `"${q.question.replace(/"/g, '""')}"`,
+                        `"${userAnswer.replace(/"/g, '""')}"`,
+                        `"${q.answer.replace(/"/g, '""')}"`
+                    ].join(',');
+                    csvContent += row + "\r\n";
+                });
+
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", `${filename}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        };
+
+        // Initialize the app when the page loads
+        window.onload = () => {
+            parseData();
+        };
+    </script>
+</body>
+</html>
