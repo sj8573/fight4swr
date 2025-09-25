@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>社會工作的價值與倫理 題庫測驗</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Include jsPDF and html2canvas for PDF export functionality -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles for the macaron color theme and overall look */
+        body {
+            background-color: #FEFBF6; /* Creamy background */
+            font-family: 'Noto Sans TC', sans-serif;
+            color: #5C5470; /* Muted purple text */
+        }
+        .macaron-card {
+            background-color: #FAF0E4; /* Soft peach card */
+            border: 1px solid #E4D5C7;
+        }
+        .macaron-btn {
+            background-color: #B2D8B2; /* Pistachio green */
+            color: #354F52;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        .macaron-btn:hover {
+            background-color: #A1C7A1; /* Darker pistachio */
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .macaron-option {
+            background-color: #FFFFFF;
+            border: 2px solid #EAD7D7; /* Soft pink border */
+            transition: all 0.3s ease;
+        }
+        .macaron-option:hover {
+            border-color: #B2D8B2; /* Pistachio green on hover */
+            background-color: #F7FDF7;
+        }
+        .macaron-option input:checked + label {
+            border-color: #79A379;
+            background-color: #E9F5E9;
+            font-weight: 500;
+        }
+        .correct-answer {
+            background-color: #D4EDDA !important; /* Light green for correct */
+            border-color: #C3E6CB !important;
+        }
+        .incorrect-answer {
+            background-color: #F8D7DA !important; /* Light red for incorrect */
+            border-color: #F5C6CB !important;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <div id="app-container" class="w-full max-w-4xl mx-auto">
+        <!-- Start Screen: Visible by default -->
+        <div id="start-screen" class="text-center p-8 sm:p-12 macaron-card rounded-2xl shadow-lg">
+            <h1 class="text-4xl sm:text-5xl font-bold mb-2 text-[#354F52]">社會工作的價值與倫理</h1>
+            <p class="text-lg sm:text-xl mb-8 text-[#5C5470]">(從總題庫抽出100題)</p>
+            <p class="text-xl mb-6">請選擇測驗題數：</p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <button onclick="startQuiz(5)" class="macaron-btn text-2xl py-4 px-10 rounded-full shadow-md">5 題</button>
+                <button onclick="startQuiz(10)" class="macaron-btn text-2xl py-4 px-10 rounded-full shadow-md">10 題</button>
+            </div>
+        </div>
+
+        <!-- Quiz Screen: Hidden by default -->
+        <div id="quiz-screen" class="hidden p-6 sm:p-10 macaron-card rounded-2xl shadow-lg">
+            <div class="flex justify-between items-center mb-6">
+                <div id="progress" class="text-xl font-bold">第 1 / 10 題</div>
+                <div id="timer" class="text-2xl font-bold text-[#354F52]">00:00</div>
+            </div>
+            <div id="question-container" class="mb-8">
+                <h2 id="question-text" class="text-2xl sm:text-3xl font-semibold mb-2"></h2>
+                <p id="question-source" class="text-sm text-gray-500 mb-6"></p>
+                <div id="options-container" class="space-y-4"></div>
+            </div>
+            <div class="flex justify-between mt-8">
+                <button id="prev-btn" onclick="prevQuestion()" class="macaron-btn text-lg py-3 px-8 rounded-full">上一頁</button>
+                <button id="next-btn" onclick="nextQuestion()" class="macaron-btn text-lg py-3 px-8 rounded-full">下一頁</button>
+                <button id="submit-btn" onclick="submitQuiz()" class="hidden macaron-btn text-lg bg-[#E8A0A0] hover:bg-[#D78F8F] text-white py-3 px-8 rounded-full">繳交</button>
+            </div>
+        </div>
+
+        <!-- Results Screen: Hidden by default -->
+        <div id="results-screen" class="hidden p-6 sm:p-10 macaron-card rounded-2xl shadow-lg">
+            <div id="summary-section" class="text-center mb-8">
+                <h2 class="text-4xl font-bold mb-4">測驗完成！</h2>
+                <p id="score" class="text-3xl mb-2"></p>
+                <p id="time-taken" class="text-xl mb-6"></p>
+                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <button onclick="downloadResults('pdf')" class="macaron-btn text-lg py-3 px-6 rounded-full">下載 PDF</button>
+                    <button onclick="downloadResults('csv')" class="macaron-btn text-lg py-3 px-6 rounded-full">下載 CSV</button>
+                    <button onclick="window.location.reload()" class="macaron-btn text-lg py-3 px-6 rounded-full">再測一次</button>
+                </div>
+            </div>
+            <div id="details-section" class="space-y-6">
+                <!-- Detailed results will be injected here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // The entire application logic is contained within this script tag.
+        
+        const rawData = `
+1,在社會工作相關的倫理理論中，強調行動的後果要帶給整體社會最大快樂的原則稱為：(101特五12),⑴效用主義,⑵目的論,⑶利他主義,⑷自利主義
+2,因應COVID-19疫情，許多社會工作者暫緩家訪服務，改採視訊方式與服務對象互動。當運用網路溝通工具與服務對象互動時，須特別留意下列何種倫理原則？(112特五48),⑴案主自決,⑵隱私守密,⑶保護生命,⑷差別平等
+4,Frederic G. Reamer曾建議倫理抉擇過程中，要審慎檢視贊成或反對每種行動的理由。下列那一點考慮面向是錯誤的？(104初12),⑴倫理守則與法律原則,⑵倫理理論、原則與指導方針,⑶社會工作實務理論與原則,⑷個人價值觀，特別需堅持自己的偏好部分
+3,某老先生前來機構表示被其子女棄養，但是當社會工作者得知因這位老先生在年輕時經常以不當暴力虐待其子女，所以認為是罪有應得，此種想法違反了何種倫理原則？(103師2_26),⑴同理心,⑵有目的之情感表達,⑶非論斷之態度,⑷個別化
+2,當下列何種情境發生時，社會工作者可以不需要徵得服務對象之同意，即釋出與其相關的資訊給第三者知道？(102障6),⑴服務對象透露他過去曾經吸食安非他命,⑵服務對象威脅要傷害自己或加害他人,⑶服務對象向社會工作者承認他小時候在量販店偷過東西,⑷服務對象向社會工作者承認他去年的綜合所得稅未繳
+3,NASW頒訂的倫理守則中，提到「社會工作者應在其專長領域中進行實務工作，並不斷發展和強化自身的專業專長」，這屬於何種社會工作價值？(106師3_25),⑴服務(service),⑵正直(integrity),⑶稱職(competence),⑷社會正義(social justice)
+4,下列何種身分者並未被要求尊重社會工作倫理守則？(109特五48),⑴社會工作師,⑵各縣(市)政府社會局(處)首長,⑶社會工作師服務機構之督導,⑷捐款者
+4,請問若實習生在實習的過程中面臨倫理問題時，誰不需要為這問題負責？(103初9),⑴機構社工督導,⑵實習生,⑶學校督導教師,⑷個案
+3,社會工作的專業價值與社會環境具有密不可分的關係，足以影響社會工作價值脈絡之因素相當多。下列敘述何者錯誤？(111師2_5),⑴當前的社會與文化價值，提供社會工作者和案主合作時對案主所處環境脈絡之瞭解,⑵社會福利機構的宗旨、目標、服務流程和責信，皆可能反映了機構的價值取向,⑶社會工作所服務的案主以弱勢族群居多。因此，案主系統的價值觀變異不大,⑷社會工作者應該時時檢視自己的價值觀，及個人價值觀對服務輸送的可能影響
+4,下列有關義務論的敘述何者錯誤？(107師1_),⑴有道德價值的行為必須是因義務而為的,⑵一個因義務而為之行為，其道德價值不在於由此行為達成的目的，而在於決定此行為的準則,⑶義務是尊敬法則的必然行為,⑷在道德規範上，義務論主張道德規範是為了增益人群之樂，減免其苦
+3,以下何者並非社會工作倫理守則的內涵？(102初10),⑴社會工作者的專業行為與態度,⑵社會工作者對同僚的倫理責任,⑶社會工作者對自己家庭的倫理責任,⑷社會工作者對案主的倫理責任
+3,下列何種狀況明顯違反「保密性」之原則？(102普1),⑴將未成年孩子意圖自殺的訊息告知其家長,⑵在服務對象的同意下，將其個案紀錄提供給心理師參考,⑶將未完成的個案紀錄帶回家撰寫,⑷將服務對象傷害他人之資訊告知警方
+2,案主自決成為社工重要倫理原則之一，是因為社會工作專業發展初期幾位社工前驅與巨擘的努力與貢獻，以下何者為非？(100師1_13),⑴Gordon Hamilton(1937),⑵Charles Levy(1966),⑶Florence Hollis(1949),⑷Mary Richmond(1965)
+3,關懷倫理(ethics of care)關注被歧視或社會排除弱勢者的感受與需求，強調社會工作者提供服務應以那一個原則為優先考量？(109師2_28),⑴道德原則優先,⑵行為結果的良善,⑶對服務對象的責任，而非職責,⑷服務提供者的正直品格
+4,根據F. Reamer的觀點，弱勢族群其文化與經濟生活中存在著社會結構的問題，必須透過補償政策、機會平等與財務再分配等措施來解決問題。這是反映下列何種價值？(107特四12),⑴宗教取向,⑵臨床取向,⑶父權取向,⑷社會正義取向
+2,社會工作專業強調的六大核心價值觀當中，其一為稱職(competence)，由此一價值觀所衍申之主要倫理原則為何？(103師2_27),⑴客觀性,⑵講求績效責任,⑶個別化,⑷非論斷之心態
+1,面對倫理難題要在時限內做出審慎評估與最佳抉擇是社工人員很大的挑戰，不同的倫理決策模式各有其不同的特點。依美國社會工作倫理守則起草人喬瑟夫(Joseph)的倫理決策模式，其中第一個步驟是：(105師2_34),⑴從實務環境或機構中分析存在的難題或困境,⑵找出所有可能被影響到的個人、團體、組織,⑶找出各種可能行動並評估每種行動的利弊得失,⑷明確指出那些義務是社工一定要執行的義務
+3,進步年代(Progressive Era)與睦鄰運動的價值觀念比較偏重於關注下列那一方面的問題？(103師1_19),⑴行為問題,⑵認知問題,⑶社會結構問題,⑷文化問題
+3,下列那一項不是社會工作者對機構應負的倫理責任？(101障五44),⑴遵守機構的服務政策和要求,⑵保障機構內工作的平等關係,⑶倡導社會大眾關心弱勢人口,⑷努力促進機構的服務成效
+4,依據現行的「社會工作師倫理守則」，當社會工作師面對不公平或不符合倫理規範之要求時，可向下列何者提出申訴？(112初7),⑴爆料公社,⑵社會工作專業人員協會,⑶勞動部,⑷中華民國社會工作師公會全國聯合會
+2,Banks認為依據社會工作者的道德立場與工作環境，可以分為那四種實務模式？(112師二31),⑴承諾/激進模式、人本模式、社會行政模式、執業模式,⑵承諾/激進模式、專業模式、技術官僚模式、準事業模式,⑶承諾/激進模式、醫療模式、技術官僚模式、執業模式,⑷承諾/激進模式、專業模式、社會行政模式、準事業模式
+3,小花正在提供婚姻諮商服務：先生的飲酒習慣嚴重影響夫妻關係。後來經小花轉介，先生參加戒酒團體，並向小花及太太述說參加戒酒團體對他的幫助。然而，某一次婚姻諮商結束後，先生獨自留下向小花表示自己並沒有參加戒酒團體，且飲酒量也愈來愈多，自己也不知道如何是好，但是希望小花先不要跟太太說這件事情。下列敘述何者正確？(108師1_22),⑴身為義務論者，為了保護太太在婚姻關係中免於被欺騙，小花應該主動揭露先生的欺騙行為,⑵身為行為的效益主義者，小花要尊重先生的隱私權，不應該向太太揭露,⑶身為規則的效益主義者，小花保留隱私資訊是可以被理解與接受的，因為這樣才不會影響先生對小花的信賴,⑷身為效益主義者，小花可以選擇結束這個專業關係，避免被告
+4,下列論述源自社會工作那個基本價值？「案主可能有不同宗教信仰、工作價值、生涯規劃、生活方式、社會文化等等，社工員應該尊重案主的自我抉擇。」(105障11),⑴個人生存權力,⑵文化決定論,⑶發展案主潛能,⑷尊重個別差異
+3,社會工作倫理是引導社會工作者在實務上表現合乎倫理的專業標準，下列何者並非社會工作倫理制訂之重要原因？(106障五10),⑴保護案主在服務中揭露的資訊,⑵避免專業獨占性所引起的濫權行為,⑶滿足社會工作者想要發揮專門技術的動機,⑷建立品質管制機制，有效地處理案主的問題
+3,現行的「社會工作師倫理守則」，將「案主」修正為「服務對象」，藉以：(112特五10),⑴明確專業關係與分際,⑵達到社會正義境界,⑶對被協助者去標籤化,⑷落實隱私守密原則
+2,有關社會工作師對社會工作專業的倫理守則的敘述，下列何者錯誤？(107初14),⑴社會工作師應致力提升社會工作專業形象，及服務品質，重視社會工作價值，落實倫理守則，充實社會工作知識與技術,⑵社會工作師應致力社會工作專業的傳承，依機構立場評估社會工作政策、方案的執行，促進社會福利公正合理的實踐,⑶社會工作師應致力於社會工作專業知能的發展，尊重智慧財產權，樂於分享研究成果予同僚、學生及社會大眾,⑷社會工作師應致力於促進社會工作專業制度建立，發展社會工作的各項措施與活動
+1,某個具有基督教信仰背景的非營利組織，承辦單親家庭福利服務中心時，拒絕替未婚懷孕青少女開案服務，這是落入了那一種倫理判斷的陷阱之中？(104初6),⑴價值陷阱,⑵對誰有利陷阱,⑶視情況而定陷阱,⑷普通常識和客觀的陷阱
+2,美國社會工作人員協會(NASW)於1996年發表六項當時常見的社會工作價值，下列何者未包含在內？(110_師1_20),⑴服務,⑵案主自決,⑶社會正義,⑷個人尊嚴與價值
+1,巴特利(Baretlett)提出普遍為社會工作所接受的六項價值，下列何者不在此六項之內？(105師1_3),⑴社會應有職責提供機會，讓每一個人逃避困難，達成自我實現,⑵個人有人類共同的需求，但也有個人的獨特性,⑶個人與社會是相互依賴的,⑷個人對他人負有社會責任
+4,雖然擔心會對案主或案家造成傷害，或是會危害到與案主之間的關係，但社工師在法律規範下，仍對案主希望保密的家庭暴力、兒童虐待或性侵害事件加以通報，這是基於下列那一種論點？(106障五12),⑴目的論,⑵正義論,⑶效益論,⑷義務論
+1,下列那個情況，案主的自我決定權應加以限制？(109初13),⑴青少年擬加入暴力幫派,⑵生活自理能力佳的獨居老人拒絕接受送餐服務,⑶肢體障礙高中畢業生無升學意願,⑷受暴婦女不願聲請保護令
+3,依據我國的社會工作師倫理守則，下列敘述何者錯誤？(111初14),⑴社會工作的服務紀錄應依法令及相關規範正確、客觀的記載,⑵社會工作師應具備社會工作專業技能，不斷充實自我,⑶社會工作師應致力社會福利政策的推展，增進福利服務效能，依情理公平進行福利給付與福利資源分配,⑷社會工作師接受教育、督導時應理性、自省，接納批評與建議
+3,當社會工作者與受害或被壓迫的人群、團體共同尋求社會改革，成為其倡導代言人時，表示該社會工作者重視何種專業核心價值觀？(104特四2),⑴人群關係,⑵正直,⑶公平正義,⑷服務
+1,許多國家的社會工作專業組織與國際社會工作專業組織，都制定社會工作專業倫理守則供社會工作者遵守，並且成為社會工作界討論倫理議題的核心。請問社會工作專業倫理守則大都以那種倫理學的觀點為基礎？(104師2_23),⑴義務論,⑵直覺論,⑶德行論,⑷相對論
+2,一位醫院的志工，在進出醫院社工部門時，偶然從社工人員桌上看到一個案主的資料，得知這位案主是其同學的先生，目前患有愛滋病且定期就診中。這位志工回去後帶著關切的心問候老同學，老同學才從志工口中得知先生患有愛滋病，愛滋病患者惱怒未徵求本人同意，竟然讓家人知道，故拒絕社工人員預先代為安排的各項活動參與。案例中的社工人員違反的是下列那項社會工作倫理原則？(103特四2),⑴案主自決,⑵隱私保密,⑶尊重差異,⑷事先告知
+2,下列何者並非社會工作之核心價值？(101特五11),⑴協助有需要的人群並處理社會中的各種問題,⑵教育弱勢文化順從及同化於主流文化，以強化社會之整體向心力,⑶挑戰社會當中不公平與不公義的制度,⑷尊重人們與生俱來的尊嚴與價值
+2,從倫理學理論而言，只問法律是不是可以為社會帶來最大福祉。這是屬於下列那一個觀點？(110初10),⑴行動效益主義,⑵規則效益主義,⑶行動義務主義,⑷規則義務主義
+4,在我國社會工作專業人員守則中，除了對案主的相關守則之外，其餘以對那方面相關的為最多？(100師1_32),⑴同僚,⑵機構,⑶專業,⑷社會
+1,有關社會工作倫理的敘述，下列何者正確？(107特五43),⑴維護案主利益是社會工作者的倫理責任,⑵遵守倫理是為了避免被懲戒,⑶社會工作者對機構的關係不屬於倫理的範圍,⑷督導不會涉及倫理的討論
+4,保護性社會工作者在服務個案的過程中，常遭遇許多倫理議題的挑戰。當我們站在社會工作者與個案關係的角度考量時，社會工作者下列何種作為，可能會違反社會工作的專業倫理？(113警8),⑴社會工作者必須如實地告訴個案在保護性服務中，所可能會經歷的一切,⑵社會工作者願意付出時間陪伴個案,⑶社會工作者可在其專業裁量空間內，更多地考量個案的特殊需求,⑷社會工作者以完成上級交辦職務為唯一的考量
+1,有關案主自決的敘述，下列何者正確？(108初20),⑴社會工作的基本價值,⑵社會工作者只能扮演被動角色,⑶不屬於社會工作的專業倫理,⑷無關於提升案主自尊
+3,下列何者不是在倫理抉擇時，應有的行動？(109師2_29),⑴指認可能受倫理決策影響的個人、團體和組織,⑵辨識各種倫理決策的潛在利益和危險,⑶只尋找有利於組織立場的辯護資訊,⑷指認倫理情境中各種價值、職責與倫理爭議問題
+1,對於價值觀與倫理二者關係的敘述，下列何者錯誤？(111普8),⑴倫理指的是人們認為「好」的內隱或外隱的信念；價值觀指的是人們認為「對」的或「正確」的事,⑵社會工作倫理守則來自專業的價值基礎,⑶就專業倫理與價值而言，倫理乃是行動中的價值,⑷社會工作倫理代表和社會工作責任有關的行為期待和偏好
+2,請問下列何者是社會工作的目標？(102警25),⑴連結社會工作人員需要的資源,⑵強化案主能力，有效解決問題,⑶改善網絡輸送服務,⑷發展政治立場，促進社會進步
+4,依據臺灣社會工作倫理守則，社會工作師對案主應遵守的倫理守則，不包括下列何者？(109障特四8),⑴社會工作師應以促進案主福祉為服務的優先考量,⑵社會工作師應尊重並促進案主的自我決定權,⑶社會工作師應告知案主相關權益，以利案主做出最佳的選擇,⑷社會工作師應當尊重案主付費的能力收取服務費用
+2,Lowenberg、Dolgoff與Harington提出社會工作倫理抉擇的優先順序，其認為最重要、最優先考慮的是那一項倫理原則？(112警13),⑴自主自由原則,⑵保護生命原則,⑶最小傷害原則,⑷生活品質原則
+3,下列關於社工員在保密與保障案主隱私的具體作為，何者錯誤？(104初10),⑴除非案主同意，否則不得將會談內容告知第三者,⑵社工員須謹慎保管相關紀錄，且不得隨意將案主紀錄帶出機構,⑶案主接觸紀錄反而可能會侵犯其他人的隱私，因此應該限制案主接觸紀錄的權利,⑷雖然社會工作學系的實習學生仍非專業工作人員，但在專業人員的督導下仍可被允許接觸個案資料
+4,下列何者不是Briscoe與Thomas針對社區工作者所發展出的倫理決策模式？(111特五9),⑴機構政策導向,⑵專業關係導向,⑶個案需求導向,⑷社會觀感導向
+3,下列那一種情況，最可能被視為違反社會工作倫理？(110初13),⑴兒少機構社工師收受兒童自製的一張賀年卡,⑵老人機構社工師收受長輩自種的一把蔬菜,⑶醫院社工師收受案家的一個感謝紅包,⑷身障機構社工師收受小作所學員自製的一塊餅乾
+2,社會工作者將抽象的專業價值轉變為實務原則，再將這些原則應用在特定的情境中，請問下列何項不是社會工作者的原則？(109障特四6),⑴接納,⑵評斷,⑶個別化,⑷有目的地表達感受
+4,社區庇護所是提供家庭暴力被害人及其子女一個遠離暴力威脅的服務，通常並不會主動地告知社區區民庇護所的真實情況，這是同時要維護庇護所住民與社區生活不得不的作法。請問這是屬於下列那個社會工作倫理原則？(108特四9),⑴差別平等原則,⑵保護生命原則,⑶真誠原則,⑷生活品質原則
+1,社會工作者視自己為可信任的專業人員，基於責任感而行動，覺察到自身的社會和專業使命，並在工作所在的單位和機構中提升倫理的實施。此為美國社會工作者協會(NASW)倫理守則中所描述的何種社會工作價值？(107普6),⑴正直,⑵服務,⑶能力,⑷社會正義
+4,美華是任職於青少年服務機構的社工員，該機構並沒有堅決反對墮胎。而美華自己的宗教信仰卻堅信墮胎是一件不道德的事。當有一位不小心而懷孕的少女來求助於美華，該少女明白表示想要墮胎，希望美華能協助她。美華覺得自己無法以客觀的態度處理此案，此時最好的抉擇是：(106師3_27),⑴尊重案主的決定,⑵尊重機構的政策,⑶堅持自己的信仰,⑷不要參與
+2,下列何者不屬於我國社會工作師倫理守則的範圍？(110特五39),⑴社會工作師對服務對象的倫理守則,⑵社會工作師對政治人物的倫理守則,⑶社會工作師對同仁的倫理守則,⑷社會工作師對社會大眾的倫理守則
+2,關於隱私守密的原則，下列敘述何者錯誤？(113初37),⑴隱私權為服務對象所有，服務對象有權親自或透過監護人或法律代表而決定放棄,⑵服務對象若已死亡，其隱私權利也同步消失,⑶在符合社會工作倫理及政府法規的前提下，服務對象或第三人可以聲請查閱個案社會工作紀錄,⑷社會工作師若遇及負有法律規定相關報告責任事件時，可以不遵守保密原則
+2,養護中心輕微失智老人吵著要工作人員打電話給家人希望帶他回家，工作人員推託或欺騙之，並轉移其注意力。這是屬於下列何種倫理兩難議題？(110特五41),⑴保密與保護權益,⑵案主自決與干預主義,⑶專業價值與個人價值,⑷專業價值與機構科層
+3,關於價值或倫理的敘述，下列何者錯誤？(112特四5),⑴社會工作要為行動所帶來的可能結果負責，才符合倫理,⑵符合倫理的行為，包括維護道德的義務與責任,⑶倫理與決定行為正確或錯誤的判斷無關,⑷價值會反映出偏好，並提供選擇的方向
+3,案主自決是社會工作實施中一項核心倫理價值，但社會工作學者Rothman(1989)曾提出數個觀點來質疑案主自決的至上性及效用性，不包括下列何者？(112普8),⑴案主決定的能力有限,⑵抉擇的外在限制,⑶不同倫理的考量,⑷其他價值的優先性
+4,有關倫理之敘述，下列何者錯誤？(106特四4),⑴是關於行為對或錯的一種道德信念與原則,⑵是處理何者是正當和對錯的行為之依據,⑶是引導行為的準則之一,⑷是判斷那些事情重要與否之依據
+4,下列何者行為最為符合倫理的專業關係原則？(109特五14),⑴社會工作師贈禮金祝賀甫結婚的案主,⑵具水電技師資格的案主免費替社會工作師修理家中的抽水馬達,⑶社會工作師借錢給失業的案主,⑷社會工作師注意與案主之間的身體界線
+2,當社會工作者對婚姻暴力事件的認定是介於「該事件為家務事，不需介入太多」與「應主動積極運用公權力介入處遇較好」之間，則此種價值衝突是屬於：(103特四4),⑴文化決定論與個人本能論之間的衝突,⑵傳統主義與改革變遷之間的衝突,⑶重視過程或強調結果之間的衝突,⑷個人獨立自主或相互共同性之間的衝突
+2,能知覺回應他人感受，是責難的療傷藥膏。這是下列那一個社會工作倫理原則？(107特五10),⑴個別化,⑵同理心,⑶客觀性,⑷有目的之情感表達
+3,社會工作價值觀在專業中扮演關鍵的角色，下列何者非其中之一？(103普4),⑴社會工作使命的本質,⑵社會工作者與案主、同僚、與社會等的關係,⑶社會工作者專業成本效益的考量,⑷實務工作中倫理兩難的解決
+3,有關專業倫理的定義，下列敘述何者錯誤？(113師一14),⑴一套有系統的道德或價值準則,⑵是應作為與不應作為的規範,⑶內隱或外顯的信念,⑷人們認為正確與須遵守的行為
+2,Murdach建議社會工作者宜依據案主行為產生的危險性和案主自決能力做不同程度的干涉，此干涉行為稱為：(111特五15),⑴父權干預,⑵仁慈干預,⑶授權干預,⑷彈性干預
+4,下列那一項不是Beauchamp和Childress(1979)提出的生命倫理學原則？(108師1_28),⑴自主原則,⑵善待原則,⑶正義原則,⑷誠信原則
+3,家長希望知道學生與學校社會工作者的會談內容，以了解在校問題根源。但是社會工作者認為透露資訊將對學生產生重大傷害，因此選擇不告知。請問這個判斷基於那一種倫理學主張？(104特五38),⑴義務論,⑵規則效益主義,⑶行動效益主義,⑷關懷主義
+3,下列何者不屬於社會工作的價值？(108特五12),⑴尊重個人的獨立決定,⑵相信透過努力可以改善社會制度,⑶承諾滿足案主所有需求,⑷尊重不同人口群
+2,有關臺灣社會工作師倫理守則之敘述，下列何者正確？(107師1_),⑴根據社會工作師法，社會工作倫理守則由臺灣社會工作專業人員協會訂定,⑵當個案透過監護人或法律代表放棄其隱私權，社會工作者得公開個案資訊,⑶當面臨倫理衝突時，社會工作者應以個案自我決定為最優先考量原則,⑷個案死亡之後，其隱私權之需求即消滅
+1,按照Reamer(1995)對於業務過失(malpractice)的定義，一間職能復健機構的社會工作師未經機構的案主們同意，就挪用案主的工作復健基金作為營養午餐費用，這是屬於何種業務過失？(110_師1_24),⑴瀆職,⑵濫權,⑶侵權,⑷怠職
+3,下列何者非社會工作專業倫理之目的？(108師1_25),⑴社會工作師專業服務指南,⑵提供社會對於社會工作專業信任的基礎,⑶促進中央與地方政府對於社會工作專業的重視,⑷評判社會工作實務適切與否之標準
+1,在下列各項社會工作倫理原則中，依學者Lowenberg和Dolgoff的闡述，以那一項的優先順序最高？(100師1_30),⑴差別平等原則,⑵最小傷害原則,⑶隱私守密原則,⑷生活品質原則
+1,社會工作發展中，價值觀不斷地轉變。請問下列有關社會工作價值觀取向之描述，何者比較正確？(107師2_11),⑴社會正義取向的價值觀認為資本主義的缺失和種族主義與其他形式的壓迫，產生受剝奪的低下階層。因此，必須進行基本的社會改革,⑵臨床取向的價值觀著重於對實務工作者的保護,⑶父權主義取向的價值觀認為應該依賴政府或民間的財源幫助案主過有德性、完整且豐富的生活,⑷專業自我保衛取向的價值觀強調價值衝突與倫理兩難的議題
+2,當社工人員面對倫理衝突時，正確的作為是：(111障13),⑴置入社工人員個人的價值信念，消弭衝突,⑵當有多種達成目標的方法時，應選擇服務對象的最佳權益、最少損害的方法,⑶保護服務對象的方法所造成的損害，可以與欲達成目的不相符合,⑷先表現專業權威，再尊重服務對象自我決定的權利
+2,案主告訴社工，表示他想殺了他的前任女友。經社工評估後，發現這並不是玩笑話，隨即聯繫警方保護這位可能有危險的女孩。這是依據Lowenberg與Dolgoff那項倫理抉擇原則而來的行為？(101師2_13),⑴最大程度均等自由原則,⑵保護生命原則,⑶差別平等原則,⑷最大真誠原則
+4,下列關於「倫理」發展之敘述何者正確？1絕對主義者認為可以建立普遍性原則作為倫理抉擇的基礎2規範倫理學將有關於倫理原則的理論分為義務論與目的論3目的論學者在解讀倫理議題時，會出現對所謂對(或錯)的行為之解釋有相衝突的情形4規範倫理學的義務論在解讀倫理議題時，又可分為利己主義與效益主義(108師2_21),⑴①②③④,⑵僅②③,⑶僅②③④,⑷僅①②
+1,下列社會工作者對案主倫理責任的描述，何者錯誤？(105特五7),⑴強調社會工作者的自主裁量權,⑵強調案主的自我決定權,⑶必須尊重案主的隱私,⑷必須優先考慮案主的最大利益
+3,社會工作師戮力協助受壓迫、欺凌者獲得社會安全保障，此為實踐下列那一種原則？(110障五13),⑴保護生命原則,⑵最小傷害原則,⑶社會公平正義原則,⑷生活品質原則
+1,有關社會工作師對社會大眾的倫理守則，下列敘述何者錯誤？(108特五14),⑴應促進社會民主的發展，倡導人類多元需求的滿足，促使均富社會的實現,⑵應致力於社會公益的倡導與實踐,⑶面對因災害所致社會安全緊急事件，應提供專業服務，以保障弱勢族群免於生命、身體、自由、財產的危險與意外風險,⑷應促使政府機關、民間團體及社會大眾履行社會公益，並落實案主合法權益保障
+2,社會工作師法第20條規定：社會工作師依據相關法令及專業倫理守則執行業務，當涉及訴訟時，下列敘述何者正確？(111師1_27),⑴警察機關得提供必要之安全協助,⑵所屬團體、事務所得提供必要之法律協助,⑶中央主管機關得提供必要之法律協助,⑷所屬機關（構）得提供必要之經濟協助
+1,下列何者有責任承擔倫理風險？①社工人員 ②社會組織機構 ③專業協會 ④服務對象(111障12),⑴①②③,⑵①③④,⑶①②④,⑷②③④
+1,我國現行社會工作師倫理守則主要規範下列何者？(113初11),⑴社會工作者的專業行為,⑵社會工作者的儀容,⑶社會工作者的生活作息,⑷社會工作者的家庭關係
+4,美國的社會工作倫理守則跟我國一樣強調要遵守保密原則，但如果是為了讓案主獲得更佳的服務，社會工作者將案主的資訊與他人分享，這種情況合乎下列那一個倫理概念？(102特五14),⑴強制保密,⑵部分保密,⑶絕對保密,⑷相對保密
+4,依據社會工作倫理守則，當社工人員遭遇不公平或不合倫理規範的要求時，得提出申訴。下列何者並非受理申訴的單位？(104原11),⑴各地區社會工作師公會,⑵社會工作師公會全國聯合會,⑶社會工作主管機關,⑷社會工作專業人員協會
+2,案主仍需治療，醫院卻要求案主出院，這是屬於下列何種倫理兩難？(110障五10),⑴專業與個人價值衝突,⑵專業價值與機構科層衝突,⑶自我決定與父權主義衝突,⑷專業界線與利益衝突
+2,依據Lowenberg與Dolgoff(1922)提出的「倫理原則順序表」，下列敘述何者錯誤？(111特五12),⑴最小傷害原則優於生活品質原則,⑵自由自主原則優於差別平等原則,⑶生活品質原則優於隱私守密原則,⑷隱私守密原則優於真誠原則
+1,影響個人之各種決定和行動時，常會出現某種偏好，且該偏好是基於個人各種深層的想法和承諾，此一陳述為下列何者之定義？(100普8),⑴價值觀,⑵倫理,⑶道德,⑷行為意圖
+2,Harriet Bartlett(1970)認為社會工作的核心是協助人們解決生命難題及平衡環境的要求。根據這樣的核心概念，下列所描述的社會工作基本價值何者錯誤？(109師2_5),⑴社會工作重視社會責任,⑵社會工作強調案主的適者生存能力,⑶社會工作尊重案主的獨特性,⑷社會工作協助案主朝向自我實現
+2,「少年瞞著父母買機車，要求社會工作者不能告訴父母，此時專業關係才建立，社會工作者該怎麼做？」上述情境是陷於何種倫理兩難？(100師1_31),⑴隱私守密原則與告知義務的倫理兩難,⑵自主自由原則與隱私守密原則的倫理兩難,⑶提出警告義務與隱私守密原則的倫理兩難,⑷隱私守密原則與最小傷害原則的倫理兩難
+1,有關道德相對論之主要觀點，下列何者錯誤？(113師二21),⑴因倫理之標準不一，故而需要有權力者訂定之,⑵因社會文化差異性，故而沒有普遍性倫理標準,⑶因個體生命經驗不同，故而有不同的價值,⑷因社會時代變遷，故而無法有絕對客觀的倫理標準
+3,關於價值或倫理的敘述，下列何者錯誤？(112特四5),⑴社會工作要為行動所帶來的可能結果負責，才符合倫理,⑵符合倫理的行為，包括維護道德的義務與責任,⑶倫理與決定行為正確或錯誤的判斷無關,⑷價值會反映出偏好，並提供選擇的方向
+3,社會工作的價值、知識與技術可分為「重視人」、「重視社會」、「重視專業行為」三方面。下列何者不是社會工作專業所強調的價值與技術？(103師1_23),⑴尊重多元性,⑵自我了解,⑶災變預測,⑷有效溝通
+2,以下對於「案主自決」的描述何者錯誤？(102初9),⑴案主自決是從人生而自由的哲學概念出發，衍生出的自決權利,⑵社工員尊重案主自決的基本要素是表現評斷性和接納的態度,⑶社工員在促進案主自決時應幫助案主思考和負起做決定的責任,⑷如果案主做出的決定是明顯會導致有害的結果，或侵犯他人權利時，應要積極的干預
+4,當某個社會工作者傾向認定家庭暴力的受害者應該是女性居多，而這種想法若影響了他在專業協助關係中對於服務對象的態度，則表示他受到何種價值體系的影響？(101障特四8),⑴專業倫理價值,⑵社會公義價值,⑶個人利益價值,⑷性別意識型態價值
+2,根據國際員工協助專業協會(EAPA)研究，下列何者不是員工協助方案的價值？(105障49),⑴吸引優秀人才提升士氣,⑵降低留職率,⑶減少失能請求上的浪費,⑷增進人力資本與健康儲金
+2,以「福利保護取代刑事懲罰」，是社會工作對於何種服務對象的價值取向？(103障17),⑴受刑人與犯罪者家屬,⑵未成年犯罪者,⑶假釋犯罪者,⑷緩刑、緩起訴犯罪者
+4,現行的社會工作倫理守則，由那一個機關或團體所訂定？(111師1_1),⑴立法院,⑵臺灣社會工作專業人員協會,⑶台灣社會工作教育學會,⑷中華民國社會工作師公會聯合會
+2,社會工作者因為履行那一種倫理責任，而可以合理地行使對案主服務的專業裁量權？(100初48),⑴尊重案主自我決定,⑵善盡告知或知後同意,⑶保密與保障隱私,⑷提供適當介入
+`;
+
+        let allQuestions = [];
+        let currentQuizQuestions = [];
+        let userAnswers = {};
+        let currentQuestionIndex = 0;
+        let timerInterval;
+        let seconds = 0;
+
+        // Helper function to shuffle an array
+        const shuffleArray = (array) => {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        };
+
+        // Parse the raw text data into a structured question bank
+        const parseData = () => {
+             const lines = rawData.trim().split('\n').filter(line => line.trim() !== '');
+            
+            allQuestions = lines.map((line, index) => {
+                const parts = line.split(',');
+                if (parts.length < 3) {
+                    console.error(`Skipping invalid line ${index + 1}:`, line);
+                    return null;
+                }
+
+                const answerIndex = parseInt(parts[0], 10) - 1;
+                const questionPart = parts[1];
+                
+                const qMatch = questionPart.match(/(.*)(\(.*\))/);
+                const questionText = qMatch ? qMatch[1].trim() : questionPart.trim();
+                const source = qMatch ? qMatch[2] : '';
+                
+                const options = parts.slice(2).map(opt => opt.substring(1).trim());
+                
+                if (isNaN(answerIndex) || answerIndex < 0 || answerIndex >= options.length) {
+                    console.error(`Parsing error on line ${index + 1} (Invalid Answer Index):`, line);
+                    return null;
+                }
+                const answer = options[answerIndex];
+
+                return { id: index, question: questionText, source, options, answer };
+            }).filter(q => q !== null);
+        };
+
+        // Functions to manage UI visibility
+        const showScreen = (screenId) => {
+            ['start-screen', 'quiz-screen', 'results-screen'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById(screenId).classList.remove('hidden');
+        };
+
+        const formatTime = (totalSeconds) => {
+            const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+            const seconds = (totalSeconds % 60).toString().padStart(2, '0');
+            return `${minutes}:${seconds}`;
+        };
+
+        const startTimer = () => {
+            seconds = 0;
+            document.getElementById('timer').textContent = formatTime(seconds);
+            timerInterval = setInterval(() => {
+                seconds++;
+                document.getElementById('timer').textContent = formatTime(seconds);
+            }, 1000);
+        };
+        
+        // Main function to start the quiz
+        const startQuiz = (numQuestions) => {
+            userAnswers = {};
+            currentQuestionIndex = 0;
+            
+            const shuffled = shuffleArray([...allQuestions]);
+            currentQuizQuestions = shuffled.slice(0, numQuestions);
+            currentQuizQuestions.forEach(q => {
+                q.options = shuffleArray([...q.options]);
+            });
+
+            showScreen('quiz-screen');
+            renderQuestion(currentQuestionIndex);
+            startTimer();
+        };
+
+        // Render a single question on the screen
+        const renderQuestion = (index) => {
+            const question = currentQuizQuestions[index];
+            document.getElementById('question-text').textContent = question.question;
+            document.getElementById('question-source').textContent = question.source;
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            question.options.forEach((option, i) => {
+                const optionId = `q${index}_opt${i}`;
+                const checked = userAnswers[index] === option ? 'checked' : '';
+                optionsContainer.innerHTML += `
+                    <div class="macaron-option rounded-lg">
+                        <input type="radio" name="q${index}" id="${optionId}" value="${option}" class="hidden" ${checked} onchange="selectAnswer(${index}, '${option}')">
+                        <label for="${optionId}" class="block w-full text-left p-4 text-xl rounded-lg cursor-pointer">
+                            ${option}
+                        </label>
+                    </div>
+                `;
+            });
+
+            document.getElementById('progress').textContent = `第 ${index + 1} / ${currentQuizQuestions.length} 題`;
+            document.getElementById('prev-btn').style.visibility = index === 0 ? 'hidden' : 'visible';
+            document.getElementById('next-btn').style.display = index === currentQuizQuestions.length - 1 ? 'none' : 'block';
+            document.getElementById('submit-btn').style.display = index === currentQuizQuestions.length - 1 ? 'block' : 'none';
+        };
+
+        const selectAnswer = (index, answer) => {
+            userAnswers[index] = answer;
+        };
+
+        const prevQuestion = () => {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuestion(currentQuestionIndex);
+            }
+        };
+
+        const nextQuestion = () => {
+            if (currentQuestionIndex < currentQuizQuestions.length - 1) {
+                currentQuestionIndex++;
+                renderQuestion(currentQuestionIndex);
+            }
+        };
+        
+        const submitQuiz = () => {
+            clearInterval(timerInterval);
+            showScreen('results-screen');
+            renderResults();
+        };
+
+        const renderResults = () => {
+            let score = 0;
+            currentQuizQuestions.forEach((q, i) => {
+                if (userAnswers[i] === q.answer) {
+                    score++;
+                }
+            });
+
+            document.getElementById('score').textContent = `你的分數: ${score} / ${currentQuizQuestions.length}`;
+            document.getElementById('time-taken').textContent = `測驗時間: ${formatTime(seconds)}`;
+
+            const detailsContainer = document.getElementById('details-section');
+            detailsContainer.innerHTML = '';
+
+            currentQuizQuestions.forEach((q, i) => {
+                const userAnswer = userAnswers[i] || "未作答";
+                const isCorrect = userAnswer === q.answer;
+                
+                detailsContainer.innerHTML += `
+                    <div class="p-5 rounded-lg border macaron-card">
+                        <p class="text-xl font-semibold mb-3">${i + 1}. ${q.question} <span class="text-sm text-gray-500">${q.source}</span></p>
+                        <p class="p-3 rounded-md ${isCorrect ? 'correct-answer' : 'incorrect-answer'}">你的答案：${userAnswer}</p>
+                        ${!isCorrect ? `<p class="p-3 mt-2 rounded-md correct-answer">正確答案：${q.answer}</p>` : ''}
+                    </div>
+                `;
+            });
+        };
+        
+        // Functions to download results as PDF or CSV
+        const downloadResults = async (format) => {
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const filename = `social-work-ethics-quiz-results-${timestamp}`;
+
+            if (format === 'pdf') {
+                 try {
+                    const { jsPDF } = window.jspdf;
+                    const pdf = new jsPDF('p', 'mm', 'a4');
+                    const content = document.getElementById('results-screen');
+                    
+                    pdf.setFont('helvetica'); // Using a standard font
+                    pdf.setFontSize(20);
+                     // Using a placeholder text as jsPDF has issues with unicode without proper fonts
+                    pdf.text('Quiz Results', 105, 20, null, null, 'center');
+                    
+                    const canvas = await html2canvas(content, { 
+                        scale: 2,
+                        useCORS: true, 
+                        allowTaint: true 
+                    });
+                    const imgData = canvas.toDataURL('image/png');
+                    const imgProps= pdf.getImageProperties(imgData);
+                    const pdfWidth = pdf.internal.pageSize.getWidth() - 20; // with margin
+                    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+                    
+                    pdf.addImage(imgData, 'PNG', 10, 30, pdfWidth, pdfHeight);
+                    pdf.save(`${filename}.pdf`);
+                } catch (e) {
+                    console.error("Error generating PDF:", e);
+                    alert("抱歉，PDF下載功能目前無法使用。請嘗試下載CSV或截圖保存。");
+                }
+            } else if (format === 'csv') {
+                let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; // \uFEFF for BOM
+                csvContent += "題號,題目,你的答案,正確答案\n";
+
+                currentQuizQuestions.forEach((q, i) => {
+                    const userAnswer = userAnswers[i] || "未作答";
+                    const row = [
+                        i + 1,
+                        `"${q.question.replace(/"/g, '""')}"`,
+                        `"${userAnswer.replace(/"/g, '""')}"`,
+                        `"${q.answer.replace(/"/g, '""')}"`
+                    ].join(',');
+                    csvContent += row + "\r\n";
+                });
+
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", `${filename}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        };
+
+        // Initialize the app when the page loads
+        window.onload = () => {
+            parseData();
+        };
+    </script>
+</body>
+</html>
