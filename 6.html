@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>社會工作理論(三) 題庫測驗</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Include jsPDF and html2canvas for PDF export functionality -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles for the macaron color theme and overall look */
+        body {
+            background-color: #FEFBF6; /* Creamy background */
+            font-family: 'Noto Sans TC', sans-serif;
+            color: #5C5470; /* Muted purple text */
+        }
+        .macaron-card {
+            background-color: #FAF0E4; /* Soft peach card */
+            border: 1px solid #E4D5C7;
+        }
+        .macaron-btn {
+            background-color: #B2D8B2; /* Pistachio green */
+            color: #354F52;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        .macaron-btn:hover {
+            background-color: #A1C7A1; /* Darker pistachio */
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .macaron-option {
+            background-color: #FFFFFF;
+            border: 2px solid #EAD7D7; /* Soft pink border */
+            transition: all 0.3s ease;
+        }
+        .macaron-option:hover {
+            border-color: #B2D8B2; /* Pistachio green on hover */
+            background-color: #F7FDF7;
+        }
+        .macaron-option input:checked + label {
+            border-color: #79A379;
+            background-color: #E9F5E9;
+            font-weight: 500;
+        }
+        .correct-answer {
+            background-color: #D4EDDA !important; /* Light green for correct */
+            border-color: #C3E6CB !important;
+        }
+        .incorrect-answer {
+            background-color: #F8D7DA !important; /* Light red for incorrect */
+            border-color: #F5C6CB !important;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <div id="app-container" class="w-full max-w-4xl mx-auto">
+        <!-- Start Screen: Visible by default -->
+        <div id="start-screen" class="text-center p-8 sm:p-12 macaron-card rounded-2xl shadow-lg">
+            <h1 class="text-4xl sm:text-5xl font-bold mb-2 text-[#354F52]">社會工作理論(三)</h1>
+            <p class="text-lg sm:text-xl mb-8 text-[#5C5470]">(從總題庫抽出40題)</p>
+            <p class="text-xl mb-6">請選擇測驗題數：</p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <button onclick="startQuiz(5)" class="macaron-btn text-2xl py-4 px-10 rounded-full shadow-md">5 題</button>
+                <button onclick="startQuiz(10)" class="macaron-btn text-2xl py-4 px-10 rounded-full shadow-md">10 題</button>
+            </div>
+        </div>
+
+        <!-- Quiz Screen: Hidden by default -->
+        <div id="quiz-screen" class="hidden p-6 sm:p-10 macaron-card rounded-2xl shadow-lg">
+            <div class="flex justify-between items-center mb-6">
+                <div id="progress" class="text-xl font-bold">第 1 / 10 題</div>
+                <div id="timer" class="text-2xl font-bold text-[#354F52]">00:00</div>
+            </div>
+            <div id="question-container" class="mb-8">
+                <h2 id="question-text" class="text-2xl sm:text-3xl font-semibold mb-2"></h2>
+                <p id="question-source" class="text-sm text-gray-500 mb-6"></p>
+                <div id="options-container" class="space-y-4"></div>
+            </div>
+            <div class="flex justify-between mt-8">
+                <button id="prev-btn" onclick="prevQuestion()" class="macaron-btn text-lg py-3 px-8 rounded-full">上一頁</button>
+                <button id="next-btn" onclick="nextQuestion()" class="macaron-btn text-lg py-3 px-8 rounded-full">下一頁</button>
+                <button id="submit-btn" onclick="submitQuiz()" class="hidden macaron-btn text-lg bg-[#E8A0A0] hover:bg-[#D78F8F] text-white py-3 px-8 rounded-full">繳交</button>
+            </div>
+        </div>
+
+        <!-- Results Screen: Hidden by default -->
+        <div id="results-screen" class="hidden p-6 sm:p-10 macaron-card rounded-2xl shadow-lg">
+            <div id="summary-section" class="text-center mb-8">
+                <h2 class="text-4xl font-bold mb-4">測驗完成！</h2>
+                <p id="score" class="text-3xl mb-2"></p>
+                <p id="time-taken" class="text-xl mb-6"></p>
+                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <button onclick="downloadResults('pdf')" class="macaron-btn text-lg py-3 px-6 rounded-full">下載 PDF</button>
+                    <button onclick="downloadResults('csv')" class="macaron-btn text-lg py-3 px-6 rounded-full">下載 CSV</button>
+                    <button onclick="window.location.reload()" class="macaron-btn text-lg py-3 px-6 rounded-full">再測一次</button>
+                </div>
+            </div>
+            <div id="details-section" class="space-y-6">
+                <!-- Detailed results will be injected here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // The entire application logic is contained within this script tag.
+        
+        const rawData = `
+2,精神醫療社會工作早期以病理取向為主，近期轉變為強調優勢取向。請問優勢取向對精神治療與康復之看法，下列何者正確？(109師2_25),⑴精神疾病的治療最重要的是藥物治療，精神病患必須完全遵從醫囑,⑵精神病患和普通人一樣有正常的需求、能力和潛能,⑶專業人員在精神疾病的治療和康復中是具有權威和力量，只有專業人員才真正了解精神病患的需要,⑷社區民眾的角色不重要，因為只有當精神病患不斷服藥和接受訓練時，才能回歸社區
+3,下列社會工作理論或觀點對人的問題的敘述，何者正確？(105師1_30),⑴心理暨社會學派傾向認為人的問題全部來自早期未竟事宜所引發的內在心理衝突與自我防衛機轉失靈,⑵生態系統觀點傾向認為人的問題來自非理性的信念與不良的自我功能,⑶增強權能觀點傾向認為人的問題來自長期負面評價所帶來的個人心理無力感，及優勢團體壓迫所帶來的機會剝奪,⑷社會網絡處遇學派傾向認為人的問題來自資本主義政治經濟結構對於弱勢群體所帶來的不公
+4,Turner(1986)認為社會工作者在實務工作中強調理論的可運用性，可能會面臨的挑戰：①不重視個別化 ②過度強調分類 ③缺乏彈性 ④與人文取向為基礎的實務工作一致(114師一11),⑴①②④,⑵①③④,⑶②③④,⑷①②③
+3,有關靈性(spirituality)觀點在社會工作的運用，下列敘述何者正確？①社會工作強調身、心、靈、社會的全人關懷理念 ②社會工作專業早在19世紀末興起時，已經和宗教與靈性產生密切關係③社會工作的靈性觀點強調一種物質的世界 ④強調身、心、靈及社會彼此間的關係(113師一25),⑴①②③,⑵②③④,⑶①②④,⑷①③④
+3,關於增權(empowerment)對於社會工作實務的意義，下列敘述何者錯誤？(110_師1_5),⑴重視案主的優勢與能力,⑵強調社會工作者和案主的合作關係,⑶增強個人與家庭的權力整合,⑷對結構的批判性反思
+2,社會工作的處遇方式，近年來強調對案主「empowerment」，這個字的意思是：(103警16),⑴自決,⑵充權,⑶機會,⑷診斷
+1,有關個人復原力，下列敘述何者正確？①復原力是一個動態的過程，是一種良好的適應，是一種個人力量的恢復②從結構的觀點來看，復原力是個人處於社會結構的結果③社會工作者必須以建構保護因子為目標，培養弱勢者的復原力④復原力主要是個人先天具備的某些能力特質，而非後天環境重要因素所培育而成(112師二27),⑴①②③,⑵①③④,⑶②③④,⑷①②④
+4,有關優勢觀點的社會工作實務，下列敘述何者錯誤？(108師2_20),⑴與服務使用者協力工作,⑵採取樂觀的態度,⑶建立在成功經驗的基礎上,⑷社會工作者是問題解決的專家
+2,敘事治療(narrative therapy)被認為是利用後現代理論觀點於社會工作實務的重要方式，其在實務運用上的四個原則，下列何者不在其中？(103師1_10),⑴把焦點放在形成服務使用者生活的敘事和描述,⑵把焦點放在協助個人面對問題、解決問題,⑶用生存、勇氣、責任和積極抵抗來重新建構自己的生命故事,⑷與案主形成平等且尊重的夥伴關係
+3,下列與優勢觀點有關的敘述，何者錯誤？(101特四17),⑴社會工作專業主張優勢觀點，與刑事司法體系強調社會控制與懲罰的目標衝突,⑵優勢觀點運用在刑事司法體系上的首要目標是預防、處遇和矯治,⑶在監獄當中運用優勢警力是有效的嚇阻策略,⑷應提供受刑人有效治療、教育機會和工作技巧訓練的管道
+3,Barbara Solomon在1976年出版的「Black Empowerment：Social Work in Oppressed Communities」書中開始使用「增強權能」這個名詞。下列那一個概念不是她書中主要的概念？(103師2_5),⑴無力感,⑵制度性種族主義,⑶高層次的同理心,⑷壓迫與疏離
+3,優勢社會工作觀點的學者Rapp(2006)提出實務運作發展的6個假設，下列何者錯誤？(106師3_24),⑴個人有能力去學習、成長和改變,⑵處遇的焦點在於個人的優點，而非病理,⑶社工是助人關係的指導者,⑷社區是一個資源的綠洲
+1,學者Healy，K.(2005)提出三項觀點說明「理論建構」在社會工作專業發展的位置，下列何者錯誤？(108師1_11),⑴社會工作者無暇發展實務研究，可直觀地運用經驗處遇,⑵社會工作者必須向服務使用者與經費提供者負責,⑶社會工作者必須能不斷改善服務品質,⑷社會工作者有責任去參與專業理論的發展，以促進專業不斷進步
+2,如果你/妳採用增強權能理論與弱勢案主工作，下列何者不是你/妳的工作取向的基本假設？(104師2_16),⑴與案主建立協同的夥伴關係,⑵案主的問題源自於社會功能障礙,⑶認為案主是一個有能力且有價值的人,⑷案主問題源於無力感以致無法與環境交流、實現自己
+2,下列何者不是Solomon在1976年提出的增強權能干預的元素？(105師1_13),⑴協助案主體認自己是自己問題的改變媒介,⑵協助案主體認社會工作者的知識和技術是具有專業性的,⑶協助案主體認社會工作者只是其努力解決問題的夥伴,⑷協助案主體認無力感其實是可以被影響而改變的
+1,下列那個概念及工作方法是最早提出的？(113普10),⑴增權,⑵焦點解決,⑶正向心理學,⑷敘事治療
+2,實踐「個人和政治權力的啟動，獲致感覺個人有能力和肯定自己的經驗，並進而能獲取機會、連結資源、採取行動以對抗社會控制」等主張，最接近下列那一個社會工作理論觀點？(103師1_24),⑴生態系統理論,⑵充權與倡導觀點,⑶心理及社會學派,⑷多元文化觀點
+4,優勢觀點為社會工作經常運用原則，請問以下敘述何者錯誤？(106師1_38),⑴挑戰可能帶來威脅，但也可能是機會來源,⑵透過專業人員與案主共同合作，案主方能獲得最好的服務,⑶每個個人、團體和社區都有其優勢,⑷評量環境中的情境與個人
+1,有關優勢觀點的理論假設，下列何者正確？1每個人都有優勢2社會工作者要促進個人對制度壓迫的覺察3童年經驗會決定個人如何反應4人在面對逆境時通常會展現復原力5服務使用者有能力決定什麼是對他們最好的(109師1_19),⑴145,⑵124,⑶125,⑷123
+1,下列何者屬於「間接權能障礙」？(112師二18),⑴貧窮者被標籤為福利依賴者,⑵案主所需的醫療資源不足,⑶限制案家取得生活扶助的資格,⑷案主的童年創傷沒有被處理
+4,增強權能(empowerment)是一種歷程，目的在協助服務對象取得決定權與行動權。對於此歷程的介入策略之敘述，下列何者錯誤？(114師一19),⑴發展個人與人連結的能力來抵抗制度性壓迫,⑵鼓勵服務對象透過社會互動促進更多的個人與人際權能,⑶增進服務對象因應與改變環境的技巧,⑷協助服務對象爭取生活資源
+1,有關優勢觀點，下列敘述何者錯誤？(106師1_39),⑴Rapp(1998)指出優勢觀點的三大基本優勢為能力(competencies)、自信(confidence)和自我抉擇能力(self-determination),⑵案主在面對逆境時的勇氣和復原力，教導我們人性的可貴,⑶此模式肯定人類內在的智慧和蛻變的能力,⑷此模式重點在於案主看其問題與處境的視野改變，超越問題，看到改變的可能性
+2,有關家庭復原力(family resilience)的敘述，下列何者正確？(110_師2_19),⑴復原力的展現必須是在面對重大家庭逆境時才會出現,⑵家庭信念系統是家庭復原力的核心,⑶家庭成員要能儘量表達對彼此真實的不滿,⑷具有復原力的家庭是無壓力的
+3,增權觀點在美國的起源跟下列那一個族群密切相關？(108師1_17),⑴低收入戶,⑵心理疾病患者,⑶少數民族,⑷老人
+3,「優勢觀點」(strengths perspective)的核心理念，下列何者錯誤？(106特五2),⑴肯定與促進服務對象的能力,⑵在個人生態脈絡中產生復原力,⑶以角色示範來增進服務對象的角色學習,⑷讓服務對象產生有資源感
+3,優勢觀點的敘述，下列何者正確？1優勢觀點的發源地來自西歐的英國 2優勢觀點與焦點解決有強烈的相關性 3優勢觀點強調探索案主未來的可能性 4優勢觀點強調個人不是問題(111師1_19),⑴123,⑵124,⑶234,⑷134
+3,學者Bernard指出具有「復原力」的兒童擁有四種能力，下列何者錯誤？(108師2_3),⑴社會能力,⑵問題解決能力,⑶依賴能力,⑷對未來具有目標感
+4,下列何者不是後現代社會工作的觀點？(105師1_14),⑴強調實務知識是由社會工作者和案主互動過程中創造出來的,⑵強調情境參與者的直觀，透過社會論述可建構知識,⑶強調所有參與者是平權的，因此社會工作者應抱持謙虛的態度,⑷強調社會工作評量是一個了解問題和情境的過程，因此陪伴案主尋找自己內在的問題，使治療更有效能
+3,下列有關「充權」理論的敘述，何者錯誤？(107師2_15),⑴充權在社會工作領域中，代表的是協助案主在其生活歷程中獲得力量與權力,⑵充權的引導原則中，其中一種方式便是將重點放在檢視案主的優勢方面,⑶充權主要的焦點只在於消除壓迫案主之環境因素，而非案主個人能力的提升,⑷在充權的過程中，案主必須先相信自己有能力為自己做某些事情，而後才能為自己的生活及生活以外的事件，增加主導與控制權
+1,「優勢觀點」已獲得社會工作實務界之認可與運用，但此觀點的限制為何？(111師2_21),⑴忽略結構面所帶來的壓迫,⑵忽略個案的學習能力,⑶忽視社區所潛藏的資源,⑷忽視社會工作者與個案的合作關係
+1,有關美國衛生及公共服務部(Department of Health and Human Services)提出復原概念的十大原則，不包括下列何種原則？(112師二36),⑴直線的過程(Linear),⑵全人關懷(Holistic),⑶以個人及個體為本(Individualized and Person Centered),⑷自我取向(Self Direction)
+3,下列何者為採優勢觀點個案管理者的任務？1協助案主覺察其問題的成因2促進案主澄清與確定目標3增強案主運用自然資源4協助案主確認其目標的意義與重要性(104師1_37),⑴1234,⑵僅123,⑶僅234,⑷僅134
+2,社會工作者應與身障者建立「充權」的專業關係，下列何者不適用於「充權」敘述？(103師1_20),⑴案主自決的倫理原則是促進社會融合的先決條件，應該視身障者為專家,⑵應依據過去的服務紀錄來判斷身障者的需求，而非只是聽從身障者自己的想法,⑶擴大身障者在日常生活中的選擇機會，提供積極復健計畫以增加自主與獨立,⑷體會身障者被邊緣化與烙印的感受，協助其面對與家人和社區的社會互動
+4,有關後現代敘事治療的主要論點，下列何者正確？(109師1_20),⑴社會工作者必須關注對服務使用者產生阻礙的結構和文化議題,⑵社會工作者必須採取樂觀和正向態度質疑病理的論述,⑶個人必須覺察社會壓迫的形式和權力流動,⑷自身與他人建構出來的敘述可以形塑人們的經驗，以及對自我的覺察和生命的選擇
+4,所謂「優勢觀點」(strengths perspective)的社會工作模型，其核心概念不包含以下那一點？(100師1_19),⑴發現並協助案主發掘潛在的資源,⑵聚焦於案主的優勢,⑶肯定及促進案主的能力,⑷協助案主發現問題比解決其問題重要
+3,「充權」案主是社會工作者的工作目標，下列何者屬於案主消權？①與拒絕申請保護令案主，討論返家後續安全計畫 ②說服從事季節性工作案主，接受職訓找薪水穩定的工作 ③與獨居老人討論安裝緊急救援系統，以降低獨居風險 ④說服未婚懷孕青少女要出養嬰兒，才能接續完成高中學業(113師一13),⑴①②,⑵③④,⑶②④,⑷①③
+1,根據所羅門(Solomon，1976)的觀點，社會工作者在運用增權觀點時，應具備下列那一條件？(111師2_18),⑴能協助案主看到他本身即為有助於問題改變的一個力量,⑵能協助案主無條件接受社會工作者所具備的知識與技巧,⑶幫案主抵抗外在的威脅,⑷能協助案主順服社會工作者，以做為啟動問題解決的核心
+1,佛雷勒(Freire)提出增權的倡導策略，屬於下列何種類型？(112師一4),⑴廣義的社會教育,⑵廣義的社會運動,⑶廣義的社會革命,⑷廣義的社會秩序
+3,強調看見案主身處的壓迫情境、追溯被壓迫團體的社會歷史、看見階級、種族、性別等歧視的交互作用，讓人們管理、控制他們對需求和資源的定義。下列何者最符合此項定義的社會工作理論？(104師2_12),⑴基變社會工作,⑵多元文化主義,⑶增強權能理論,⑷生態系統理論
+1,請問下列何者並非增強權能觀點社會工作取向的基本假設？(106師2_21),⑴承諾保護個人免於受剝削或壓迫,⑵個人經驗深切且無力感，以致無法與環境交流實現自己,⑶權能可以透過社會互動增加衍生更多的權能,⑷案主被視為有能力、有價值的個人
+`;
+
+        let allQuestions = [];
+        let currentQuizQuestions = [];
+        let userAnswers = {};
+        let currentQuestionIndex = 0;
+        let timerInterval;
+        let seconds = 0;
+
+        // Helper function to shuffle an array
+        const shuffleArray = (array) => {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        };
+
+        // Parse the raw text data into a structured question bank
+        const parseData = () => {
+             const lines = rawData.trim().split('\n').filter(line => line.trim() !== '');
+            
+            allQuestions = lines.map((line, index) => {
+                const parts = line.split(',');
+                if (parts.length < 3) {
+                    console.error(`Skipping invalid line ${index + 1}:`, line);
+                    return null;
+                }
+
+                const answerIndex = parseInt(parts[0], 10) - 1;
+                const questionPart = parts[1];
+                
+                const qMatch = questionPart.match(/(.*)(\(.*\))/);
+                const questionText = qMatch ? qMatch[1].trim() : questionPart.trim();
+                const source = qMatch ? qMatch[2] : '';
+                
+                const options = parts.slice(2).map(opt => opt.substring(1).trim());
+                
+                if (isNaN(answerIndex) || answerIndex < 0 || answerIndex >= options.length) {
+                    console.error(`Parsing error on line ${index + 1} (Invalid Answer Index):`, line);
+                    return null;
+                }
+                const answer = options[answerIndex];
+
+                return { id: index, question: questionText, source, options, answer };
+            }).filter(q => q !== null);
+        };
+
+        // Functions to manage UI visibility
+        const showScreen = (screenId) => {
+            ['start-screen', 'quiz-screen', 'results-screen'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById(screenId).classList.remove('hidden');
+        };
+
+        const formatTime = (totalSeconds) => {
+            const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+            const seconds = (totalSeconds % 60).toString().padStart(2, '0');
+            return `${minutes}:${seconds}`;
+        };
+
+        const startTimer = () => {
+            seconds = 0;
+            document.getElementById('timer').textContent = formatTime(seconds);
+            timerInterval = setInterval(() => {
+                seconds++;
+                document.getElementById('timer').textContent = formatTime(seconds);
+            }, 1000);
+        };
+        
+        // Main function to start the quiz
+        const startQuiz = (numQuestions) => {
+            userAnswers = {};
+            currentQuestionIndex = 0;
+            
+            const shuffled = shuffleArray([...allQuestions]);
+            currentQuizQuestions = shuffled.slice(0, numQuestions);
+            currentQuizQuestions.forEach(q => {
+                q.options = shuffleArray([...q.options]);
+            });
+
+            showScreen('quiz-screen');
+            renderQuestion(currentQuestionIndex);
+            startTimer();
+        };
+
+        // Render a single question on the screen
+        const renderQuestion = (index) => {
+            const question = currentQuizQuestions[index];
+            document.getElementById('question-text').textContent = question.question;
+            document.getElementById('question-source').textContent = question.source;
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            question.options.forEach((option, i) => {
+                const optionId = `q${index}_opt${i}`;
+                const checked = userAnswers[index] === option ? 'checked' : '';
+                optionsContainer.innerHTML += `
+                    <div class="macaron-option rounded-lg">
+                        <input type="radio" name="q${index}" id="${optionId}" value="${option}" class="hidden" ${checked} onchange="selectAnswer(${index}, `'${option.replace(/'/g, "\\'")}'`)">
+                        <label for="${optionId}" class="block w-full text-left p-4 text-xl rounded-lg cursor-pointer">
+                            ${option}
+                        </label>
+                    </div>
+                `;
+            });
+
+            document.getElementById('progress').textContent = `第 ${index + 1} / ${currentQuizQuestions.length} 題`;
+            document.getElementById('prev-btn').style.visibility = index === 0 ? 'hidden' : 'visible';
+            document.getElementById('next-btn').style.display = index === currentQuizQuestions.length - 1 ? 'none' : 'block';
+            document.getElementById('submit-btn').style.display = index === currentQuizQuestions.length - 1 ? 'block' : 'none';
+        };
+
+        const selectAnswer = (index, answer) => {
+            userAnswers[index] = answer;
+        };
+
+        const prevQuestion = () => {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuestion(currentQuestionIndex);
+            }
+        };
+
+        const nextQuestion = () => {
+            if (currentQuestionIndex < currentQuizQuestions.length - 1) {
+                currentQuestionIndex++;
+                renderQuestion(currentQuestionIndex);
+            }
+        };
+        
+        const submitQuiz = () => {
+            clearInterval(timerInterval);
+            showScreen('results-screen');
+            renderResults();
+        };
+
+        const renderResults = () => {
+            let score = 0;
+            currentQuizQuestions.forEach((q, i) => {
+                if (userAnswers[i] === q.answer) {
+                    score++;
+                }
+            });
+
+            document.getElementById('score').textContent = `你的分數: ${score} / ${currentQuizQuestions.length}`;
+            document.getElementById('time-taken').textContent = `測驗時間: ${formatTime(seconds)}`;
+
+            const detailsContainer = document.getElementById('details-section');
+            detailsContainer.innerHTML = '';
+
+            currentQuizQuestions.forEach((q, i) => {
+                const userAnswer = userAnswers[i] || "未作答";
+                const isCorrect = userAnswer === q.answer;
+                
+                detailsContainer.innerHTML += `
+                    <div class="p-5 rounded-lg border macaron-card">
+                        <p class="text-xl font-semibold mb-3">${i + 1}. ${q.question} <span class="text-sm text-gray-500">${q.source}</span></p>
+                        <p class="p-3 rounded-md ${isCorrect ? 'correct-answer' : 'incorrect-answer'}">你的答案：${userAnswer}</p>
+                        ${!isCorrect ? `<p class="p-3 mt-2 rounded-md correct-answer">正確答案：${q.answer}</p>` : ''}
+                    </div>
+                `;
+            });
+        };
+        
+        // Functions to download results as PDF or CSV
+        const downloadResults = async (format) => {
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const filename = `social-work-theory-part3-quiz-results-${timestamp}`;
+
+            if (format === 'pdf') {
+                 try {
+                    const { jsPDF } = window.jspdf;
+                    const pdf = new jsPDF('p', 'mm', 'a4');
+                    const content = document.getElementById('results-screen');
+                    
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.setFontSize(20);
+                    pdf.text('測驗結果', 105, 20, null, null, 'center');
+                    
+                    const canvas = await html2canvas(content, { 
+                        scale: 2,
+                        useCORS: true, 
+                        allowTaint: true 
+                    });
+                    const imgData = canvas.toDataURL('image/png');
+                    const imgProps= pdf.getImageProperties(imgData);
+                    const pdfWidth = pdf.internal.pageSize.getWidth() - 20; // with margin
+                    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+                    
+                    pdf.addImage(imgData, 'PNG', 10, 30, pdfWidth, pdfHeight);
+                    pdf.save(`${filename}.pdf`);
+                } catch (e) {
+                    console.error("Error generating PDF:", e);
+                    alert("抱歉，PDF下載功能目前無法使用。請嘗試下載CSV或截圖保存。");
+                }
+            } else if (format === 'csv') {
+                let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; // BOM for UTF-8
+                csvContent += "題號,題目,你的答案,正確答案\n";
+
+                currentQuizQuestions.forEach((q, i) => {
+                    const userAnswer = userAnswers[i] || "未作答";
+                    const row = [
+                        i + 1,
+                        `"${q.question.replace(/"/g, '""')}"`,
+                        `"${userAnswer.replace(/"/g, '""')}"`,
+                        `"${q.answer.replace(/"/g, '""')}"`
+                    ].join(',');
+                    csvContent += row + "\r\n";
+                });
+
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", `${filename}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        };
+
+        // Initialize the app when the page loads
+        window.onload = () => {
+            parseData();
+        };
+    </script>
+</body>
+</html>
