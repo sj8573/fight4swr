@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>社會工作理論(一) 題庫測驗</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Include jsPDF and html2canvas for PDF export functionality -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles for the macaron color theme and overall look */
+        body {
+            background-color: #FEFBF6; /* Creamy background */
+            font-family: 'Noto Sans TC', sans-serif;
+            color: #5C5470; /* Muted purple text */
+        }
+        .macaron-card {
+            background-color: #FAF0E4; /* Soft peach card */
+            border: 1px solid #E4D5C7;
+        }
+        .macaron-btn {
+            background-color: #B2D8B2; /* Pistachio green */
+            color: #354F52;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        .macaron-btn:hover {
+            background-color: #A1C7A1; /* Darker pistachio */
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .macaron-option {
+            background-color: #FFFFFF;
+            border: 2px solid #EAD7D7; /* Soft pink border */
+            transition: all 0.3s ease;
+        }
+        .macaron-option:hover {
+            border-color: #B2D8B2; /* Pistachio green on hover */
+            background-color: #F7FDF7;
+        }
+        .macaron-option input:checked + label {
+            border-color: #79A379;
+            background-color: #E9F5E9;
+            font-weight: 500;
+        }
+        .correct-answer {
+            background-color: #D4EDDA !important; /* Light green for correct */
+            border-color: #C3E6CB !important;
+        }
+        .incorrect-answer {
+            background-color: #F8D7DA !important; /* Light red for incorrect */
+            border-color: #F5C6CB !important;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <div id="app-container" class="w-full max-w-4xl mx-auto">
+        <!-- Start Screen: Visible by default -->
+        <div id="start-screen" class="text-center p-8 sm:p-12 macaron-card rounded-2xl shadow-lg">
+            <h1 class="text-4xl sm:text-5xl font-bold mb-2 text-[#354F52]">社會工作理論(一)</h1>
+            <p class="text-lg sm:text-xl mb-8 text-[#5C5470]">(從總題庫抽出50題)</p>
+            <p class="text-xl mb-6">請選擇測驗題數：</p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <button onclick="startQuiz(5)" class="macaron-btn text-2xl py-4 px-10 rounded-full shadow-md">5 題</button>
+                <button onclick="startQuiz(10)" class="macaron-btn text-2xl py-4 px-10 rounded-full shadow-md">10 題</button>
+            </div>
+        </div>
+
+        <!-- Quiz Screen: Hidden by default -->
+        <div id="quiz-screen" class="hidden p-6 sm:p-10 macaron-card rounded-2xl shadow-lg">
+            <div class="flex justify-between items-center mb-6">
+                <div id="progress" class="text-xl font-bold">第 1 / 10 題</div>
+                <div id="timer" class="text-2xl font-bold text-[#354F52]">00:00</div>
+            </div>
+            <div id="question-container" class="mb-8">
+                <h2 id="question-text" class="text-2xl sm:text-3xl font-semibold mb-2"></h2>
+                <p id="question-source" class="text-sm text-gray-500 mb-6"></p>
+                <div id="options-container" class="space-y-4"></div>
+            </div>
+            <div class="flex justify-between mt-8">
+                <button id="prev-btn" onclick="prevQuestion()" class="macaron-btn text-lg py-3 px-8 rounded-full">上一頁</button>
+                <button id="next-btn" onclick="nextQuestion()" class="macaron-btn text-lg py-3 px-8 rounded-full">下一頁</button>
+                <button id="submit-btn" onclick="submitQuiz()" class="hidden macaron-btn text-lg bg-[#E8A0A0] hover:bg-[#D78F8F] text-white py-3 px-8 rounded-full">繳交</button>
+            </div>
+        </div>
+
+        <!-- Results Screen: Hidden by default -->
+        <div id="results-screen" class="hidden p-6 sm:p-10 macaron-card rounded-2xl shadow-lg">
+            <div id="summary-section" class="text-center mb-8">
+                <h2 class="text-4xl font-bold mb-4">測驗完成！</h2>
+                <p id="score" class="text-3xl mb-2"></p>
+                <p id="time-taken" class="text-xl mb-6"></p>
+                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <button onclick="downloadResults('pdf')" class="macaron-btn text-lg py-3 px-6 rounded-full">下載 PDF</button>
+                    <button onclick="downloadResults('csv')" class="macaron-btn text-lg py-3 px-6 rounded-full">下載 CSV</button>
+                    <button onclick="window.location.reload()" class="macaron-btn text-lg py-3 px-6 rounded-full">再測一次</button>
+                </div>
+            </div>
+            <div id="details-section" class="space-y-6">
+                <!-- Detailed results will be injected here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // The entire application logic is contained within this script tag.
+        
+        const rawData = `
+3,下列何者為心理暨社會學派的主要限制？(113師二9),⑴無法兼顧不同利益團體,⑵太過強調服務對象之正向思考,⑶未能充分關切社會變遷的影響力,⑷過度重視文化差異
+3,下列何者不是社會工作的微視理論？(113師二14),⑴危機介入模式,⑵任務中心模式,⑶增權與倡導取向,⑷問題解決學派
+1,社會工作者運用認知行為理論的角色及任務，與其他理論取向不同，下列敘述何者錯誤？(108師2_13),⑴社會工作者協助案主回顧早年經驗，以增加案主對個人性格特質的覺知,⑵社會工作者提供案主示範與增強，協助案主養成正向的因應行為,⑶社會工作者指派與督促案主完成家庭作業,⑷社會工作者像教練，指導訓練案主覺察自己的不合理信念
+1,下列何者不是心理暨社會學派的問題處置策略？(111師1_12),⑴評量安全需求並提供保護性措施,⑵對案主內在情緒經驗的治療,⑶對案主個人問題的直接治療,⑷經由減除環境壓力的治療
+4,下列何組合為認知行為取向工作方法：1挑戰求助者對困境的解釋2運用自由聯想的方式找出求助者對困境的想法3與求助者一起思考替代對困境原有的解釋4充權案主挑戰制度上的種族歧視5處理求助者此時此刻狀況(108師1_13),⑴123,⑵345,⑶124,⑷135
+2,所謂認知取向治療的ABC理論，所指的ABC為何？(100師1_23),⑴A 態度 B 行為 C 改變,⑵A 前因 B 信念 C 後果,⑶A 態度 B 信念 C 改變,⑷A 前因 B 行為 C 後果
+4,下列那一個理論屬於社會工作的「外借理論」？(109師2_12),⑴優勢觀點,⑵任務中心,⑶增強權能,⑷精神分析
+2,下列有關心理暨社會學派中「直接影響技術(procedures of direct influence)」的說明，何者正確？(105師1_27),⑴這項技術關心協助案主對自身憤怒、焦慮與罪惡感，進行描述與討論，促使情緒的宣洩是主要目的,⑵它是社會工作者對案主所應採取行動的意見表達，其效力有賴案主與社會工作者間彼此正向關係的強度,⑶在進行討論性會談時，一般而言無須支持性的技術為後盾，可以直接應用本技術,⑷在近年研究中，直接影響技術因抵觸案主自決原則，其效果如同早先所想像般無效
+2,有關班都拉(Bandura)的社會學習理論，認為學習的主要過程，下列敘述何者正確？(112師一13),⑴轉銜(transition),⑵模仿(modeling),⑶物質化(materialization),⑷同化(assimilation)
+4,下列那一個學派傾向用個人早期經驗來解釋個人現階段社會適應情形？(106障四11),⑴任務中心學派,⑵充權觀點學派,⑶生態系統學派,⑷精神分析學派
+4,下列那一個社會工作實務原則不屬於社會心理學派的創見？(103師1_26),⑴個別化原則,⑵人在情境中,⑶重視專業關係,⑷案主自我揭露
+4,現今所說的臨床社會工作取向，著重下列那個層面的實務服務？(110障五19),⑴巨觀,⑵外觀,⑶中觀,⑷微觀
+3,有關認知行為治療法(CBT)之敘述，下列何者錯誤？(103師1_36),⑴起源可追溯到實驗研究與學習理論,⑵分為古典制約法、操作制約法、社會學習論三大流派,⑶干預過程強調以診斷取代評估，療程著重在了解「為什麼」,⑷不只要改變顯性行為，還要改變隱性行為，以達到認知自助發展
+2,有關應用「認知行為理論」的限制，下列敘述何者正確？(113師一6),⑴重視系統化、操作化和客觀化，導致介入和處遇的方式顯得過程保守和僵化,⑵認為問題出在由認知、行為和環境三者交互而來，造成處遇上無法釐清的困難,⑶能將不同年齡層或罹患心智疾病的個案視為一個有自主能力的個體來進行處遇,⑷認為必須具備四個P的要素，person、problem、place和process，方能進行處遇
+2,以下對於Perlman所發展的問題解決模型(problem-solving model)的敘述，何者正確？(107師1_),⑴強調案主內在深層的感受，以及其對目前行為的影響,⑵最著名的是解決問題的4Ps-個人(person)、問題(problem)、地方(place)，及工作過程(process),⑶主張社會工作處遇不應該有時間限制,⑷問題解決模式強調問題的診斷與研究，不受自我心理學和心理動力理論的影響
+4,社會工作理論中，有關問題解決學派的描述，下列何者錯誤？(103師1_21),⑴特別關注於案主的理性能力和認知力量,⑵社會工作者和案主應該結成夥伴關係,⑶詳細地辨別、描述和量化問題,⑷特別適合用於反歧視的實務中
+4,在從事鉅視社會工作時，下列何者是社會工作者較不可能出現的角色？(110特五37),⑴研究者(researcher),⑵倡導者(advocate),⑶發動者(initiator),⑷諮商者(counselor)
+4,當一位以心理暨社會學派進行處遇的社會工作者對案主說出：「你有沒有注意到，每當公婆要來家裡之前，你就向你先生發脾氣」。社會工作者使用的是什麼技術？(108師1_21),⑴宣洩的技術,⑵支持性的技術,⑶直接影響的技術,⑷反映性討論的技術
+1,下列社會工作實務理論中，屬於微視觀點的為何？(106師3_1),⑴心理動力論,⑵系統理論,⑶女性主義社會工作,⑷多元文化社會工作
+4,就心理暨社會學派的理論觀點而言，下列何種選項不符合其理論主張與實務干預模式？(106師3_17),⑴個人與生活環境形成一個相互影響系統，個人反應來自他對環境的知覺和感受,⑵人之所以發生適應問題是來自社會適應失敗,⑶此學派的價值基礎是接納(acceptance)和自決(self-determination),⑷透過社會行動來改善社會環境
+2,社會暨心理學派的實施原則中，以下何種觀點錯誤？(102師1_27),⑴應以個別化為原則,⑵以直接滿足案主需要來協助案主解決問題,⑶重視案主參與問題研判和處置計畫的建構過程,⑷社會暨心理服務過程中的決定是不斷修正的
+4,依照社會福利的理論觀點來分類，下列何者不屬於巨視觀點的社會工作理論？(108警3),⑴經濟決定論,⑵聚合理論,⑶共識理論,⑷交換理論
+4,下述那一個關於精神分析理論的主要假設不是佛洛依德學派精神分析理論的主要假設？(102師2_19),⑴人格中有三種我(本我、自我、超我)，其結構影響自我功能,⑵人的發展階段分成口腔期、肛門期、潛伏期、生殖期等階段,⑶人格的意識結構由三種意識(潛意識、前意識、意識)構成,⑷集體潛意識對個體的發展有巨大的影響
+3,關於心理暨社會學派的敘述，下列何者正確？(109師1_12),⑴此學派認為問題解決的短期處遇比長期處遇更為有效,⑵此學派主要目標在於培養與增強案主良好的問題解決態度及技術,⑶此學派的目標之一在於改變案主的早期生活經驗，以增加社會生活功能,⑷此學派認為普遍而言可以直接滿足案主生活需要來協助案主解決問題
+3,有關人的認知行為假設，下列敘述何者錯誤？(112師二14),⑴人類行為是一種會持續改變的過程,⑵人的行為與環境存在著互動的關係,⑶常態行為與偏差行為的解釋法則完全不同,⑷人類行為的研究需有科學實證基礎
+2,對於社會工作者常運用的理論，下列敘述何者正確？①危機處遇－微觀理論 ②行為學派－中觀理論 ③系統理論－中觀理論 ④多元文化－巨觀理論 ⑤存在主義－巨觀理論(113師一17),⑴①②③,⑵①③④,⑶②④⑤,⑷③④⑤
+2,班都拉(Bandura，1977)的社會學習理論，認為社會學習的發生是觀察的結果：刺激→有機體→預期→反應→後果。Bandura的社會學習理論中模仿是社會學習的主要過程，下列那一個是正確的過程？(103師2_14),⑴觀察與注意→確認行為環境與後果→想法與紀錄→依前面想法複製行為,⑵觀察與注意→想法與紀錄→確認行為環境與後果→依前面想法複製行為,⑶觀察與注意→確認行為環境與後果→依前面想法複製行為→想法與紀錄,⑷觀察與注意→紀錄→依前面想法複製行為→確認行為環境與後果
+2,依據社會心理學家艾力克森(E. H. Erikson)的心理社會發展理論，下列何者屬於人們在老年期階段所需完成的任務？(104特五41),⑴自我認定 vs.角色混淆,⑵統整 vs.絕望,⑶親密 vs.孤立,⑷生產繁衍 vs.頹廢遲滯
+1,關於「情感轉移」的解釋，不同理論學派是有其差異，下列敘述何者正確？(102初22),⑴心理分析取向：將情感轉移視為增加案主自我了解的一種方法,⑵行為學派：強調造成情感轉移行為的歷史及對現在功能的影響,⑶系統理論：看待情感轉移，無論它是敵對或依賴，主要還是要依據威脅涉入程度而定,⑷現象學：這是習得的逃避行為，是不良思考及不當情緒功能的呈現
+3,下列那一個理論觀點最常運用「回家作業」(written homework)的方式，請案主記錄所發生的事情及其後果？(104師1_19),⑴任務中心,⑵危機介入,⑶認知行為學派,⑷心理暨社會學派
+1,「人的成長與發展乃受到生物、心理和社會的三方面因素的交互影響」。這句話是下列那個理論的基礎？(104師2_17),⑴心理暨社會學派,⑵社會支持網絡觀點,⑶生態系統觀點,⑷系統理論觀點
+4,社會工作的哲學中受到經驗主義的影響甚深。經驗主義所注重的不再是理性的直觀，強調知識的被動性，它用的方法是經驗、觀察與歸納。下列何者不是經驗主義的代表人物？(109普2),⑴洛克(John Locke),⑵霍布斯(Thomas Hobbes),⑶休謨(David Hume),⑷齊克果(Soren Kierkegaard)
+1,下列那一種社會工作學派重視對案主在個人情境中自我功能障礙的評量： (100師1_15),⑴心理暨社會派,⑵問題解決派,⑶功能派,⑷認知行為學派
+4,下列何者不是行為修正學派的主要技巧？(106師3_14),⑴正向增強法,⑵系統減敏感法,⑶模仿學習,⑷自由聯想
+3,下列有關幾個社會工作理論及其主要理論發展者的配對，何者為正確？(100師1_4),⑴生態觀點(ecological perspectives)，Alfred Adler,⑵任務中心取向(task-centered approach)，Ross V. Spect,⑶人本主義觀點(humanist perspectives)，Howard Goldstein,⑷系統理論(system theory)，Martin Rein
+4,下列何者不是問題解決學派所謂的「4Ps」之一？(100特五21),⑴求助者(Person),⑵問題(Problem),⑶問題解決過程(Process),⑷參與者(Participant)
+1,下列何者是問題解決學派的核心概念？(109特五5),⑴人的問題來自角色和自我功能,⑵人的問題來自早年的生活經驗,⑶人的問題來自非理性想法,⑷人的問題來自環境的壓迫
+1,青少年對自己無法受同儕歡迎，歸因於沒有酷炫的手機。下列何者不是認知行為理論工作者會採取的工作取向？(109師1_13),⑴分析青少年需要用外物證明自己的早年生活經驗,⑵討論人受歡迎和使用手機廠牌之間的關聯,⑶討論「受歡迎」的各種可能定義,⑷學習建立人際關係技巧
+2,沉迷於線上遊戲的中輟少年認為自己是沒有用的人，怎麼努力都沒有用，人際關係也差。社會工作者可運用何種理論觀點來修正其原有信念並增強其正向的行為？(113師二10),⑴精神分析學派,⑵認知行為學派,⑶優勢觀點,⑷增強權能觀點
+3,雖然在社會工作實務中，工作者可能會視狀況運用行為學派之理論架構，但行為學派或行為主義在社會工作實務上會面臨一些限制，下列何種特性屬於此一學派之限制？(103師2_28),⑴不適用在短期個案,⑵互動性影響而非線性影響,⑶難用於極為複雜的個案,⑷可使用在處理貧窮問題
+4,由西普琳(Siporin)建構的專業社會工作實施模型(The Model of Professional Social Work Practice)中，其實施理論(Practice Theory)包含那兩項實施原則？(111師1_11),⑴結構性與技術性,⑵結構性與倫理性,⑶倫理性與功能性,⑷倫理性與技術性
+2,「差別增強」(differential reinforcement)是下列那一個學派使用的技巧？(105普5),⑴心理暨社會學派,⑵行為學派,⑶優勢觀點學派,⑷生態系統學派
+3,心理暨社會學派的實施程序可分為四個部分，請問下列實施程序何者正確？(109師2_11),⑴初期會談→處遇→診斷性了解→結案與追蹤,⑵診斷性了解→初期會談→處遇→結案與追蹤,⑶初期會談→診斷性了解→處遇→結案與追蹤,⑷診斷性了解→處遇→初期會談→結案與追蹤
+2,社會工作理論不是由下列何者衍生而來的？(105師1_7),⑴回應社會壓力,⑵透過一般民眾集結而成,⑶透過心智之眼建構出經驗體系的模式,⑷在歸納與演繹之間循環不息而致
+3,下列何者是認知行為理論主要的處遇目標之一？(104師1_28),⑴提升案主的壓力管理能力,⑵協助案主維持系統間的穩定性,⑶修正案主不理性的自我對話,⑷增加案主實現自我期望的機會
+4,學者Gambrill E.和 Gibbs L.認為社會工作者需將批判性思考整合證據作為實務工作之基礎。批判性思考具有之特質，下列何者錯誤？(109師2_9),⑴由知識所引導，也回應知識,⑵關注思考要素與問題之間的邏輯關連,⑶堅持合理的解答,⑷實務工作的重要基礎是運用主觀判斷
+2,關於心理暨社會學派之敘述，下列何者正確？①強調對案主問題的診斷，應建立在此時此刻的生活經驗 ②此派亦稱為「功能派」 ③關注的重點在改善人際關係和生活情境壓力 ④「人在情境中」為此派的中心概念(110_師2_12),⑴①③,⑵③④,⑶①④,⑷②③
+4,對於經濟弱勢家庭，社會工作者在資產累積計畫中的角色包括微視面、中介面和巨視面。下列何者是微視面角色？(107師1_),⑴連結志願服務資源,⑵連結機構與儲蓄互助社,⑶抗拒新自由主義的迷思,⑷培養理財能力
+1,主張任何行為都是學習而來，故可以透過「再學習」來矯正案主不良行為，增進其合宜行為的是那個學派？(100特五14),⑴行為修正學派,⑵任務中心理論,⑶問題解決學派,⑷危機介入模式
+4,對於社會工作理論的敘述，下列何者正確？①一般系統理論的干預目標之一是進行系統內的改革為優先 ②生態系統觀點的干預目標之一是增進個人運用環境資源的能力 ③社會支持網絡處遇的干預目標是增進兩性平等 ④任務中心取向的干預目標之一是確立標的問題是個案能處理的，且是明確可列出順序(110_師2_16),⑴①②,⑵②③,⑶③④,⑷②④
+`;
+
+        let allQuestions = [];
+        let currentQuizQuestions = [];
+        let userAnswers = {};
+        let currentQuestionIndex = 0;
+        let timerInterval;
+        let seconds = 0;
+
+        // Helper function to shuffle an array
+        const shuffleArray = (array) => {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        };
+
+        // Parse the raw text data into a structured question bank
+        const parseData = () => {
+             const lines = rawData.trim().split('\n').filter(line => line.trim() !== '');
+            
+            allQuestions = lines.map((line, index) => {
+                const parts = line.split(',');
+                if (parts.length < 3) {
+                    console.error(`Skipping invalid line ${index + 1}:`, line);
+                    return null;
+                }
+
+                const answerIndex = parseInt(parts[0], 10) - 1;
+                const questionPart = parts[1];
+                
+                const qMatch = questionPart.match(/(.*)(\(.*\))/);
+                const questionText = qMatch ? qMatch[1].trim() : questionPart.trim();
+                const source = qMatch ? qMatch[2] : '';
+                
+                const options = parts.slice(2).map(opt => opt.substring(1).trim());
+                
+                if (isNaN(answerIndex) || answerIndex < 0 || answerIndex >= options.length) {
+                    console.error(`Parsing error on line ${index + 1} (Invalid Answer Index):`, line);
+                    return null;
+                }
+                const answer = options[answerIndex];
+
+                return { id: index, question: questionText, source, options, answer };
+            }).filter(q => q !== null);
+        };
+
+        // Functions to manage UI visibility
+        const showScreen = (screenId) => {
+            ['start-screen', 'quiz-screen', 'results-screen'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById(screenId).classList.remove('hidden');
+        };
+
+        const formatTime = (totalSeconds) => {
+            const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+            const seconds = (totalSeconds % 60).toString().padStart(2, '0');
+            return `${minutes}:${seconds}`;
+        };
+
+        const startTimer = () => {
+            seconds = 0;
+            document.getElementById('timer').textContent = formatTime(seconds);
+            timerInterval = setInterval(() => {
+                seconds++;
+                document.getElementById('timer').textContent = formatTime(seconds);
+            }, 1000);
+        };
+        
+        // Main function to start the quiz
+        const startQuiz = (numQuestions) => {
+            userAnswers = {};
+            currentQuestionIndex = 0;
+            
+            const shuffled = shuffleArray([...allQuestions]);
+            currentQuizQuestions = shuffled.slice(0, numQuestions);
+            currentQuizQuestions.forEach(q => {
+                q.options = shuffleArray([...q.options]);
+            });
+
+            showScreen('quiz-screen');
+            renderQuestion(currentQuestionIndex);
+            startTimer();
+        };
+
+        // Render a single question on the screen
+        const renderQuestion = (index) => {
+            const question = currentQuizQuestions[index];
+            document.getElementById('question-text').textContent = question.question;
+            document.getElementById('question-source').textContent = question.source;
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            question.options.forEach((option, i) => {
+                const optionId = `q${index}_opt${i}`;
+                const checked = userAnswers[index] === option ? 'checked' : '';
+                optionsContainer.innerHTML += `
+                    <div class="macaron-option rounded-lg">
+                        <input type="radio" name="q${index}" id="${optionId}" value="${option}" class="hidden" ${checked} onchange="selectAnswer(${index}, '${option}')">
+                        <label for="${optionId}" class="block w-full text-left p-4 text-xl rounded-lg cursor-pointer">
+                            ${option}
+                        </label>
+                    </div>
+                `;
+            });
+
+            document.getElementById('progress').textContent = `第 ${index + 1} / ${currentQuizQuestions.length} 題`;
+            document.getElementById('prev-btn').style.visibility = index === 0 ? 'hidden' : 'visible';
+            document.getElementById('next-btn').style.display = index === currentQuizQuestions.length - 1 ? 'none' : 'block';
+            document.getElementById('submit-btn').style.display = index === currentQuizQuestions.length - 1 ? 'block' : 'none';
+        };
+
+        const selectAnswer = (index, answer) => {
+            userAnswers[index] = answer;
+        };
+
+        const prevQuestion = () => {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuestion(currentQuestionIndex);
+            }
+        };
+
+        const nextQuestion = () => {
+            if (currentQuestionIndex < currentQuizQuestions.length - 1) {
+                currentQuestionIndex++;
+                renderQuestion(currentQuestionIndex);
+            }
+        };
+        
+        const submitQuiz = () => {
+            clearInterval(timerInterval);
+            showScreen('results-screen');
+            renderResults();
+        };
+
+        const renderResults = () => {
+            let score = 0;
+            currentQuizQuestions.forEach((q, i) => {
+                if (userAnswers[i] === q.answer) {
+                    score++;
+                }
+            });
+
+            document.getElementById('score').textContent = `你的分數: ${score} / ${currentQuizQuestions.length}`;
+            document.getElementById('time-taken').textContent = `測驗時間: ${formatTime(seconds)}`;
+
+            const detailsContainer = document.getElementById('details-section');
+            detailsContainer.innerHTML = '';
+
+            currentQuizQuestions.forEach((q, i) => {
+                const userAnswer = userAnswers[i] || "未作答";
+                const isCorrect = userAnswer === q.answer;
+                
+                detailsContainer.innerHTML += `
+                    <div class="p-5 rounded-lg border macaron-card">
+                        <p class="text-xl font-semibold mb-3">${i + 1}. ${q.question} <span class="text-sm text-gray-500">${q.source}</span></p>
+                        <p class="p-3 rounded-md ${isCorrect ? 'correct-answer' : 'incorrect-answer'}">你的答案：${userAnswer}</p>
+                        ${!isCorrect ? `<p class="p-3 mt-2 rounded-md correct-answer">正確答案：${q.answer}</p>` : ''}
+                    </div>
+                `;
+            });
+        };
+        
+        // Functions to download results as PDF or CSV
+        const downloadResults = async (format) => {
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const filename = `social-work-theory-part1-quiz-results-${timestamp}`;
+
+            if (format === 'pdf') {
+                 try {
+                    // Use the globally available jsPDF and html2canvas
+                    const { jsPDF } = window.jspdf;
+                    const pdf = new jsPDF('p', 'mm', 'a4');
+                    const content = document.getElementById('results-screen');
+                    
+                    // Add a title to the PDF. It's better to render text directly for titles.
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.setFontSize(20);
+                    pdf.text('測驗結果', 105, 20, null, null, 'center');
+                    
+                    const canvas = await html2canvas(content, { 
+                        scale: 2,
+                        useCORS: true, 
+                        allowTaint: true 
+                    });
+                    const imgData = canvas.toDataURL('image/png');
+                    const imgProps= pdf.getImageProperties(imgData);
+                    const pdfWidth = pdf.internal.pageSize.getWidth() - 20; // with margin
+                    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+                    
+                    pdf.addImage(imgData, 'PNG', 10, 30, pdfWidth, pdfHeight);
+                    pdf.save(`${filename}.pdf`);
+                } catch (e) {
+                    console.error("Error generating PDF:", e);
+                    alert("抱歉，PDF下載功能目前無法使用。請嘗試下載CSV或截圖保存。");
+                }
+            } else if (format === 'csv') {
+                let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; // \uFEFF for BOM to support UTF-8 in Excel
+                csvContent += "題號,題目,你的答案,正確答案\n";
+
+                currentQuizQuestions.forEach((q, i) => {
+                    const userAnswer = userAnswers[i] || "未作答";
+                    const row = [
+                        i + 1,
+                        `"${q.question.replace(/"/g, '""')}"`,
+                        `"${userAnswer.replace(/"/g, '""')}"`,
+                        `"${q.answer.replace(/"/g, '""')}"`
+                    ].join(',');
+                    csvContent += row + "\r\n";
+                });
+
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", `${filename}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        };
+
+        // Initialize the app when the page loads
+        window.onload = () => {
+            parseData();
+        };
+    </script>
+</body>
+</html>
