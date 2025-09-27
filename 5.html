@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>社會工作理論(二) - 題庫測驗</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f0f8ff; /* AliceBlue - 馬卡龍淺藍色 */
+        }
+        .macaron-pink { background-color: #FFD1DC; }
+        .macaron-blue { background-color: #BDE0FE; }
+        .macaron-green { background-color: #C1E1C1; }
+        .macaron-yellow { background-color: #FFFACD; }
+        .macaron-purple { background-color: #E6E6FA; }
+        .btn {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .option-label:has(input:checked) {
+            background-color: #BDE0FE; /* Pastel Blue */
+            border-color: #a0c4ff;
+        }
+        .correct-answer {
+            background-color: #C1E1C1 !important; /* Pastel Green */
+        }
+        .incorrect-answer {
+            background-color: #ffb6c1 !important; /* Light Pink */
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <div id="app" class="w-full max-w-3xl mx-auto">
+        <!-- 開始畫面 -->
+        <div id="start-screen" class="text-center bg-white p-8 md:p-12 rounded-2xl shadow-lg">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-800">社會工作理論(二)</h1>
+            <p class="text-lg md:text-xl text-gray-500 mt-2 mb-8">(從總題庫抽出60題)</p>
+            <div class="space-y-4">
+                <p class="text-xl font-medium text-gray-700">請選擇測驗題數：</p>
+                <div class="flex flex-col md:flex-row justify-center gap-4">
+                    <button onclick="startQuiz(5)" class="btn w-full md:w-48 text-2xl font-bold text-gray-700 py-4 px-8 macaron-pink rounded-xl shadow-md">5 題</button>
+                    <button onclick="startQuiz(10)" class="btn w-full md:w-48 text-2xl font-bold text-gray-700 py-4 px-8 macaron-blue rounded-xl shadow-md">10 題</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 測驗畫面 -->
+        <div id="quiz-screen" class="hidden bg-white p-6 md:p-10 rounded-2xl shadow-lg">
+            <div class="flex justify-between items-center mb-6">
+                <div id="question-counter" class="text-xl font-semibold text-gray-700"></div>
+                <div id="timer" class="text-xl font-bold text-indigo-600 px-4 py-2 macaron-yellow rounded-lg">00:00</div>
+            </div>
+            <div id="question-container" class="mb-8">
+                <p id="question-text" class="text-2xl md:text-3xl font-semibold leading-relaxed text-gray-800 mb-8"></p>
+                <div id="options-container" class="space-y-4"></div>
+            </div>
+            <div class="flex justify-between mt-8">
+                <button id="prev-btn" onclick="prevQuestion()" class="btn py-3 px-8 text-lg font-bold text-gray-700 bg-gray-200 rounded-lg">上一題</button>
+                <button id="next-btn" onclick="nextQuestion()" class="btn py-3 px-8 text-lg font-bold text-white bg-blue-500 hover:bg-blue-600 rounded-lg">下一題</button>
+                <button id="submit-btn" onclick="submitQuiz()" class="btn hidden py-3 px-8 text-lg font-bold text-white bg-green-500 hover:bg-green-600 rounded-lg">繳交</button>
+            </div>
+        </div>
+
+        <!-- 結果畫面 -->
+        <div id="results-screen" class="hidden bg-white p-6 md:p-10 rounded-2xl shadow-lg">
+            <h2 class="text-3xl md:text-4xl font-bold text-center text-gray-800 mb-2">測驗結果</h2>
+            <p id="score" class="text-5xl font-bold text-center text-blue-600 mb-2"></p>
+            <p id="time-taken" class="text-lg text-center text-gray-500 mb-8"></p>
+            <div class="flex justify-center gap-4 mb-8">
+                <button onclick="downloadPDF()" class="btn py-2 px-6 text-base font-bold text-white bg-red-500 hover:bg-red-600 rounded-lg">下載 PDF</button>
+                <button onclick="downloadCSV()" class="btn py-2 px-6 text-base font-bold text-white bg-green-500 hover:bg-green-600 rounded-lg">下載 CSV</button>
+                 <button onclick="restartQuiz()" class="btn py-2 px-6 text-base font-bold text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg">返回首頁</button>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-800 border-b-2 pb-2 mb-6">詳解</h3>
+            <div id="results-details" class="space-y-8"></div>
+        </div>
+    </div>
+
+    <script>
+        const rawData = `
+4,依卡普蘭(Caplan)在危機介入模式中的分類，車禍所引發的危機是下列何者？(112普9),⑴發展性危機(developmental crisis),⑵情境性危機(situational crisis),⑶存在性危機(existential crisis),⑷突發性危機(accidental crisis)
+3,下列有關社會工作系統理論的觀點，何者錯誤？(106師2_23),⑴系統成長越大，系統內的分化與異化現象越大，不過系統為維持運作，仍保持一個聚合的運作趨勢,⑵系統的整體和各部分間，均為動態，而非靜態，且不斷變遷和演化,⑶系統的概念主要可分為四個部分：結構、過程、行動、處遇,⑷重視個體和環境的互動或與「人在情境中」的傳統社會工作觀點相符
+2,任務中心模式(Task-Centered Model)在社會工作實務中極具重要性。關於 Payne(2005)所提出任務中心模式對於「問題」之認定，下列敘述何者錯誤？(110_師1_12),⑴任務中心模式關切個案想改變的問題,⑵問題必須先由實務工作者評量其問題嚴重程度後，再交由案主一起討論決定,⑶問題必須是可以清楚界定的,⑷經由實務工作者和案主訂定合作契約後採取行動
+4,強調「面對困難，總要有計劃的做點事(do something)」，且利用時間界限結構之概念(time-limited structure)，是下列那一個理論模式之重要概念？(101師2_26),⑴認知行為理論,⑵系統理論,⑶心理暨社會模式,⑷任務中心模式
+2,家庭暴力相關理論眾多。若社會工作者認為「家庭暴力的發生主要原因在於男性在社會化過程中，被教導以先天生理上的優勢及社會文化賦予的資源來征服及控制女性」，則該位社會工作者偏向以下列那個理論來解讀家庭暴力的發生？(107師2_7),⑴社會學習理論,⑵女性主義觀點,⑶依附理論,⑷系統理論
+1,關於下列各社會工作理論的處遇目標之敘述何者正確？(107師1_),⑴危機介入取向：協助案主處理情緒感受和幫助案主學習適當的壓力因應方法，避免再陷入危機,⑵任務中心取向：在於增進案主運用環境資源的能力，協助重建或建立案主與環境的良好交流,⑶生態觀點：協助案主在維持靜態與動態成長間作抉擇與調適,⑷系統理論觀點：協助案主釐清相關問題與優先順序，並決定欲改變的目標及其具體步驟和方法
+4,沛恩(Payne，2005)在《Modern Social Work Theory》一書中提出反身-治療性觀點(reflexive-therapeutic views)為社會工作理論三類觀點之一，這類理論認為藉由促進成長及自我實現，以尋求個人、團體或社區的最大福祉。在服務的過程中，社會工作者及案主會相互影響。以下那一個社會工作理論或觀點非屬於反身-治療性的社會工作理論類別？(106師1_6),⑴心理動力理論,⑵建構理論,⑶危機理論,⑷系統理論
+3,任務中心取向的工作模式主要知識體系在於認識問題的意義，確認要解決的問題，並將之轉化成為案主可以瞭解和採取行動之任務，以及有那些問題處置工作階段和技術。依此瞭解任務中心取向之基本假設，下列何者錯誤？(105師2_10),⑴人有改變動力，但只想減輕困難到可忍受為止，而非根本改變,⑵人之所以有問題是能力暫時受到限制，而非病理因素所致,⑶解決問題之障礙來自個人認知或動機不足,⑷人陷入問題困境時就產生改變之動力，因人有適應問題之本能
+2,社工員試圖運用「危機調適的社會工作模式」協助面臨創傷事件的案主時，下列何者為其主要的專業考量？(106障五14),⑴危機事件讓案主的人生更豐富,⑵充分運用各種資源啟發案主處理危機的能力,⑶可以考驗案主社會支持網絡的強弱程度,⑷有效減少未來危機事件的產生
+4,社會工作者應該常常思考專業的階級議題，特別是自己的階級地位與階級功能，例如：社會工作是否存有「控制」的功能等。這是下列何種觀點？(113初5),⑴醫療模式,⑵漸進模式,⑶人權模式,⑷基變(基進)取向
+2,有關危機處遇的臨床社會工作模式，下列敘述何者正確？(105特四13),⑴轉銜性的危機對人的影響大致相同，因此較能透過長期教育的介入，預防問題的產生,⑵突發性的危機常造成案主的適應障礙，因此透過有時限性及目標取向的處遇，將能協助案主發展出新的因應方法,⑶危機處遇是一種以提供急難物資為基礎的服務方法，讓案主基本生理需求可以得到滿足,⑷任何危機都不可能變成轉機，社工必須透過轉移案主注意力的方法，協助渡過危機的時期
+4,有關任務中心模式的敘述，下列何者正確？(109障特四14),⑴通常為長期的處遇,⑵由社會個案工作者決定所要達成的任務,⑶代表人物為波爾蒙(Harris Perlman),⑷重視充權的概念
+1,有關危機干預工作步驟順序，下列何者正確？①了解和建立關係 ②評量致命性與安全性需求③協助列出處遇目標 ④指認主要問題 ⑤探討可能的各種選擇(112師一14),⑴①②④⑤③,⑵①②③④⑤,⑶①④②③⑤,⑷①④⑤②③
+2,認為對女性產生壓迫、讓女性處在弱勢處境的來源，主要是私有財產制度與經濟制度。是下列那一個女性主義流派的主張？(109特五6),⑴自由主義女性主義,⑵社會主義女性主義,⑶激進女性主義,⑷婦女主義女性主義
+4,依據James & Gilliand(2001)危機介入取向的觀點，將危機分為四種危機，下列何者錯誤？(113師一20),⑴存在性危機(existential crisis),⑵發展性危機(developmental crisis),⑶意外性危機(accidental crisis),⑷需求性危機(demand crisis)
+4,基變社會工作(radical social work)立基於馬克思主義的觀點，下列敘述何者正確：①個人問題應被視為個體失功能所造成的不適應 ②政治行動與社會變遷才能促成結構改變 ③公平的結構更能促成社會組織的合作與分享 ④不均與不義的消除是社會行動的動能(103師2_36),⑴①②③,⑵①②④,⑶①③④,⑷②③④
+2,以女性為中心的工作原則，下列何者錯誤？(108師1_18),⑴成立女性團體,⑵書寫與紀錄是制度的壓迫，釐清與確認不利女性政策與服務對於工作沒有助益,⑶鼓勵女性進入機構決策中心，建立代表機制,⑷運用有利於女性的社會工作理論與方法
+1,女性主義工作者一般反對將社會工作服務對象稱為「案主」，主要是因下列何者？(109障特四5),⑴表示社會工作者與「案主」間不對等的權力關係,⑵沒辦法表達服務對象的多元性,⑶「案主」容易跟法律服務對象混淆,⑷無法彰顯社會工作者的專業性
+3,下列何者對系統理論的描述是錯誤的？(105師1_9),⑴系統有開放的和封閉的,⑵系統的成長越大時，其複雜性越強,⑶系統的完整是在不斷的演變中，為了維持其穩定與平衡，因此靜態的平衡是一種圓滿的狀態,⑷系統中的次系統之間的互惠性，若能維持協力共持的型態和結果，則可從外在環境獲得資源
+2,運用任務中心模式來協助案主解決問題時，其所依據相關的理論基礎不包括下列那一項？(102師2_21),⑴以處理案主的心理社會問題為主,⑵把焦點放在此時此地的感受與問題,⑶需由案主界定問題，對症下藥解決問題,⑷講求效率，處遇必須在有限的時間內完成
+2,甲社工關切單親婦女的就業問題，關切勞動與經濟不平等議題，認為要透過社會、政經結構等社會改造，才能達成性別平等，是屬於下列何種女性主義派別？(112師一18),⑴自由主義女性主義,⑵社會主義女性主義,⑶激／基進女性主義,⑷後現代女性主義
+1,下列何者並非後現代女性主義的行動方向？(106師1_1),⑴倡導女性意識覺醒,⑵檢視權力與知識如何影響女性的世界觀,⑶思考改變世界之方向,⑷分析女性如何被社會影響
+2,就危機干預模式來看，判斷是否構成個人「危機」的必要要素包括下列那些組合？1會引發重大社會變革的事件 2個人缺乏有系統解決問題的能力 3在短時間內個人一定要做選擇和設法取得平衡 4超出個人固有因應機制可以應對的範圍(111師1_14),⑴123,⑵234,⑶134,⑷124
+3,下列何者不是Greene和Ephress所歸納生態系統觀點的核心概念？(105師1_11),⑴人際關聯,⑵適應力,⑶反壓迫,⑷生命週期
+2,有關生態系統觀點如何解讀個體和家庭所經歷的「問題」，下列敘述何者錯誤？(113_2_6),⑴問題的產生乃因環境資源不足或障礙,⑵問題的產生是因為系統大於部分之總和,⑶問題的產生源自於多系統互動交流的結果,⑷問題的產生需從微視、中介及鉅視面加以考量
+4,在社會工作實務工作過程所運用的相關理論當中，有一類為外借理論，另一類則稱為實施理論，請問下列那個理論屬於實施理論？(103師2_10),⑴角色理論,⑵一般系統理論,⑶符號互動論,⑷生態系統之觀點
+2,關於「任務中心」社會工作模式的陳述，下列何者正確？(111警13),⑴將遭遇問題的個人視為是功能不彰或生病的病人，社會工作者主要是代替案主解決問題使其恢復功能,⑵社工的處遇介入需要針對問題訂定可行的目標，培養案主解決問題的能力,⑶由於案主通常為弱勢及資源缺乏的民眾，社會工作者的處遇策略重點是主動替案主連結資源,⑷社會工作者的主要角色在為案主分析問題，為其申請政府資源
+1,若以理論所涵蓋之問題範疇區分，試問下列那一種理論與其他理論不同？(106師1_16),⑴基變理論,⑵認知行為理論,⑶心理暨社會派,⑷任務中心理論
+4,根據Greene與Ephress(1991)的歸納，生態系統觀點的假設不包括下列那一個假設？(103師2_18),⑴基因及其他生物因素經常被視為是個人與環境交流的結果，而非原因,⑵個人的生活經驗是可以產生正向改變的,⑶為了協助案主，社會工作員應隨時準備介入案主所在生活空間的各個層面,⑷運用動態的思考與存在的深思
+1,根據Greene和Ephress(1991)的歸納，下列何者是生態系統觀點的核心概念？(101師2_25),⑴生命週期(life course),⑵接納(acceptance),⑶增強(reinforcement),⑷習得無助(learned helplessness)
+2,某位社會工作者試圖解構社會工作專業體制，反對專業霸權與社會控制，認為這些都會降低案主的自主性。以上說法，傾向社會工作理論中的那一種觀點？(101師2_1),⑴浪漫主義,⑵激進觀點,⑶生態系統論,⑷認知行為論
+1,致力確認待解決問題，然後將其變成案主可了解並願意行動的目標，最後再將目標化為可逐步操作化的行動。這項敘述比較傾向下列何種社會工作模式？(110警17),⑴任務中心,⑵危機干預,⑶生態系統,⑷優勢觀點
+2,Valentich(1986)認為女性主義發展多元，但仍有共通性。下列敘述何者不是女性主義各派別的共通特性？(110_師1_16),⑴重視女性價值,⑵個別女性的倡導行動，達成社會變遷目標,⑶爭取自我實現機會,⑷以女性經驗作為理論與行動基礎
+2,面對突如其來的天災人禍，要想減輕案主立即的壓力，使其心理與社會功能回復平衡的理論派別是：(100特五44),⑴任務中心理論,⑵危機介入模式,⑶問題解決學派,⑷行為修正學派
+2,下列何者為危機介入的首要前提？(113_2_3),⑴盤點服務對象的優勢,⑵確認服務對象的安全,⑶協助服務對象進行探索,⑷拓展服務對象的社會資源
+2,系統理論中強調對於服務對象面臨的問題須以「人在情境」的觀點剖析，下列敘述何者錯誤？(113師二23),⑴個人與社會系統間有交互關係,⑵各系統間存在著界線，各系統無法流動運行,⑶社會工作者與服務對象間的關係是具有協商性的夥伴關係,⑷個人會積極參與改變環境，環境也會形塑個人發展
+2,「離婚」是屬於下列那一種類型的危機？(104師1_29),⑴發展性危機,⑵意外性危機,⑶存在性危機,⑷環境性危機
+4,下列有關社會工作服務方法中的任務中心模式，那一項敘述錯誤？(103初18),⑴任務中心模式以問題解決模式為基礎,⑵任務中心模式主要特色之一在於強調「簡要」,⑶任務中心的主要策略必須社會工作者與案主共同解決問題,⑷任務中心模式強調長期介入和處遇
+2,下列關於危機介入(crisis intervention)的敘述，何者錯誤？(104師1_21),⑴危機破壞既有的心理平衡,⑵處遇焦點不一定是眼前的危機，也可能是過去經歷的危機，而案主希望有更好的解決,⑶希望達到案主習得較為有效的因應機制,⑷介入期間以6週為原則
+1,針對系統觀點的社會工作模式，將要協助的對象視為下列何者？(112師一15),⑴焦點系統(focal system),⑵超系統(super system),⑶次系統(subsystem),⑷總體系統(holistic system)
+2,下列有關自由派女性主義的理論觀點，何者正確？(106師2_18),⑴男女因社会化而產生差異,⑵男女具有同樣的理性思考能力,⑶強調女性透過與他人的連結完成自我,⑷肯定女性關愛照顧他人的特質
+2,有關危機處遇模式，下列敘述何者正確？(105師2_30),⑴Caplan將危機分為無法預料的發展性危機及階段轉換所面臨的意外性危機,⑵危機通常是暫時性而且有特定發展階段，但持續時間因人而異,⑶危機處遇模式主要焦點放在對心理問題做完整診斷,⑷危機處遇模式適合需轉變認知或改變角色的案主
+3,運用生態圖為工具描繪出個人與其所在環境交流的互動方向與關係強弱，是目前社會個案工作中必為的程序之一，學理上稱之為生態評量(ecological assessment)。下列有關生態評量的敘述，何者錯誤？(104師2_9),⑴生態評量的重點是一方面評估個人需求所在，一方面呈現滿足需求的資源提供,⑵實務操作步驟應涵括案主的重大生活壓力事件、性質及嚴重程度，相關重要他人對事件的看法與認知等,⑶實務工作人員應與案主一起演繹、歸納和詮釋案主行為型態或其與環境交流的失衡原因，無需參採專業知識架構,⑷生態評量的資料蒐集來源包括語言、非口語反應、書寫、文件、與實務工作者的臨場觀察等
+4,社會工作在運用系統理論或生態系統理論上，下列敘述何者正確？(111師2_13),⑴系統理論中所提之系統和各次系統之間具有靜態的關係,⑵系統理論認為所有系統間的界線相當明確,⑶系統理論較生態系統理論更重視服務對象系統與其所處的社會環境間交互作用,⑷生態系統理論處遇的重點在個人與環境之間的介面
+,從系統理論的觀點來看，社會工作實務可以分成幾個系統，試說明之。(106特),,,,
+2,下列何者不是危機處遇的原則？(109特五4),⑴短期的處遇,⑵不強調專業關係,⑶提供實際的資訊,⑷解決問題與減輕症狀
+3,評估兒童及少年的權益與福祉時，生態系統是常被應用的理論，下列那一項說明並不是以生態系統來評估兒童及少年的權益與福祉？(111初41),⑴評估時需考量兒童及少年的家庭所處的外部及鉅視系統,⑵辨識環境中的不利因素是評估時的重點之一,⑶界定遭遇困難的兒童及少年為問題的來源,⑷評估是一個過程而不是一個事件
+1,社會工作理論所涵蓋或觸及的問題範疇而言，可以分為鉅視層次、居間層次與微觀層次。請問下列那一個理論與其他理論所屬的層次不同？(107師2_1),⑴基變理論,⑵精神分析理論,⑶認知行為理論,⑷心理暨社會派
+3,對於女性所面臨的問題，女性主義與社會工作有一些共同的基本假設，包括問題成因的結構論、知識的主觀性、人際間連結的重要性及個人與社會變遷的雙焦點。Voorhis(1999)曾提出八項基本假設，下列那一項不是Voorhis的基本假設之一？(103師2_31),⑴社會結構優惠男性，而女性是被壓迫的群體,⑵增強權能包括個人與社會變遷,⑶人的特性是協調的、平等的、人性的與合作的,⑷兩性差異不等同於女性次於男性
+1,關注案主問題的結構環境，提供個人如何處理和回饋其所認知的外在世界之各種互動訊息，是下列那一個理論觀點？(104師1_18),⑴系統理論觀點,⑵基變觀點,⑶增強權能觀點,⑷女性主義
+4,激進社會工作(radical social work)認為資本經濟體制剝削與壓迫大眾，主張經由集體行動改變社會制度。下列何者不是其重點工作？(106障四4),⑴組織基層工會,⑵關懷新興社會議題,⑶參與政治行動,⑷開創個案管理
+4,在Bronfenbrenner(1979)的生態系統中，如果社會工作師評估案主的家庭生活對學校表現的影響，此時社會工作師是在評估案主的那一個系統層次？(104師2_19),⑴微觀系統(microsystem),⑵外部系統(exosystem),⑶鉅視系統(macrosystem),⑷中介系統(mesosystem)
+4,下列何者不屬於降低女性家庭照顧者負荷的服務內容？(109特四25),⑴支持性團體,⑵喘息服務,⑶日間托育,⑷法律諮詢
+,試以臺灣對少數族裔的偏見與歧視為例，分就基進(radical)與建構(constructive)取向社會工作，析論並比較其處遇策略及可能優缺點？(112高),,,,
+1,下列何者屬於一般系統理論中的要素？(100師1_18),⑴投入(input)、處理(throughput)、產出(output)、回饋(feedback)、熵(entropy),⑵投入(input)、處理(throughput)、產出(output)、成果(outcome)、效應(impact),⑶投入(input)、處理(throughput)、產出(output)、回饋(feedback)、成果(outcome),⑷投入(input)、處理(throughput)、產出(output)、回饋(feedback)、效應(impact)
+3,在女性主義的流派中，那一個流派有下列的主張：男性透過對女性施展暴力並控制女性，造成家庭內壓迫女性的不平等關係？(102師2_11),⑴自由主義女性主義,⑵馬克思主義女性主義,⑶基變女性主義,⑷社會主義女性主義
+1,Wilson對美國Inner City的社區研究，試圖瞭解為什麼許多都會區會出現難以翻身的底層階級(underclass)，發現其原因有：黑人中產階級或生活較為穩定的勞工階級搬出內城市，到生活條件較好的地方居住，區域內的基本單位(如教會、學校、商店等)隨著沒落…等。請問此研究立基於何種理論？(102師2_36),⑴生態系統理論,⑵優勢觀點,⑶激進觀點,⑷社會學習理論
+3,依生態觀點(ecological perspectives)，下列何者是指社會、政治、經濟與文化制度？(107師1_),⑴微視系統(micro-system),⑵長程貫時系統(chronosystem),⑶巨視系統(macro-system),⑷居間系統(mezzo-system)
+2,下列何者是任務中心學派的核心概念？(107初4),⑴處遇時間超過6週時，案主功能即難修復,⑵執行與完成任務是處遇的方法,⑶案主的問題是和照顧者關係不佳所導致,⑷案主錯誤使用防衛機轉導致問題的產生
+2,下列何者不屬於批判取向/基變社會工作(radical social work)的技術？(103師1_39),⑴集體化(collectivization),⑵同化(assimilation),⑶覺醒(consciousness raising),⑷重新定義(redefining)
+`;
+
+        let allQuestions = [];
+        let currentQuizQuestions = [];
+        let userAnswers = [];
+        let currentQuestionIndex = 0;
+        let timerInterval;
+        let secondsElapsed = 0;
+
+        function parseQuestions() {
+            const lines = rawData.trim().split('\n');
+            const questionObjects = lines.map(line => {
+                const parts = line.split(',');
+                // 確保這是一個有效的問題行，至少有6個部分（答案、問題、4個選項）
+                if (parts.length < 6 || !parts[0].trim()) {
+                    return null;
+                }
+
+                const answerIndex = parseInt(parts[0].trim(), 10) - 1;
+                const questionText = parts[1].trim();
+                
+                // 選項從第3個元素（索引2）開始，取接下來的4個部分
+                const options = parts.slice(2, 6).map(opt => {
+                    // 移除選項開頭的標記，如 '⑴', '⑵' 等
+                    return opt.trim().substring(1); 
+                });
+
+                if (isNaN(answerIndex) || answerIndex < 0 || answerIndex >= options.length) {
+                    return null;
+                }
+
+                return {
+                    question: questionText,
+                    options: options,
+                    answer: options[answerIndex]
+                };
+            }).filter(q => q !== null);
+            
+            return questionObjects;
+        }
+
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function startQuiz(numQuestions) {
+            secondsElapsed = 0;
+            currentQuizQuestions = shuffleArray([...allQuestions]).slice(0, numQuestions);
+            currentQuizQuestions.forEach(q => {
+                q.shuffledOptions = shuffleArray([...q.options]);
+            });
+            userAnswers = new Array(numQuestions).fill(null);
+            currentQuestionIndex = 0;
+            
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.remove('hidden');
+            
+            displayQuestion();
+            startTimer();
+        }
+        
+        function restartQuiz() {
+            document.getElementById('results-screen').classList.add('hidden');
+            document.getElementById('start-screen').classList.remove('hidden');
+        }
+
+        function displayQuestion() {
+            const question = currentQuizQuestions[currentQuestionIndex];
+            document.getElementById('question-counter').textContent = `第 ${currentQuestionIndex + 1} / ${currentQuizQuestions.length} 題`;
+            document.getElementById('question-text').textContent = question.question;
+            
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+            
+            question.shuffledOptions.forEach((option, index) => {
+                const optionId = `option${index}`;
+                const isChecked = userAnswers[currentQuestionIndex] === option;
+                
+                const optionElement = `
+                    <label for="${optionId}" class="option-label block p-5 border-2 border-gray-200 rounded-lg cursor-pointer hover:bg-gray-100 text-lg">
+                        <input type="radio" id="${optionId}" name="option" value="${option}" class="mr-4" ${isChecked ? 'checked' : ''} onchange="selectAnswer('${option}')">
+                        ${option}
+                    </label>
+                `;
+                optionsContainer.innerHTML += optionElement;
+            });
+            
+            updateNavigation();
+        }
+
+        function selectAnswer(option) {
+            userAnswers[currentQuestionIndex] = option;
+        }
+
+        function updateNavigation() {
+            document.getElementById('prev-btn').style.visibility = currentQuestionIndex === 0 ? 'hidden' : 'visible';
+            if (currentQuestionIndex === currentQuizQuestions.length - 1) {
+                document.getElementById('next-btn').classList.add('hidden');
+                document.getElementById('submit-btn').classList.remove('hidden');
+            } else {
+                document.getElementById('next-btn').classList.remove('hidden');
+                document.getElementById('submit-btn').classList.add('hidden');
+            }
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIndex < currentQuizQuestions.length - 1) {
+                currentQuestionIndex++;
+                displayQuestion();
+            }
+        }
+
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                displayQuestion();
+            }
+        }
+        
+        function submitQuiz() {
+            clearInterval(timerInterval);
+            document.getElementById('quiz-screen').classList.add('hidden');
+            document.getElementById('results-screen').classList.remove('hidden');
+            displayResults();
+        }
+
+        function displayResults() {
+            let correctAnswers = 0;
+            const resultsDetails = document.getElementById('results-details');
+            resultsDetails.innerHTML = '';
+
+            currentQuizQuestions.forEach((q, index) => {
+                const userAnswer = userAnswers[index];
+                const isCorrect = userAnswer === q.answer;
+                if (isCorrect) correctAnswers++;
+
+                let optionsHTML = '';
+                // 使用原始順序顯示選項以利核對
+                q.options.forEach(opt => {
+                    let className = 'p-3 border rounded-md text-base';
+                    if (opt === q.answer) {
+                        className += ' correct-answer';
+                    } else if (opt === userAnswer && !isCorrect) {
+                        className += ' incorrect-answer';
+                    }
+                    optionsHTML += `<div class="${className}">${opt}</div>`;
+                });
+
+                const resultHTML = `
+                    <div>
+                        <p class="text-xl font-semibold mb-3">${index + 1}. ${q.question}</p>
+                        <p class="mb-2 text-md">你的答案：<span class="font-semibold ${isCorrect ? 'text-green-600' : 'text-red-600'}">${userAnswer || '未作答'}</span></p>
+                         <p class="mb-4 text-md">正確答案：<span class="font-semibold text-green-700">${q.answer}</span></p>
+                        <div class="space-y-2">
+                           ${optionsHTML}
+                        </div>
+                    </div>
+                `;
+                resultsDetails.innerHTML += resultHTML;
+            });
+
+            const score = Math.round((correctAnswers / currentQuizQuestions.length) * 100);
+            document.getElementById('score').textContent = `${score} 分`;
+            
+            const minutes = Math.floor(secondsElapsed / 60);
+            const seconds = secondsElapsed % 60;
+            document.getElementById('time-taken').textContent = `作答時間：${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        function startTimer() {
+            const timerElement = document.getElementById('timer');
+            timerInterval = setInterval(() => {
+                secondsElapsed++;
+                const minutes = Math.floor(secondsElapsed / 60);
+                const seconds = secondsElapsed % 60;
+                timerElement.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        function downloadPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            doc.addFont('https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/fonts/lato-normal.ttf', 'lato', 'normal');
+            doc.setFont('lato');
+            
+            // This is a placeholder for a CJK font. For production, you'd host a font file.
+            // For this example, we'll proceed, but CJK characters may not render.
+            // A common solution is to use a library like `jspdf-html2canvas` or ensure a CJK-supporting font is loaded.
+            
+            doc.text("測驗結果", 14, 16);
+            doc.setFontSize(12);
+            doc.text(document.getElementById('score').textContent, 14, 24);
+            doc.text(document.getElementById('time-taken').textContent, 14, 30);
+
+            const tableData = currentQuizQuestions.map((q, i) => {
+                return [
+                    i + 1,
+                    q.question,
+                    userAnswers[i] || "未作答",
+                    q.answer,
+                    userAnswers[i] === q.answer ? "✔" : "✘"
+                ];
+            });
+
+            doc.autoTable({
+                head: [['題號', '題目', '你的答案', '正確答案', '結果']],
+                body: tableData,
+                startY: 35,
+                styles: { font: 'lato' } // Ensure font is applied to table
+            });
+
+            doc.save('測驗結果.pdf');
+        }
+
+        function downloadCSV() {
+            let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; // \uFEFF for BOM
+            csvContent += "題號,題目,你的答案,正確答案,結果\r\n";
+
+            currentQuizQuestions.forEach((q, i) => {
+                const row = [
+                    i + 1,
+                    `"${q.question.replace(/"/g, '""')}"`,
+                    `"${(userAnswers[i] || "未作答").replace(/"/g, '""')}"`,
+                    `"${q.answer.replace(/"/g, '""')}"`,
+                    userAnswers[i] === q.answer ? "正確" : "錯誤"
+                ].join(',');
+                csvContent += row + "\r\n";
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "測驗結果.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            allQuestions = parseQuestions();
+        });
+    </script>
+</body>
+</html>
