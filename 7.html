@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>兒少社會工作測驗</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- 首頁 -->
+        <div id="home-page" class="page">
+            <div class="hero-section">
+                <h1 class="main-title">兒少社會工作</h1>
+                <p class="subtitle">從總題庫抽出50題</p>
+                <div class="quiz-options">
+                    <button class="btn btn--primary btn--lg quiz-start-btn" data-count="5">
+                        5題測驗
+                    </button>
+                    <button class="btn btn--primary btn--lg quiz-start-btn" data-count="10">
+                        10題測驗
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 測驗頁面 -->
+        <div id="quiz-page" class="page hidden">
+            <div class="quiz-header">
+                <div class="progress-info">
+                    <span id="current-question">1</span> / <span id="total-questions">5</span>
+                </div>
+                <div class="progress-bar">
+                    <div id="progress-fill" class="progress-fill"></div>
+                </div>
+            </div>
+
+            <div class="quiz-container">
+                <div class="card">
+                    <div class="card__body">
+                        <h3 id="question-text" class="question-text">題目載入中...</h3>
+                        
+                        <div id="options-container" class="options-container">
+                            <!-- 選項將透過 JavaScript 動態生成 -->
+                        </div>
+                        
+                        <div class="quiz-actions">
+                            <button id="next-btn" class="btn btn--primary" disabled>下一題</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 結果頁面 -->
+        <div id="result-page" class="page hidden">
+            <div class="result-container">
+                <div class="card">
+                    <div class="card__body">
+                        <h2 class="result-title">測驗結果</h2>
+                        
+                        <div class="score-summary">
+                            <div class="score-item">
+                                <span class="score-label">總分</span>
+                                <span id="total-score" class="score-value">0/5</span>
+                            </div>
+                            <div class="score-item">
+                                <span class="score-label">正確題數</span>
+                                <span id="correct-count" class="score-value success">0</span>
+                            </div>
+                            <div class="score-item">
+                                <span class="score-label">錯誤題數</span>
+                                <span id="wrong-count" class="score-value error">0</span>
+                            </div>
+                        </div>
+                        
+                        <div class="detailed-results">
+                            <h3>詳細結果</h3>
+                            <div id="detailed-list" class="detailed-list">
+                                <!-- 詳細結果將透過 JavaScript 動態生成 -->
+                            </div>
+                        </div>
+                        
+                        <div class="result-actions">
+                            <button id="restart-btn" class="btn btn--primary btn--lg">重新開始</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
