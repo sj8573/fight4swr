@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>社會工作理論 題庫測驗</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Include jsPDF and html2canvas for PDF export functionality -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles for the macaron color theme and overall look */
+        body {
+            background-color: #FEFBF6; /* Creamy background */
+            font-family: 'Noto Sans TC', sans-serif;
+            color: #5C5470; /* Muted purple text */
+        }
+        .macaron-card {
+            background-color: #FAF0E4; /* Soft peach card */
+            border: 1px solid #E4D5C7;
+        }
+        .macaron-btn {
+            background-color: #B2D8B2; /* Pistachio green */
+            color: #354F52;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        .macaron-btn:hover {
+            background-color: #A1C7A1; /* Darker pistachio */
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .macaron-option {
+            background-color: #FFFFFF;
+            border: 2px solid #EAD7D7; /* Soft pink border */
+            transition: all 0.3s ease;
+        }
+        .macaron-option:hover {
+            border-color: #B2D8B2; /* Pistachio green on hover */
+            background-color: #F7FDF7;
+        }
+        .macaron-option input:checked + label {
+            border-color: #79A379;
+            background-color: #E9F5E9;
+            font-weight: 500;
+        }
+        .correct-answer {
+            background-color: #D4EDDA !important; /* Light green for correct */
+            border-color: #C3E6CB !important;
+        }
+        .incorrect-answer {
+            background-color: #F8D7DA !important; /* Light red for incorrect */
+            border-color: #F5C6CB !important;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <div id="app-container" class="w-full max-w-4xl mx-auto">
+        <!-- Start Screen: Visible by default -->
+        <div id="start-screen" class="text-center p-8 sm:p-12 macaron-card rounded-2xl shadow-lg">
+            <h1 class="text-4xl sm:text-5xl font-bold mb-2 text-[#354F52]">社會工作理論</h1>
+            <p class="text-lg sm:text-xl mb-8 text-[#5C5470]">(從總題庫抽出120題)</p>
+            <p class="text-xl mb-6">請選擇測驗題數：</p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <button onclick="startQuiz(5)" class="macaron-btn text-2xl py-4 px-10 rounded-full shadow-md">5 題</button>
+                <button onclick="startQuiz(10)" class="macaron-btn text-2xl py-4 px-10 rounded-full shadow-md">10 題</button>
+            </div>
+        </div>
+
+        <!-- Quiz Screen: Hidden by default -->
+        <div id="quiz-screen" class="hidden p-6 sm:p-10 macaron-card rounded-2xl shadow-lg">
+            <div class="flex justify-between items-center mb-6">
+                <div id="progress" class="text-xl font-bold">第 1 / 10 題</div>
+                <div id="timer" class="text-2xl font-bold text-[#354F52]">00:00</div>
+            </div>
+            <div id="question-container" class="mb-8">
+                <h2 id="question-text" class="text-2xl sm:text-3xl font-semibold mb-2"></h2>
+                <p id="question-source" class="text-sm text-gray-500 mb-6"></p>
+                <div id="options-container" class="space-y-4"></div>
+            </div>
+            <div class="flex justify-between mt-8">
+                <button id="prev-btn" onclick="prevQuestion()" class="macaron-btn text-lg py-3 px-8 rounded-full">上一頁</button>
+                <button id="next-btn" onclick="nextQuestion()" class="macaron-btn text-lg py-3 px-8 rounded-full">下一頁</button>
+                <button id="submit-btn" onclick="submitQuiz()" class="hidden macaron-btn text-lg bg-[#E8A0A0] hover:bg-[#D78F8F] text-white py-3 px-8 rounded-full">繳交</button>
+            </div>
+        </div>
+
+        <!-- Results Screen: Hidden by default -->
+        <div id="results-screen" class="hidden p-6 sm:p-10 macaron-card rounded-2xl shadow-lg">
+            <div id="summary-section" class="text-center mb-8">
+                <h2 class="text-4xl font-bold mb-4">測驗完成！</h2>
+                <p id="score" class="text-3xl mb-2"></p>
+                <p id="time-taken" class="text-xl mb-6"></p>
+                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <button onclick="downloadResults('pdf')" class="macaron-btn text-lg py-3 px-6 rounded-full">下載 PDF</button>
+                    <button onclick="downloadResults('csv')" class="macaron-btn text-lg py-3 px-6 rounded-full">下載 CSV</button>
+                    <button onclick="window.location.reload()" class="macaron-btn text-lg py-3 px-6 rounded-full">再測一次</button>
+                </div>
+            </div>
+            <div id="details-section" class="space-y-6">
+                <!-- Detailed results will be injected here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // The entire application logic is contained within this script tag.
+        
+        const rawData = `
+2,在女性主義社會個案工作與後現代社會個案工作的基本概念上，下列何者為兩者的共同點？(105初27),⑴中心化,⑵充權,⑶普同主義,⑷二元對立論
+2,社會工作的理論相當多元且各有其重要人物，下列關於社會工作理論之代表人物，何者錯誤？(108師1_14),⑴Florence Hollis是心理暨社會學派(Psychosocial Treatment)代表人物之一,⑵Gordon Hamilton是問題解決模式(Problem-Solving Model)代表人物之一,⑶Carel Germain是生活模式(Life Model)代表人物之一,⑷William Reid是任務中心社會工作(Task-Centered Social Work)代表人物之一
+1,關注案主問題的結構環境，提供個人如何處理和回饋其所認知的外在世界之各種互動訊息，是下列那一個理論觀點？(104師1_18),⑴系統理論觀點,⑵基變觀點,⑶增強權能觀點,⑷女性主義
+1,有關運用靈性(spirituality)觀點於社工員替代性創傷的自我照顧模式，下列敘述何者正確？①在微觀層面可鼓勵社工員針對創傷進行冥想訓練，以面對恐懼經驗②在中距層面督導可以分享個人的靈性經驗，並發揮情感支持的功能③在宏觀層面機構可以提供神聖的空間作為靈性活動的場所，並提供固定的時間使用該空間④靈性觀點僅適用於以信仰為基礎的組織(faith-based organization)，不適用於其他類型的社福單位(112師二21),⑴①②③,⑵②③④,⑶①③④,⑷①②④
+4,對於復原力(resilience)的敘述，下列何者錯誤？(109師1_6),⑴復原力是針對負面生活情況的改變或調適能力,⑵復原力是一個動態歷程，不是一個終點,⑶「文化」是影響復原力的關鍵因素之一,⑷復原力是一組固定特質或能力
+3,Turner(2000)提出社會工作實務可以配合理論著重的重點不同，選擇適合的相關理論，以下有關各理論著重重點的描述，何者錯誤？(102師1_29),⑴理論著重個人是學習者(person as a learner)：行為理論(behavioral theory),⑵理論著重個人是個別化的(person as individual)：案主中心取向(client-centered approach),⑶理論著重個人是溝通者(person as communicator)：充權觀點(empowerment),⑷理論著重個人與世界的關係(person in relation to the universe)：系統理論(system theory)
+4,女性主義者認為，社區照顧政策容易成為政府轉嫁福利責任予家庭和女性之藉口，為了不使婦女成為無酬照顧與經濟依賴者，社會工作者應以下列何種態度來提供專業服務？(100障四7),⑴將女性視為服務對象之一，提供居家服務協助,⑵將女性視為案主群的一部分，提供喘息舒壓服務,⑶將女性視為照顧的重要資源，提供照顧技巧訓練,⑷將女性視為協同工作者，使其享有應有的保險與年金給付
+3,下列那種理論較強調「人們的選擇是建立在要得到最大的獎賞與付出最少的代價之下，以便獲取最大的利益」？(102普24),⑴家庭系統理論,⑵家庭發展理論,⑶社會交換理論,⑷家庭生態理論
+1,依據Wolin和Wolin(1993)的觀點，下列何者屬於個人的復原力面向(元素)？①洞察力②創造力 ③意志力 ④順服感(111師2_5),⑴①②,⑵②③,⑶③④,⑷①④
+4,優勢觀點在服務處遇的內涵方面的哲學信念，下列何者敘述是正確的?(101警8),⑴由工作者根據診斷結果來擬定,⑵限制服務使用者必須遵照例行服務,⑶以因果直線思考邏輯方法來減輕緩和問題徵兆,⑷服務處遇內容是強調服務使用者的自我引導
+1,有關個人復原力，下列敘述何者正確？①復原力是一個動態的過程，是一種良好的適應，是一種個人力量的恢復②從結構的觀點來看，復原力是個人處於社會結構的結果③社會工作者必須以建構保護因子為目標，培養弱勢者的復原力④復原力主要是個人先天具備的某些能力特質，而非後天環境重要因素所培育而成(112師二27),⑴①②③,⑵①③④,⑶②③④,⑷①②④
+1,下列關於敘事治療的描述，何者敘述錯誤？(104師2_20),⑴技術上強調去病理化，聚焦於微小改變,⑵是後現代理論之一，重視意義詮釋和語言敘說,⑶強調解構與問題外化,⑷與案主平等的夥伴關係
+2,「差別增強」(differential reinforcement)是下列那一個學派使用的技巧？(105普5),⑴心理暨社會學派,⑵行為學派,⑶優勢觀點學派,⑷生態系統學派
+4,下列何者不是後現代社會工作的觀點？(105師1_14),⑴強調實務知識是由社會工作者和案主互動過程中創造出來的,⑵強調情境參與者的直觀，透過社會論述可建構知識,⑶強調所有參與者是平權的，因此社會工作者應抱持謙虛的態度,⑷強調社會工作評量是一個了解問題和情境的過程，因此陪伴案主尋找自己內在的問題，使治療更有效能
+3,任務中心取向的工作模式主要知識體系在於認識問題的意義，確認要解決的問題，並將之轉化成為案主可以瞭解和採取行動之任務，以及有那些問題處置工作階段和技術。依此瞭解任務中心取向之基本假設，下列何者錯誤？(105師2_10),⑴人有改變動力，但只想減輕困難到可忍受為止，而非根本改變,⑵人之所以有問題是能力暫時受到限制，而非病理因素所致,⑶解決問題之障礙來自個人認知或動機不足,⑷人陷入問題困境時就產生改變之動力，因人有適應問題之本能
+4,有關Perlman提出的問題解決派中的「4P」，下列何者正確？(112師二15),⑴ person、problem、plan、process,⑵ predict、prevention、process、plan,⑶ professional、problem、process、prepare,⑷ person、problem、place、process
+4,馬克思主義(Marxism)被視為較為宏觀和批判的觀點與理論，其對於社會工作實務的影響，下列敘述何者錯誤？(103師1_38),⑴馬克思主義強調社會工作的功能是控制而非關懷,⑵馬克思主義認為社會工作與案主的關係存在著階級關係,⑶馬克思主義主張貧窮的問題是來自結構性的原因,⑷馬克思主義認為福利國家合法化制度性的不均，因此應廢除福利國家
+3,根據佛洛依德的人格理論，以下敘述何者是正確的？(100師1_26),⑴本我(id)是後天教養與道德所形成的，用以引導自我(ego),⑵自我(ego)是先天的，依照需求驅使行動,⑶超我(superego)發揮道德原則，以引導自我,⑷超我(superego)實地了解環境、操弄環境
+1,理性－情緒－行為療法(REBT)是屬於那一個學派？(101普10),⑴認知行為學派,⑵問題解決學派,⑶心理暨社會學派,⑷生態系統學派
+1,下列關於Reid(1983)所提的任務中心模式的社會工作原則，何者敘述錯誤？(104師2_18),⑴觀察學習,⑵結構性的治療過程,⑶問題聚焦與明確具體,⑷短期解決問題
+1,下列那個概念及工作方法是最早提出的？(113普10),⑴增權,⑵焦點解決,⑶正向心理學,⑷敘事治療
+1,有關女性主義社會工作的敘述，下列何者錯誤？(103師1_25),⑴同樣身為女性，社會工作者要扮演「社會女工匠」的角色，致力於改造個案，脫離被父權壓迫的命運,⑵社會工作者應與個案秉持一種平等的關係，讓個案可以釋放自己、自我肯定與學習新的知識與能力,⑶拒絕性別盲目的知識和技術，改採取承認女性經驗的方法，來修正實務工作模式,⑷尋求集體主義式的解決方案，但尊重每一位女性的個體性和獨特性，例如原住民婦女、身心障礙婦女、新移民等
+2,女性主義社會工作認為要減低兩性不公平的辦法就是透過立法來促進兩性平等機會，這是那一種觀點？(104障1),⑴後現代女性主義,⑵自由女性主義,⑶社會主義的女性主義,⑷基變女性主義
+2,關於社會工作理論中的「問題解決模型」，下列描述何者是錯誤的？(102師1_38),⑴強調一起工作的人(person)、待處理的問題(problem)，工作地點(place)以及工作過程(process),⑵認為解決問題的關鍵，主要是在問題解決的機率(probability),⑶代表人物是波爾曼(Helen Perlman),⑷受到自我心理學(ego psychology)的影響
+3,「充權」案主是社會工作者的工作目標，下列何者屬於案主消權？①與拒絕申請保護令案主，討論返家後續安全計畫 ②說服從事季節性工作案主，接受職訓找薪水穩定的工作 ③與獨居老人討論安裝緊急救援系統，以降低獨居風險 ④說服未婚懷孕青少女要出養嬰兒，才能接續完成高中學業(113師一13),⑴①②,⑵③④,⑶②④,⑷①③
+3,下列有關優勢觀點的論述，何者錯誤？(106師2_20),⑴肯定案主解決問題的能力,⑵傾聽案主描述其生活經驗,⑶整合相關證據與臨床經驗及案主的情境,⑷了解案主的期待並予協助
+1,佛雷勒(Freire)提出增權的倡導策略，屬於下列何種類型？(112師一4),⑴廣義的社會教育,⑵廣義的社會運動,⑶廣義的社會革命,⑷廣義的社會秩序
+3,下列何者不是Galper(1975)所提出基進派(radical approach)社會工作倫理準則之內涵？(110_師2_20),⑴盡所能創造人們可以自由開放生活的世界,⑵保護社區免於受到來自個人或組織，不符倫理道德的社會慣例及常規所壓迫的責任,⑶對於同僚的新發現、想法觀點和行動給予批評,⑷主張所有人必須為一個人性化的社會盡一份心力
+1,下列何者屬於一般系統理論中的要素？(100師1_18),⑴投入(input)、處理(throughput)、產出(output)、回饋(feedback)、熵(entropy),⑵投入(input)、處理(throughput)、產出(output)、成果(outcome)、效應(impact),⑶投入(input)、處理(throughput)、產出(output)、回饋(feedback)、成果(outcome),⑷投入(input)、處理(throughput)、產出(output)、回饋(feedback)、效應(impact)
+1,主張「從改善人們和外在環境的適當配合(Fit)」開始，是下列何種模式的說法？(107師2_27),⑴生活模型,⑵問題解決模型,⑶優勢模型,⑷依附模型
+1,一位失業單親父親無親友支持系統，其居住的社區托育服務資源稀缺且昂貴。每次應徵工作時，就將5歲的孩子獨留家中，而觸法。根據生態系統模式的處遇分析與計畫擬定，下列敘述何者正確？(108師2_16),⑴行動系統是為達成處遇目標時所需合作的正式與非正式資源,⑵標的系統是依法開罰該名單親失業父親,⑶機構系統是該名父親未來就業的單位,⑷案主系統是社區中負責托育的公共部門
+3,女性主義社會工作實務與一般社會工作實務之間有一些共同處，但不包含下列那一項： (100師1_28),⑴與案主建立平等的工作關係,⑵協助案主建立社會支持網絡,⑶協助案主適應社會角色,⑷兼重個人與社會的變遷
+4,關於危機處遇的基本假定，下列敘述何者正確？(110_師2_14),⑴個人無力處理內在壓力或外在事件，而轉變成危險事件時不會引發危機,⑵對危機情境的反應是個人病態的反映,⑶危機是暫時性的，有其特定發展階段，危機的持續時間人人相同,⑷危機可能提供個人成長與發展的機會
+4,30歲的某先生於婚後5年終盼得1子，但照顧3個月大的新生兒讓他每天晚上多次起床，常感睡眠不足。2週前，辦公室剛搬入新辦公大樓，上個月他甫晉升一級主管，對於辦公室如何擺設，以及對任職多年的單位中，為了發揮領導功能，如何拿捏分寸，以平衡任務取向和情感取向等，仍感到傷腦筋。若以生活模式(Life model)對於壓力來源的基本假設，下列何者不適用？(109師1_15),⑴生活轉變,⑵環境壓力,⑶人際過程,⑷人格發展的缺陷
+4,社會工作者在運用焦點解決短期治療(Solution-Focused Brief Therapy，SFBT)於處遇過程時，應注意焦點解決的特性不包含下列何者？(108師2_14),⑴焦點解決強調案主的優勢,⑵長時間傾聽案主訴說人生苦難的詳細內容是不必要的,⑶焦點解決的目標導向聚焦於小小的改變可促成系統性改變,⑷實務工作者的專業權威有助於短期解決問題
+4,在從事鉅視社會工作時，下列何者是社會工作者較不可能出現的角色？(110特五37),⑴研究者(researcher),⑵倡導者(advocate),⑶發動者(initiator),⑷諮商者(counselor)
+4,社會工作在運用系統理論或生態系統理論上，下列敘述何者正確？(111師2_13),⑴系統理論中所提之系統和各次系統之間具有靜態的關係,⑵系統理論認為所有系統間的界線相當明確,⑶系統理論較生態系統理論更重視服務對象系統與其所處的社會環境間交互作用,⑷生態系統理論處遇的重點在個人與環境之間的介面
+4,就心理暨社會學派的理論觀點而言，下列何種選項不符合其理論主張與實務干預模式？(106師3_17),⑴個人與生活環境形成一個相互影響系統，個人反應來自他對環境的知覺和感受,⑵人之所以發生適應問題是來自社會適應失敗,⑶此學派的價值基礎是接納(acceptance)和自決(self-determination),⑷透過社會行動來改善社會環境
+1,下列那一個理論觀點不屬於短期處遇？(104師1_17),⑴精神分析學派,⑵認知行為學派,⑶危機介入,⑷任務中心
+3,任務中心模式強調標的問題要清楚明確。下列何者較符合該模式所強調的「操作化任務」(operational task)陳述？(109師1_14),⑴幫助案主用更果斷的方式處理兒子的問題行為,⑵幫助案主更有效地準備期末考試，以免遭到學校退學,⑶協助案主在2天後向公司經理提出加班津貼的書面要求,⑷協助案主改善自己上班遲到的壞習慣
+2,認為對女性產生壓迫、讓女性處在弱勢處境的來源，主要是私有財產制度與經濟制度。是下列那一個女性主義流派的主張？(109特五6),⑴自由主義女性主義,⑵社會主義女性主義,⑶激進女性主義,⑷婦女主義女性主義
+2,面對突如其來的天災人禍，要想減輕案主立即的壓力，使其心理與社會功能回復平衡的理論派別是：(100特五44),⑴任務中心理論,⑵危機介入模式,⑶問題解決學派,⑷行為修正學派
+1,根據所羅門(Solomon，1976)的觀點，社會工作者在運用增權觀點時，應具備下列那一條件？(111師2_18),⑴能協助案主看到他本身即為有助於問題改變的一個力量,⑵能協助案主無條件接受社會工作者所具備的知識與技巧,⑶幫案主抵抗外在的威脅,⑷能協助案主順服社會工作者，以做為啟動問題解決的核心
+3,近些年來，在美國的社會工作從多元文化主義的觀點而逐漸發展出靈性照顧社會工作實務(spiritual-based social work)，而影響此案的因素之一即是因美國總統曾於2001年啟動了信仰基礎的社會服務模式(faith-based social service initiatives)，其具體做法就是立法讓宗教機構或是採用宗教與社會工作協同合作的機構，可以向聯邦政府爭取經費，同時也鼓勵公私部門基金投入宗教與社會工作協同合作的社會服務，請問推動此案的總統為何人？(103師1_6),⑴雷根總統,⑵柯林頓總統,⑶小布希總統,⑷歐巴馬總統
+1,問題解決學派社會工作的基本步驟，除了有4P元素(通則)用於個案的處理之外，尚需兼顧MCO的評定(Assessment)考量，請問前述評定內容是那些？(102師1_5),⑴動機(motivation)、案主期待(hope)、能量(capacities)、機會(opportunities),⑵移動(movement)、信心(confidence)、權能(empowerment),⑶動機(motivation)、信心(confidence)、權能(empowerment),⑷移動(movement)、案主期待(hope)、能量(capacities)、機會(opportunities)
+1,下列何者是女性主義的核心概念？(110特五46),⑴瞭解社會與政治面的壓迫,⑵僅適用於分析女性案主的問題,⑶社會工作者協助案主時通常扮演專家的角色,⑷女性要贏過男性
+4,有關認知行為理論的社工實務運用，何種類型案主較為有效？(102師1_6),⑴自閉症,⑵精神分裂症,⑶幼兒,⑷人格異常
+1,下列何者是任務中心取向的基本假定(assumption)之一？(101師2_40),⑴人有改變動力，但只想減輕困難到可忍受為止,⑵個人的問題起因於其慣用方式無法處理內在壓力或外在事件,⑶個人問題和社會政治條件彼此相關,⑷任何事情都有原因
+1,學者Healy，K.(2005)提出三項觀點說明「理論建構」在社會工作專業發展的位置，下列何者錯誤？(108師1_11),⑴社會工作者無暇發展實務研究，可直觀地運用經驗處遇,⑵社會工作者必須向服務使用者與經費提供者負責,⑶社會工作者必須能不斷改善服務品質,⑷社會工作者有責任去參與專業理論的發展，以促進專業不斷進步
+4,問題解決模式(Problem-Solving Model)對於社會工作實務運作影響極其深遠。針對社會工作者所運用的問題解決模式，下列敘述何者錯誤？(108師1_15),⑴案主的問題並非是案主軟弱和不足所致,⑵案主無法有效地解決問題，是因為缺乏動機、機會或能力所致,⑶問題解決模式認為人生是一連串解決問題的過程,⑷問題解決模式重視案主早年經驗的影響力
+3,下列那一個陳述不是危機介入取向社會工作要處理的項目？(102師2_31),⑴定義相關議題，處理感受,⑵指認及處理潛在衝突,⑶處理成長過程中的心理問題與危機間的關係,⑷減少危機所帶來的不愉快與不舒服情感
+1,關於「情感轉移」的解釋，不同理論學派是有其差異，下列敘述何者正確？(102初22),⑴心理分析取向：將情感轉移視為增加案主自我了解的一種方法,⑵行為學派：強調造成情感轉移行為的歷史及對現在功能的影響,⑶系統理論：看待情感轉移，無論它是敵對或依賴，主要還是要依據威脅涉入程度而定,⑷現象學：這是習得的逃避行為，是不良思考及不當情緒功能的呈現
+2,「窮人的產生，不僅是個人的不幸或個人能力的不足，整體社會與階級主宰也要負很大的責任」，這是下列何者主張？(100師1_10改),⑴功能論的社會工作觀點,⑵基變社會工作觀點,⑶⑵認知行為理論,⑷生態社會工作觀點
+4,對於女性主義社區工作的特質，下列敘述何者錯誤？(111特四9),⑴挑戰女性不平等的社會因素,⑵鼓勵女性參與社區工作，降低男性對社區主題的掌控,⑶從女性主義的觀點，檢視社區工作的理論與實務的連結,⑷社區工作者必須是女性，以能協助和同理女性的不平遭遇
+4,危機介入取向是以心理動力的自我心理學為基礎，針對足以導致個人正常功能產生混亂的事件所採取的阻止行動，以解決危機情境。對於危機介入取向的基本假設，下列何者錯誤？(106師2_11),⑴個人對危機情境之反應是反應出個人對目前壓力之認知經驗，而非個人病態,⑵當個人無力處理內在壓力或外在事件，而轉成危機事件時，將引發危機,⑶危機提供個人成長與發展機會，但結果是各不相同,⑷危機是暫時性的，而且沒有特定發展階段，持續時間也會因人而異
+3,在女性主義的流派中，那一個流派有下列的主張：男性透過對女性施展暴力並控制女性，造成家庭內壓迫女性的不平等關係？(102師2_11),⑴自由主義女性主義,⑵馬克思主義女性主義,⑶基變女性主義,⑷社會主義女性主義
+1,女性主義的處遇原則，下列何者錯誤？(109師2_17),⑴不同派別女性主義工作者，都能接受運用心理治療,⑵不同派別女性主義工作者皆有意識的努力降低專業工作者和案主的權力差異,⑶重視女性經驗，也不排除男性經驗,⑷應先增強案主權能，方能採取行動，改變受壓迫的生活
+4,社會工作者應該常常思考專業的階級議題，特別是自己的階級地位與階級功能，例如：社會工作是否存有「控制」的功能等。這是下列何種觀點？(113初5),⑴醫療模式,⑵漸進模式,⑶人權模式,⑷基變(基進)取向
+4,生態觀點運用於社會工作實務，下列敘述何者正確？(111師2_11),⑴案主的問題是源自於行為病態或道德瑕疵,⑵生態觀點強調系統改變的能力，而非聚焦於人與環境之間的相互協調或適應的調和能力,⑶生態觀點於1970 年代納入增強權能的觀點，強調社會工作者與案主應建立上對下的權力關係，讓社會工作者在實務上能為案主進行倡導辯護,⑷社工實務以生態觀點進行處遇時，一方面要增強案主個人控制環境的能力，一方面要影響外在環境朝向滋養性環境建構
+1,女性主義工作者一般反對將社會工作服務對象稱為「案主」，主要是因下列何者？(109障特四5),⑴表示社會工作者與「案主」間不對等的權力關係,⑵沒辦法表達服務對象的多元性,⑶「案主」容易跟法律服務對象混淆,⑷無法彰顯社會工作者的專業性
+2,關於文化復原力的實務原則，下列敘述何者正確？(113師一24),⑴忽略逆境中的結構性不利因素,⑵重視文化連續感(cultural continuity),⑶聚焦個人特質的影響,⑷服務時以社會工作者熟悉的語言為主
+3,社會工作是一門助人專業，下列有關社會工作「醫療模式」到「結構變遷」之敘述，何者正確？1醫療模式強調個人取向的介入 2基變模式屬於結構變遷取向，因此個人取向不會有基變模式的特性 3馬克思主義社會工作屬於結構變遷取向的社會工作內涵 4Jane Adams 是醫療模式社會工作的提倡(109師2_4),⑴①②③④,⑵①②,⑶①③,⑷②③
+2,下列有關生態系統理論的敘述，何者錯誤？(103師1_37),⑴生態系統關注的是人類和其棲息環境間的互動過程與其他物種的適應歷程,⑵個人的行動是目標取向的，為了適者生存，應該不斷強化個人的求生意志與競爭動機，以適應環境變遷,⑶生態理論可上溯至達爾文發表之進化論，尤其是適者生存法則,⑷應善用個人的生活經驗與非正式支持，作為干預的切入點
+4,認知行為治療法(CBT)是一種思考人類功能和需求的方法，教導人如何在環境中運作，以最有效手段達成個人目標的方法。下列有關CBT理論的敘述，何者錯誤？(104師2_14),⑴可略分為古典制約、操作制約、社會學習論三大支派,⑵早期關注行為修正，後來偏重認知理論，晚近則強調建構主義；重視情緒處理，而非立即的認知或行為改變,⑶CBT主張干預策略之選擇應以高成功機率、適當的監督手段、創造練習機會、指定家庭作業等為主,⑷CBT的治療環境不受時間限制、也無需與現實中的角色成就相連，當問題減輕時，即可結束治療
+4,在哈特曼(Hartman)的生態圖中，線條的箭頭代表下列何種關係？(111普10),⑴關係的存在,⑵關係的型態,⑶關係的強弱,⑷關係的方向
+1,下列何者不是心理暨社會學派的問題處置策略？(111師1_12),⑴評量安全需求並提供保護性措施,⑵對案主內在情緒經驗的治療,⑶對案主個人問題的直接治療,⑷經由減除環境壓力的治療
+2,在社會工作理論中，強調案主的不接受或逃避自由都是壞信念，應透過真誠面對，才能解放，引進人本思想，視案主為一整體，請問該理論是：(103師1_39),⑴解決焦點取向,⑵存在主義社會工作,⑶任務中心模型,⑷問題解決模型
+3,依據生態觀點，對曝險少年進行處遇，其目標不包含下列何者？(111師2_17),⑴改善少年與家庭、學校系統之間的交流品質,⑵透過有效的個人與情境激勵，及行為學習技巧，以改善個人管理壓力的能力,⑶要求少年配合學校的復學規範要求,⑷影響個人所在的社會及物理環境條件，以滿足個人發展需要
+4,後現代社會工作，從結構及功能論來看，它扮演了理論建構之何種功能？請選出最適答案：(102師1_12),⑴社會控制(social control),⑵治療功能(cure function),⑶反思批判(reflective critique)及新的重建(new construction),⑷解構(deconstruction)
+2,有關充權(empowerment)觀點社會工作實施原則的敘述，不包括下列何者？(105特四5),⑴促成意識的覺醒,⑵專注單一面向思考問題,⑶相信人類有改變的潛力,⑷充權多樣的能力
+1,在女性主義流派中，認為男女並無本質差異，是社會結構對於女性造成歧視與不公，追求的是女性個人的自我實現的機會，與國家在政策和公領域層面的性別平等。此流派係屬下列何者？(113師二15),⑴自由主義女性主義,⑵社會主義女性主義,⑶文化主義女性主義,⑷激進主義女性主義
+4,下列那一種倫理學將「感性回應」視為主軸，且與女性取向的倫理觀特別有關連？(110_師1_23),⑴正義論,⑵效益論,⑶德行論,⑷關懷論
+1,有關基變社會工作的理念與方法，下列敘述何者正確？(104師2_13),⑴受到馬克斯主義影響，認為社會工作是資本主義社會控制的媒介，但同時也會增強工人階級的力量,⑵基變社會工作主張唯有不斷地提升實務者的專業化和專業地位，才能避免成為階級壓迫的幫兇,⑶由於福利機構通常代表精英統治階級與意識形態，因此，為保有專業的獨立性，社會工作者應選擇自行開業為佳,⑷基變社會工作者應把意識覺醒、集體化、建立對話關係當作主要的技術，協助案主了解他們所處情境之非常態化
+1,下列那一種社會工作學派重視對案主在個人情境中自我功能障礙的評量： (100師1_15),⑴心理暨社會派,⑵問題解決派,⑶功能派,⑷認知行為學派
+3,焦點解決短期處遇的概念，下列何者錯誤？(110特五48),⑴問題的存在有時也存有正向功能,⑵解決方法不當會造成問題,⑶案主不是專家，因此要尋求專業協助,⑷受到社會建構主義的影響
+4,有關復原力(resilience)的敘述，下列何者錯誤？(111師1_5),⑴即彈性，指個人內在自我修復的能力,⑵在初期退縮或無法面對壓力事件後，得以回復並維持調適行為的能力,⑶面對危險仍能維持正常發展和自創傷中康復的調適反應,⑷源自於案主的人格特質，具有固定性
+2,沉迷於線上遊戲的中輟少年認為自己是沒有用的人，怎麼努力都沒有用，人際關係也差。社會工作者可運用何種理論觀點來修正其原有信念並增強其正向的行為？(113師二10),⑴精神分析學派,⑵認知行為學派,⑶優勢觀點,⑷增強權能觀點
+4,關於「依附理論」(attachment theory)，下列那一個敘述是錯誤的？(102師1_37),⑴照顧者的心智會與嬰兒的心智相通，稱為「心心相遇的交互主觀」(mind-to-mind encounter intersubjectivity),⑵兒童要發展出安全的依附關係，需要有敏感而情緒調和的照顧者,⑶照顧者冷漠、嚴苛，或是拒絕孩子的需求，小孩有可能發展出「逃避依附」(avoidant attachment),⑷「依附理論」(attachment theory)認為依附妨礙獨立，所以主張最好不要依附
+3,下列何者對系統理論的描述是錯誤的？(105師1_9),⑴系統有開放的和封閉的,⑵系統的成長越大時，其複雜性越強,⑶系統的完整是在不斷的演變中，為了維持其穩定與平衡，因此靜態的平衡是一種圓滿的狀態,⑷系統中的次系統之間的互惠性，若能維持協力共持的型態和結果，則可從外在環境獲得資源
+3,依社會工作系統理論的說法，系統與系統之間會彼此交換資源，這種現象稱之為：(101初26),⑴熵(entropy),⑵輸出(output),⑶交互作用(transaction),⑷回饋(feedback)
+4,所謂「優勢觀點」(strengths perspective)的社會工作模型，其核心概念不包含以下那一點？(100師1_19),⑴發現並協助案主發掘潛在的資源,⑵聚焦於案主的優勢,⑶肯定及促進案主的能力,⑷協助案主發現問題比解決其問題重要
+3,有關增強權能(empowerment)觀點社會工作之倫理原則敘述，何者錯誤？(102師1_11),⑴提升社會主義,⑵尊重案主自決,⑶主導處遇策略,⑷協助自我實現
+1,案主之所以需要社會服務的協助，可能是在生活層面上遇到自己難以克服的障礙，其中外在障礙是因案主環境的不足而無法提供所需的協助，這些障礙是外在於案主的，且不是案主所能控制或影響。下列何者不是外在障礙的原因之一？(106師2_37),⑴資源雖存在但案主沒有企圖獲得相關訊息,⑵資源不存在或不足以滿足需求,⑶資源雖然存在但所需的補助資源並不存在,⑷資源雖在但不適用於特定案主
+1,近年來，因案主問題情況的錯綜複雜，社會工作在實務運用上出現折衷主義(eclecticism)的主張，主張可以在實務上結合不同單一理論給予案主協助，以下有關Epstein(1992)提出的折衷主義五大模式，何者錯誤？(100師1_5),⑴證據基礎整合模式(evidence-based integration model),⑵實務建構模式(constructed personal practice model),⑶系統整合模式(systematic integration model),⑷偶然使用模式(casual application model)
+3,「優勢觀點」(strengths perspective)的核心理念，下列何者錯誤？(106特五2),⑴肯定與促進服務對象的能力,⑵在個人生態脈絡中產生復原力,⑶以角色示範來增進服務對象的角色學習,⑷讓服務對象產生有資源感
+4,社會工作理論中，有關問題解決學派的描述，下列何者錯誤？(103師1_21),⑴特別關注於案主的理性能力和認知力量,⑵社會工作者和案主應該結成夥伴關係,⑶詳細地辨別、描述和量化問題,⑷特別適合用於反歧視的實務中
+2,個體涉入兩個(或兩個以上)微視系統之間產生的互動系統，係屬下列何者？(113師一4),⑴時間系統,⑵中介系統,⑶外部系統,⑷鉅視系統
+3,下列何者為採優勢觀點個案管理者的任務？1協助案主覺察其問題的成因2促進案主澄清與確定目標3增強案主運用自然資源4協助案主確認其目標的意義與重要性(104師1_37),⑴1234,⑵僅123,⑶僅234,⑷僅134
+1,有關齊默曼(Zimmerman)提出心理增權(Psychological Empowerment)的觀點中，下列敘述何者正確？(111師1_17),⑴心理增權需要促使服務使用者瞭解社區和相關社會政治議題,⑵同一類別服務使用者，應有同一形式的服務策略,⑶心理增權之三要素分別為前置、內在與互動,⑷增權是一個容易概推性的概念
+2,有關家庭復原力(family resilience)的敘述，下列何者正確？(110_師2_19),⑴復原力的展現必須是在面對重大家庭逆境時才會出現,⑵家庭信念系統是家庭復原力的核心,⑶家庭成員要能儘量表達對彼此真實的不滿,⑷具有復原力的家庭是無壓力的
+3,不同派別的女性主義對於女性處於弱勢的根源解釋不同，其行動方向也不同。下列敘述何者錯誤？(110_師2_18),⑴自由主義女性主義爭取國家在公領域應保障女性權益，私領域政府不必介入,⑵社會主義女性主義認為男女差異是社會化結果，倡導家務與兒童照顧是公共責任,⑶後現代女性主義主張男女生來不同，肯定女性關愛他人特質,⑷自由主義女性主義被批評，忽視種族因素與女性貧窮問題
+3,對於「後現代主義」觀點的社會工作實務，下列敘述何者錯誤？(109師2_18),⑴對實證主義的批判,⑵對線性邏輯因果關係的質疑,⑶認同普遍共識的實在,⑷對客觀中立立場的質疑
+4,下列那一項敘述對「生態系統理論」在社會工作的應用是正確的： (100師1_27),⑴將案主視為一種中介系統,⑵是家系圖的基礎,⑶可藉以了解案主的重大生活事件,⑷是綜融社會工作的基礎
+1,「有意識或部分有意識的接受另一個人的特質，以降低自我貶抑之感受」，是屬於下列那一種的防衛機轉？(106師3_15),⑴認同(identification),⑵投射(projection),⑶替代(displacement),⑷潛抑(repression)
+4,依生態系統觀點，社會期望是屬於那一個系統？(102障7),⑴微視系統(micro system),⑵中介系統(meso system),⑶外部系統(exo system),⑷鉅視系統(macro system)
+4,在社會工作實務工作過程所運用的相關理論當中，有一類為外借理論，另一類則稱為實施理論，請問下列那個理論屬於實施理論？(103師2_10),⑴角色理論,⑵一般系統理論,⑶符號互動論,⑷生態系統之觀點
+4,以下有關精神分析理論(Psycho analysis)內容的描述，何者錯誤？(102師1_39),⑴強調性心理發展階段(stage of psycho sexual development),⑵提出人格的組成包含本我、自我及超我三大部分,⑶主張人的心靈應包含意識、前意識與潛意識等三部分,⑷重視人與人的互動經驗，透過互動方能進入他人意識的世界
+3,醫務社會工作常使用社會醫療診斷模式來診斷病患及其所屬環境。Johnson(1992)認為社會暨心理診斷的特質有九項，下列那一項不包括在特質裡？(102師2_39),⑴需要判斷(judgement)的技術,⑵強調個別差異,⑶需具同理心,⑷案主與社工者互動過程
+4,由西普琳(Siporin)建構的專業社會工作實施模型(The Model of Professional Social Work Practice)中，其實施理論(Practice Theory)包含那兩項實施原則？(111師1_11),⑴結構性與技術性,⑵結構性與倫理性,⑶倫理性與功能性,⑷倫理性與技術性
+3,關於增權(empowerment)對於社會工作實務的意義，下列敘述何者錯誤？(110_師1_5),⑴重視案主的優勢與能力,⑵強調社會工作者和案主的合作關係,⑶增強個人與家庭的權力整合,⑷對結構的批判性反思
+4,心理暨社會學派可以說是較早被社會工作專業運用的理論架構，其中最顯著的特質是對發展與改變採取何種之態度？(103師2_39),⑴封閉,⑵治標,⑶干預,⑷開放
+1,社會工作理論各有強調的焦點領域，當中較多理論強調個人與社會關係。下列那一個理論並不聚焦於人與社會的關係，而聚焦於個人的行動者特質？(104師2_10),⑴任務中心模式,⑵危機調適模式,⑶生態系統觀點,⑷基變社會工作
+1,協助青少年父母養育嬰兒的方式，下列何者不屬於生態觀點的生活模式與原則？(112師二17),⑴分析青少年父母被照顧經驗及未建立安全依附的原生家庭因素,⑵社工安排家族會談，青少年向其原生家庭父母表達完成高中學業期待，希望能協助照顧新生兒,⑶育兒指導員教導新生兒照顧技巧，社工與青少年父母討論育兒責任分工,⑷社工組成青少年媽媽團體，青少年媽媽們分享育兒技巧與如何採購嬰兒用品
+3,關於心理暨社會學派的敘述，下列何者正確？(109師1_12),⑴此學派認為問題解決的短期處遇比長期處遇更為有效,⑵此學派主要目標在於培養與增強案主良好的問題解決態度及技術,⑶此學派的目標之一在於改變案主的早期生活經驗，以增加社會生活功能,⑷此學派認為普遍而言可以直接滿足案主生活需要來協助案主解決問題
+4,社會工作理論的發展演進中，1980年代之後較符合下列那一觀點？(110_師1_9),⑴行為主義觀點時期,⑵人本主義觀點時期,⑶精神分析觀點時期,⑷增強權能觀點時期
+4,在社會工作理論的發展初期，大多借鑑心理學的知識。下列有關立基心理學的社會工作實務理論描述，何者最為精確？(113警12),⑴精神分析理論、認知行為學派與生態系統為此類理論的最佳代表,⑵立基心理學的社會工作實務理論是目前社會工作實務的主流,⑶精神分析理論提供了社會工作者短期介入的許多靈感,⑷心理學背景的社會工作實務理論，並未考慮個案的生活脈絡因素
+2,一位失業單親父親並無親友支持系統，其居住的社區托育服務資源稀缺且昂貴。每次應徵工作時，就將5歲的孩子獨留家中，因而觸法。從生活模型(life model)來看，該位單親父親及其家庭是面臨何種問題？(111師2_16),⑴家庭週期中必然的發展性危機,⑵人與環境調和程度不足的問題,⑶童年負面生活經驗導致無法負擔親職角色,⑷認知應變能力不足所造成的負面結果
+1,「優勢觀點」已獲得社會工作實務界之認可與運用，但此觀點的限制為何？(111師2_21),⑴忽略結構面所帶來的壓迫,⑵忽略個案的學習能力,⑶忽視社區所潛藏的資源,⑷忽視社會工作者與個案的合作關係
+2,下列那個社會工作理論主要是根據馬克思主義(Marxism)所發展而來？(113師二8),⑴反壓迫實務,⑵基變社會工作,⑶女性主義社會工作,⑷充權觀點
+1,對於女性主義的敘述，下列何者錯誤？(108警2),⑴探討社會種種因性別差異造成的對女性不利問題,⑵拒絕把人類經驗化約為男人經驗的理論和傾向,⑶批判傳統哲學不客觀中立,⑷拒絕接受各種形式的本體二元論
+2,根據生態系統理論，個人所在的各個系統層次是一個層層相扣的巢狀組織，二個以上的微視系統間所發生的關聯及其歷程稱為：(112師二16),⑴微視系統(microsystem),⑵中介系統(mesosystem),⑶外在系統(exosystem),⑷鉅視系統(macrosystem)
+4,有關女性主義社區工作的主要策略，下列何者錯誤？(107特四20),⑴運用女性團體來促進社區改變,⑵運用集體的力量，挑戰女性不平等的社會影響因素,⑶試圖發展非階層化的結構，鼓勵更多女性參與社區工作,⑷不認同單一性別團體的獨特性
+3,學者Bernard指出具有「復原力」的兒童擁有四種能力，下列何者錯誤？(108師2_3),⑴社會能力,⑵問題解決能力,⑶依賴能力,⑷對未來具有目標感
+1,有關優勢觀點，下列敘述何者錯誤？(106師1_39),⑴Rapp(1998)指出優勢觀點的三大基本優勢為能力(competencies)、自信(confidence)和自我抉擇能力(self-determination),⑵案主在面對逆境時的勇氣和復原力，教導我們人性的可貴,⑶此模式肯定人類內在的智慧和蛻變的能力,⑷此模式重點在於案主看其問題與處境的視野改變，超越問題，看到改變的可能性
+4,下列何組合為認知行為取向工作方法：1挑戰求助者對困境的解釋2運用自由聯想的方式找出求助者對困境的想法3與求助者一起思考替代對困境原有的解釋4充權案主挑戰制度上的種族歧視5處理求助者此時此刻狀況(108師1_13),⑴123,⑵345,⑶124,⑷135
+3,女性主義社會工作者進行評量的重點，下列何者錯誤？(109師2_14),⑴案主個人政治面經驗，例如歧視與社會排除,⑵對性別角色分析，以理解案主如何內化性別角色,⑶探究案主在壓力環境下，呈現防衛機轉的原因,⑷社會資源運用狀況及家庭權力之分配
+3,對於女性主義流派的敘述，下列何者錯誤？(113普23),⑴女性主義關注新移民女性僅能屈就低技術或照顧服務工作，並且薪資可能低於基本工資,⑵激進女性主義主張韓國N號房事件反映男性以性對女性的宰制,⑶社會主義女性主義認為只要提供公平競爭機會，女性就可以擺脫私有財產制和經濟制度帶來的壓迫,⑷自由主義女性主義強調「先做人，再做男人或女人」
+4,社會工作的哲學中受到經驗主義的影響甚深。經驗主義所注重的不再是理性的直觀，強調知識的被動性，它用的方法是經驗、觀察與歸納。下列何者不是經驗主義的代表人物？(109普2),⑴洛克(John Locke),⑵霍布斯(Thomas Hobbes),⑶休謨(David Hume),⑷齊克果(Soren Kierkegaard)
+2,下列有關心理暨社會學派中「直接影響技術(procedures of direct influence)」的說明，何者正確？(105師1_27),⑴這項技術關心協助案主對自身憤怒、焦慮與罪惡感，進行描述與討論，促使情緒的宣洩是主要目的,⑵它是社會工作者對案主所應採取行動的意見表達，其效力有賴案主與社會工作者間彼此正向關係的強度,⑶在進行討論性會談時，一般而言無須支持性的技術為後盾，可以直接應用本技術,⑷在近年研究中，直接影響技術因抵觸案主自決原則，其效果如同早先所想像般無效
+3,根據Roberts(1991)提出的危機處遇七階段來看，下列何者非社會工作者提供危機處遇時需要的任務？(109師2_24),⑴評量案主的致命風險與安全,⑵確認案主目前的主要問題是什麼,⑶做潛意識分析以協助釐清問題,⑷探索可能的替代方案
+`;
+
+        let allQuestions = [];
+        let currentQuizQuestions = [];
+        let userAnswers = {};
+        let currentQuestionIndex = 0;
+        let timerInterval;
+        let seconds = 0;
+
+        // Helper function to shuffle an array
+        const shuffleArray = (array) => {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        };
+
+        // Parse the raw text data into a structured question bank
+        const parseData = () => {
+             const lines = rawData.trim().split('\n').filter(line => line.trim() !== '');
+            
+            allQuestions = lines.map((line, index) => {
+                const parts = line.split(',');
+                if (parts.length < 3) {
+                    console.error(`Skipping invalid line ${index + 1}:`, line);
+                    return null;
+                }
+
+                const answerIndex = parseInt(parts[0], 10) - 1;
+                const questionPart = parts[1];
+                
+                const qMatch = questionPart.match(/(.*)(\(.*\))/);
+                const questionText = qMatch ? qMatch[1].trim() : questionPart.trim();
+                const source = qMatch ? qMatch[2] : '';
+                
+                const options = parts.slice(2).map(opt => opt.substring(1).trim());
+                
+                if (isNaN(answerIndex) || answerIndex < 0 || answerIndex >= options.length) {
+                    console.error(`Parsing error on line ${index + 1} (Invalid Answer Index):`, line);
+                    return null;
+                }
+                const answer = options[answerIndex];
+
+                return { id: index, question: questionText, source, options, answer };
+            }).filter(q => q !== null);
+        };
+
+        // Functions to manage UI visibility
+        const showScreen = (screenId) => {
+            ['start-screen', 'quiz-screen', 'results-screen'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById(screenId).classList.remove('hidden');
+        };
+
+        const formatTime = (totalSeconds) => {
+            const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+            const seconds = (totalSeconds % 60).toString().padStart(2, '0');
+            return `${minutes}:${seconds}`;
+        };
+
+        const startTimer = () => {
+            seconds = 0;
+            document.getElementById('timer').textContent = formatTime(seconds);
+            timerInterval = setInterval(() => {
+                seconds++;
+                document.getElementById('timer').textContent = formatTime(seconds);
+            }, 1000);
+        };
+        
+        // Main function to start the quiz
+        const startQuiz = (numQuestions) => {
+            userAnswers = {};
+            currentQuestionIndex = 0;
+            
+            const shuffled = shuffleArray([...allQuestions]);
+            currentQuizQuestions = shuffled.slice(0, numQuestions);
+            currentQuizQuestions.forEach(q => {
+                q.options = shuffleArray([...q.options]);
+            });
+
+            showScreen('quiz-screen');
+            renderQuestion(currentQuestionIndex);
+            startTimer();
+        };
+
+        // Render a single question on the screen
+        const renderQuestion = (index) => {
+            const question = currentQuizQuestions[index];
+            document.getElementById('question-text').textContent = question.question;
+            document.getElementById('question-source').textContent = question.source;
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            question.options.forEach((option, i) => {
+                const optionId = `q${index}_opt${i}`;
+                const checked = userAnswers[index] === option ? 'checked' : '';
+                optionsContainer.innerHTML += `
+                    <div class="macaron-option rounded-lg">
+                        <input type="radio" name="q${index}" id="${optionId}" value="${option}" class="hidden" ${checked} onchange="selectAnswer(${index}, '${option}')">
+                        <label for="${optionId}" class="block w-full text-left p-4 text-xl rounded-lg cursor-pointer">
+                            ${option}
+                        </label>
+                    </div>
+                `;
+            });
+
+            document.getElementById('progress').textContent = `第 ${index + 1} / ${currentQuizQuestions.length} 題`;
+            document.getElementById('prev-btn').style.visibility = index === 0 ? 'hidden' : 'visible';
+            document.getElementById('next-btn').style.display = index === currentQuizQuestions.length - 1 ? 'none' : 'block';
+            document.getElementById('submit-btn').style.display = index === currentQuizQuestions.length - 1 ? 'block' : 'none';
+        };
+
+        const selectAnswer = (index, answer) => {
+            userAnswers[index] = answer;
+        };
+
+        const prevQuestion = () => {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuestion(currentQuestionIndex);
+            }
+        };
+
+        const nextQuestion = () => {
+            if (currentQuestionIndex < currentQuizQuestions.length - 1) {
+                currentQuestionIndex++;
+                renderQuestion(currentQuestionIndex);
+            }
+        };
+        
+        const submitQuiz = () => {
+            clearInterval(timerInterval);
+            showScreen('results-screen');
+            renderResults();
+        };
+
+        const renderResults = () => {
+            let score = 0;
+            currentQuizQuestions.forEach((q, i) => {
+                if (userAnswers[i] === q.answer) {
+                    score++;
+                }
+            });
+
+            document.getElementById('score').textContent = `你的分數: ${score} / ${currentQuizQuestions.length}`;
+            document.getElementById('time-taken').textContent = `測驗時間: ${formatTime(seconds)}`;
+
+            const detailsContainer = document.getElementById('details-section');
+            detailsContainer.innerHTML = '';
+
+            currentQuizQuestions.forEach((q, i) => {
+                const userAnswer = userAnswers[i] || "未作答";
+                const isCorrect = userAnswer === q.answer;
+                
+                detailsContainer.innerHTML += `
+                    <div class="p-5 rounded-lg border macaron-card">
+                        <p class="text-xl font-semibold mb-3">${i + 1}. ${q.question} <span class="text-sm text-gray-500">${q.source}</span></p>
+                        <p class="p-3 rounded-md ${isCorrect ? 'correct-answer' : 'incorrect-answer'}">你的答案：${userAnswer}</p>
+                        ${!isCorrect ? `<p class="p-3 mt-2 rounded-md correct-answer">正確答案：${q.answer}</p>` : ''}
+                    </div>
+                `;
+            });
+        };
+        
+        // Functions to download results as PDF or CSV
+        const downloadResults = async (format) => {
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const filename = `social-work-ethics-quiz-results-${timestamp}`;
+
+            if (format === 'pdf') {
+                 try {
+                    const { jsPDF } = window.jspdf;
+                    const pdf = new jsPDF('p', 'mm', 'a4');
+                    const content = document.getElementById('results-screen');
+                    
+                    pdf.setFont('helvetica'); // Using a standard font
+                    pdf.setFontSize(20);
+                     // Using a placeholder text as jsPDF has issues with unicode without proper fonts
+                    pdf.text('Quiz Results', 105, 20, null, null, 'center');
+                    
+                    const canvas = await html2canvas(content, { 
+                        scale: 2,
+                        useCORS: true, 
+                        allowTaint: true 
+                    });
+                    const imgData = canvas.toDataURL('image/png');
+                    const imgProps= pdf.getImageProperties(imgData);
+                    const pdfWidth = pdf.internal.pageSize.getWidth() - 20; // with margin
+                    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+                    
+                    pdf.addImage(imgData, 'PNG', 10, 30, pdfWidth, pdfHeight);
+                    pdf.save(`${filename}.pdf`);
+                } catch (e) {
+                    console.error("Error generating PDF:", e);
+                    alert("抱歉，PDF下載功能目前無法使用。請嘗試下載CSV或截圖保存。");
+                }
+            } else if (format === 'csv') {
+                let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; // \uFEFF for BOM
+                csvContent += "題號,題目,你的答案,正確答案\n";
+
+                currentQuizQuestions.forEach((q, i) => {
+                    const userAnswer = userAnswers[i] || "未作答";
+                    const row = [
+                        i + 1,
+                        `"${q.question.replace(/"/g, '""')}"`,
+                        `"${userAnswer.replace(/"/g, '""')}"`,
+                        `"${q.answer.replace(/"/g, '""')}"`
+                    ].join(',');
+                    csvContent += row + "\r\n";
+                });
+
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", `${filename}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        };
+
+        // Initialize the app when the page loads
+        window.onload = () => {
+            parseData();
+        };
+    </script>
+</body>
+</html>
