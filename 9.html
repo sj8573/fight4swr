@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>社區工作 題庫測驗</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Include jsPDF and html2canvas for PDF export functionality -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles for the macaron color theme and overall look */
+        body {
+            background-color: #FEFBF6; /* Creamy background */
+            font-family: 'Noto Sans TC', sans-serif;
+            color: #5C5470; /* Muted purple text */
+        }
+        .macaron-card {
+            background-color: #FAF0E4; /* Soft peach card */
+            border: 1px solid #E4D5C7;
+        }
+        .macaron-btn {
+            background-color: #B2D8B2; /* Pistachio green */
+            color: #354F52;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        .macaron-btn:hover {
+            background-color: #A1C7A1; /* Darker pistachio */
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .macaron-option {
+            background-color: #FFFFFF;
+            border: 2px solid #EAD7D7; /* Soft pink border */
+            transition: all 0.3s ease;
+        }
+        .macaron-option:hover {
+            border-color: #B2D8B2; /* Pistachio green on hover */
+            background-color: #F7FDF7;
+        }
+        .macaron-option input:checked + label {
+            border-color: #79A379;
+            background-color: #E9F5E9;
+            font-weight: 500;
+        }
+        .correct-answer {
+            background-color: #D4EDDA !important; /* Light green for correct */
+            border-color: #C3E6CB !important;
+        }
+        .incorrect-answer {
+            background-color: #F8D7DA !important; /* Light red for incorrect */
+            border-color: #F5C6CB !important;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <div id="app-container" class="w-full max-w-4xl mx-auto">
+        <!-- Start Screen: Visible by default -->
+        <div id="start-screen" class="text-center p-8 sm:p-12 macaron-card rounded-2xl shadow-lg">
+            <h1 class="text-4xl sm:text-5xl font-bold mb-2 text-[#354F52]">社區工作</h1>
+            <p class="text-lg sm:text-xl mb-8 text-[#5C5470]">(從總題庫抽出160題)</p>
+            <p class="text-xl mb-6">請選擇測驗題數：</p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <button onclick="startQuiz(5)" class="macaron-btn text-2xl py-4 px-10 rounded-full shadow-md">5 題</button>
+                <button onclick="startQuiz(10)" class="macaron-btn text-2xl py-4 px-10 rounded-full shadow-md">10 題</button>
+            </div>
+        </div>
+
+        <!-- Quiz Screen: Hidden by default -->
+        <div id="quiz-screen" class="hidden p-6 sm:p-10 macaron-card rounded-2xl shadow-lg">
+            <div class="flex justify-between items-center mb-6">
+                <div id="progress" class="text-xl font-bold">第 1 / 10 題</div>
+                <div id="timer" class="text-2xl font-bold text-[#354F52]">00:00</div>
+            </div>
+            <div id="question-container" class="mb-8">
+                <h2 id="question-text" class="text-2xl sm:text-3xl font-semibold mb-2"></h2>
+                <p id="question-source" class="text-sm text-gray-500 mb-6"></p>
+                <div id="options-container" class="space-y-4"></div>
+            </div>
+            <div class="flex justify-between mt-8">
+                <button id="prev-btn" onclick="prevQuestion()" class="macaron-btn text-lg py-3 px-8 rounded-full">上一頁</button>
+                <button id="next-btn" onclick="nextQuestion()" class="macaron-btn text-lg py-3 px-8 rounded-full">下一頁</button>
+                <button id="submit-btn" onclick="submitQuiz()" class="hidden macaron-btn text-lg bg-[#E8A0A0] hover:bg-[#D78F8F] text-white py-3 px-8 rounded-full">繳交</button>
+            </div>
+        </div>
+
+        <!-- Results Screen: Hidden by default -->
+        <div id="results-screen" class="hidden p-6 sm:p-10 macaron-card rounded-2xl shadow-lg">
+            <div id="summary-section" class="text-center mb-8">
+                <h2 class="text-4xl font-bold mb-4">測驗完成！</h2>
+                <p id="score" class="text-3xl mb-2"></p>
+                <p id="time-taken" class="text-xl mb-6"></p>
+                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <button onclick="downloadResults('pdf')" class="macaron-btn text-lg py-3 px-6 rounded-full">下載 PDF</button>
+                    <button onclick="downloadResults('csv')" class="macaron-btn text-lg py-3 px-6 rounded-full">下載 CSV</button>
+                    <button onclick="window.location.reload()" class="macaron-btn text-lg py-3 px-6 rounded-full">再測一次</button>
+                </div>
+            </div>
+            <div id="details-section" class="space-y-6">
+                <!-- Detailed results will be injected here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // The entire application logic is contained within this script tag.
+        
+        const rawData = `
+有關赫爾館(Hull House)的主張與敘述，下列何者錯誤？(110師2_11)	3	⑴針對不同居民，提供多元化的社區服務	⑵強調與在地居民一起生活、工作及進行決策	⑶需優先提升在地服務的效益而非社會立法倡議	⑷關心勞動者的貧窮及職業災害問題
+研析社區需求中，使用公開的討論會，邀請所有社區成員參加，並請民眾提出對某一個特定服務需求的看法，屬於下列何種方法？(109師2_34)	4	⑴類別團體途徑法	⑵德菲爾法	⑶分析服務資源法	⑷社區論壇
+下列何者為執行聯合社區服務時較少遇到的狀況？(110師2_15)	2	⑴服務多元難以凸顯績效	⑵專職人力的供過於求	⑶費時的溝通與協商	⑷社區參與程度不平衡
+福利社區化基本上涵蓋四個向度，請問下列那個答案是錯誤的？(99師2_27)	2	⑴作為一種意識型態的實體(as an ideological matter)	⑵作為一種工作方法(as a method)	⑶作為一種社會計畫(as a social planning)	⑷作為一種理念(as an idea)、一種現行的服務措施(as a contemporary practice)
+關於立基於資產的社區發展模式中，所面對的挑戰，下列何者錯誤？(112師2_33)	3	⑴外部專家僅在初始階段扮演促進者的角色，且不斷擴大資產連結的功能，但仍難以避免誘發依賴	⑵這是一種包容性的過程，但仍會面臨社區中存在的等級、社經地位的差異或社會排除群體的情況	⑶資產是社區驅動的主力，因此領導者有無能力加以有效運作，非為核心問題	⑷外部環境條件不可忽略，外部環境將影響社區實現其潛力
+規劃社區時所應考慮的「三體」中，社區的韌體(firmware)意指：(102障8)	2	⑴社區中有形的建設	⑵社區的內在關係，包括社區結構與組織的關係	⑶社區內無形的資源	⑷社區的財力
+身為社區工作者，被賦予的責任是強化社區居民對於土地和文化的認同感、提升社區的向心力、更新社區，下列何者是最適當的方法？(100師_30)	2	⑴福利社區化	⑵社區總體營造	⑶社區福利化	⑷強化社區照顧
+有關英國「社區照顧」概念的敘述，下列何者錯誤？(111初18)	2	⑴強調去機構化	⑵以急性照顧為對象	⑶重視非正式照顧	⑷減少公共依賴
+Rothman提出三種社區工作模式，下列何者是社會行動模式(social action model)對社區問題的假設？(113師一31)	1	⑴社區存在受社會資源分配不均及政策壓迫的群體	⑵社區內存在各種團體，團體間的利益與共識需要協調	⑶權力擁有者是重要的夥伴與資源	⑷社區存在實質問題，用科學理性解決
+「社區總體營造」一詞最早何時被提出？(112警14)	3	⑴民國57年內政部訂定「社區發展工作綱要」	⑵民國61年「十年計畫」	⑶民國83年文建會在立法院的施政報告	⑷民國94年「臺灣健康社區六星計畫」
+目前政府為滿足在地照顧需求所推動的社區保母系統，主要是立基在下列那一個思維？(105初29)	2	⑴個案管理	⑵福利社區化	⑶團體動力	⑷兒童保護
+「虛擬社區」的描述，下列何者錯誤？(104障8)	3	⑴以網際網路為工具	⑵以人際關係為基礎	⑶以居住在同一個地理區位的居民為主	⑷又可稱為網路社群
+下列何者屬於社區工作的目標？(102特五32)	2	⑴提升組織的勢力範圍	⑵加強居民對社區的歸屬感	⑶和政治樁腳打好關係以增加選票	⑷運用社區資源強化工作勢力範圍
+運用社區工作的地方發展模式，對促使居民民主參與的敘述，下列何者正確？(110普11)	3	⑴開放機會讓居民出席會議，但由社會工作者決策	⑵一般居民都有參與的困擾，因此宜用宣導的方式，不用表達意見	⑶投票表決前應先開放討論空間，讓居民知道表決的目的	⑷因為社區居民沒有相關知識，應進行投票表決但不應開放討論空間
+社區照顧「最重要」的目標是：(98師_7)	1	⑴生活正常化	⑵去機構化	⑶減少照顧的成本	⑷提供多元化選擇
+社區的定義具多元面向，若強調「因共同的活動而形成之社區」，例如：某某加工出口區，試問是下列那一種社區的定義？(110特五23)	4	⑴地理社區	⑵利益社區	⑶信仰社區	⑷工作社區
+從社區照顧中對社區的定義來看，其最重要的特點是：(98師_6)	2	⑴相似的地理區域	⑵關係網絡的基礎	⑶共同的需求或利益	⑷相同的情境
+「社區照顧」被視為比較符合人性的照顧方式，以下對於英國社區照顧要素的敘述何者正確？(101師2_13)	4	⑴去機構化是社區照顧主要目標，因此，社區內不能有任何全時照顧機構存在，才是社區照顧	⑵社區照顧如透過非正式、志願與民間部門提供服務，會有降低服務水準之虞	⑶社區照顧的服務需求，應以供給導向為主，以免找不到適當資源	⑷隨著人口老化和治療方式改變，機構照顧會逐漸轉移至成本較為低廉的社區照顧
+臺灣的社區發展歷史演進，自1983年至2005年，進入社區發展組織社團化的期間之敘述，下列何者錯誤？(111師1_30)	3	⑴社區發展改為由下而上，鼓勵社區居民申請成立社區發展協會	⑵該時期政府函頒「社區發展工作綱要」，將原先偏重於政府主導的社區發展，改以人民團體型態運作	⑶社區發展的主責單位為社區理事會	⑷該時期未針對社區差異需求，缺乏後續維護，效益大打折扣，埋下了後期社區總體營造興起的種子
+以下何者不是分析社區時，主要分析的面向？(99師1_18)	4	⑴社區類型	⑵人口結構	⑶社區的休閒娛樂	⑷社工角色
+下列何者不是社區產業應具備的必要條件？(109師2_38)	1	⑴需能夠與在地商家產生競爭性	⑵需具有消費性，也有在地特性	⑶需對地方的經濟活絡有貢獻性	⑷需紮根於在地歷史及社區特色
+社會工作人員進行社區工作時，不扮演何種角色？(104師1_4)	4	⑴組織者	⑵倡導者	⑶訓練者	⑷治療者
+長照十年2.0計畫包括ABC三種等級的中心或單位，下列那些項目屬於A級單位的任務？①整合社區資源 ②社區資源結盟 ③社區柑仔店 ④社區總體營造(106師1_40)	1	⑴①②	⑵②③	⑶①④	⑷③④
+在社區工作程序的初始階段中，對於社區工作方案之選擇，應符合下列那些原則？①符合社區特色 ②公共性 ③安全性 ④參與門檻低 ⑤能誘發居民的興趣(107師2_38)	4	⑴①②③④	⑵②③④⑤	⑶①②③④⑤	⑷①②④⑤
+透過一定的程序及步驟來引導並達成社區的改變，以解決社區問題，此為那一個工作理論之核心看法？(109師1_32)	4	⑴任務中心與任務團體理論	⑵資源動員與交換理論	⑶權力與培力理論	⑷社會計畫與變遷理論
+下列那一項不是社區工作者的專業任務？(108初29)	1	⑴參與地方選舉事務	⑵培力志工服務推動	⑶爭取資源推動社區事務	⑷與居民溝通和協調
+依社區發展工作綱要規定，社區的劃定為下列何者？(104警15)	3	⑴社區居民召開會員大會自決	⑵社區所在地直轄市或縣(市)政府	⑶社區所在地鄉(鎮、市、區)公所	⑷衛生福利部統一劃定
+在社區發展過程會注意到「能力建構」的重要性，下列敘述何者正確？(110普13)	1	⑴使居民有達到目標的技巧	⑵讓專家進入社區由專家進行規劃	⑶強調居民應放棄原有的認知	⑷特別指應有趕上科技發展的資訊課程
+有關臺灣社區發展的歷史發展，下列何者錯誤？(108師1_31)	3	⑴社區發展的概念萌芽於 1955年推動「基層民生建設」	⑵1965年行政院頒布「民生主義現階段社會政策」，將社區發展列為社會福利重要項目之一	⑶社區發展組織逐漸成型，並獨立於村里之外，成為政府推動社區發展的準行政組織	⑷1990年代起臺灣各類社會運動風起雲湧，社區總體營造與福利社區化的推動，形成社區發展雙元併行的發展
+下列何者不是社區工作的起源？(104師1_11)	4	⑴德國的愛伯福制度(Elberfeld System)	⑵英國的睦鄰組織運動	⑶辛辛那提市的社區實驗	⑷聯合國的和平工作小組
+下列何者不屬於社會睦鄰運動對社區所做的貢獻？(108師1_30)	4	⑴以社區為對象，工作者與工作對象相親相愛	⑵工作內容隨社區的需要而發展	⑶配合與聯繫社會相關機關，發掘與運用社會資源	⑷所推動工作僅限於貧民的濟助問題
+臺灣自80年代起開始推動社區總體營造工作，下列何者為該階段社區總體營造的特色？(103障14)	2	⑴發展生產福利建設	⑵培養社區公民意識	⑶善用社區剩餘勞動力	⑷增加社區經濟收入
+社區組織工作源起於下列那一個社會背景？(111特四10)	1	⑴英國的睦鄰運動	⑵歐洲的婦女運動	⑶中國的農村運動	⑷德國的社會保險法
+當我們試圖運用社區培力時，下列何者為其最主要的途徑？(106初30)	2	⑴資源分配	⑵居民參與	⑶大量的人口移入	⑷政府許可
+下列何者是了解社區資訊的正確態度？(112普16)	3	⑴私下和居民互動的資訊是最可靠的	⑵公部門對社區的看法是最能反應居民的想法	⑶應進行社區調查，才能找出社區需求的順序	⑷村里幹事最能代表居民的意見
+試問「社區工作」在下列那一份報告書提出後，正式成為社會工作專業的介入方法？(107特五31)	1	⑴蘭尼報告(The Lane Report)	⑵貝佛里奇報告(The Beveridge Report)	⑶巴雷克報告(The Barclay Report)	⑷睦鄰報告(The Settlement Report)
+社區工作者的主要角色包括下列何者？①協調者②倡導者③教育者④規劃者⑤控制者(100特五3)	4	⑴①②③⑤	⑵①②④⑤	⑶②③④⑤	⑷①②③④
+重視居民自助發展策略與共識的社區工作模式為何？(101初25)	1	⑴地方發展	⑵社會計畫	⑶社區行動	⑷社區教育
+下列何者不是社區組織工作之過程？(110師1_35)	4	⑴建立關係	⑵分析社區	⑶情境估量	⑷未來的圖像
+樓斯曼(Rothman)提出社區組織的那三個模式？①地方發展 ②社會計畫 ③社會行動 ④社區照顧(101障五49)	1	⑴①②③	⑵①②④	⑶①③④	⑷②③④
+某公部門承辦人員：「申請計畫需在很快的時間內提出，社區沒辦法做得到，有的還沒意願，我就把申請衛生福利部補助計畫給他們看一下，找一項來寫，跟他們開個會，研訂怎麼寫，趕快寫…」，請問上述情境，是依據何項需求屬性擬訂計畫？(103師1_2)	3	⑴感受性需求	⑵表達性需求	⑶規範性需求	⑷實證性需求
+有關社區工作中社會行動模式，下列何者正確？(109初29)	4	⑴社會行動模式強調專家導入服務的工作模式	⑵社會行動模式主要的做法為形成社區共識，透過社區內各團體及關心社區事務人士的溝通與團體討論，整合意見並形成共識	⑶社會行動模式強調以理性規劃為核心的工作歷程，因此，社區人士對問題及所採行的方案，需要有一定的共識，以便於採取行動	⑷社會行動模式強調適當的衝突，常用的衝突技術包括對質、直接行動等，以達成改變制度的目標
+有關「社區發展工作綱要」第2條規定，下列何者錯誤？(110師2_39)	4	⑴「社區」係指依法設立的社區發展協會	⑵社區發展立基於社區居民共同需要	⑶社區發展需秉持自動及互助精神，及配合政府支援與技術指導	⑷社區居民係指居住在該社區之人口
+女性主義社區工作的工作方法主要強調下列何者？(110特四25)	3	⑴組織社區居民以提供服務成效	⑵針對少數族群提供服務	⑶改善社區過程中女性參與	⑷女性從事社區照顧工作
+下列何者不屬於對「充權或增強權能(empower)」的描述？(101師1_30)	2	⑴個人無法實現自己的理由，主要是因外在環境的壓迫與限制	⑵鬆動壓迫環境的策略主要是依賴社工師(員)的倡導(advocacy)	⑶不論案主經歷多少無能或失利經驗，應視案主是有能力且有價值的個人	⑷藉由受壓迫的個人或團體的集體行動，促成壓迫環境的改善
+在羅斯曼(Rothman)的社區組織實務模式中，所關注的社區問題為「弱勢人口群遭受到社會不公平的對待的」是那一個模式？(103初28)	1	⑴社會行動模式	⑵社會計畫模式	⑶地區發展模式	⑷社區教育模式
+社區衝突與下列那一個要素有所關聯？(100普5)	2	⑴社區商店的多寡	⑵社區認同的程度	⑶居民人口的多寡	⑷社區活動的多寡
+依據Rothman提出社區工作中，社區發展、社區計畫、社會行動等三種模式的運用，下列何者錯誤？(102師2_20)	3	⑴三種模式並不互斥，在實際運用上可以混合使用	⑵三種模式可因應社區不同的發展階段，而運用不同的工作模式	⑶三種模式中的社會行動模式與社會政策及社會行政的交集最多	⑷社區工作者不僅只熟悉社區組織實務，亦應採用政策與行政的視角協助社區
+在社區工作模式中，針對弱勢社區及社區中弱勢地位者提供協助，然後與社會中的同情者或支持者相聯合，再以社會正義或民主理念，對整體大環境提出適當要求，請問係屬於下列何種模式？(106師2_15)	3	⑴社會互動模式	⑵社會計畫模式	⑶社會行動模式	⑷地區組織模式
+在社區發展的普遍運作與專業化中，下列何者不是影響社區工作推展的環境特性？(112師1_40)	2	⑴時代性	⑵社區人才	⑶政府的角色與立場	⑷專業領域的整合
+志工是很重要的社區資產，下列對社區內志願服務的敘述何者錯誤？(110特五24)	1	⑴因為志願服務是無給職的，所以不用志工保險及訓練課程	⑵志願服務協助政府提供公共服務輸送	⑶志願服務提供多元參與的機會	⑷志願服務提供個人學習與成長的機會
+試問下列那一個選項是Jack Rothman提出社區組織實務的三個模式？(107警24)	4	⑴社會倡議模式、社會組織模式、地方發展模式	⑵社會排除模式、社會行動模式、地方發展模式	⑶地方發展模式、社會計畫模式、社會組織模式	⑷地方發展模式、社會計畫模式、社會行動模式
+福利社區化的過程中，相較於行政院文化建設委員會所倡導之社區營造，兩者所結合的社會資源對象，有何差異，以致績效大不同？(99師2_35)	1	⑴企業界與傳播媒體	⑵社區居民與團體	⑶專業工作者	⑷行政體系
+自1982年英國The Barclay Report出爐後，社區工作與社區照顧扯上關係。之後英國又在1990年通過「健康服務暨社區照顧法案」，於是社區照顧成了國家福利的另一選擇，而下列何者非社區照顧的內涵？(103師1_13)	4	⑴長期照護	⑵去機構化	⑶減少公共依賴	⑷無需成本考量
+下列何者不是社區工作者的核心專業知識？(111師2_38)	2	⑴社區調查及方案設計	⑵社會福利照顧服務規劃	⑶社區願景發展及形塑	⑷社區衝突管理及協調
+有關社區工作的起源，下列敘述何者錯誤？(108初1)	3	⑴德國從事濟貧制度改革而來的社區組織工作，如漢堡制、愛伯福制	⑵世界上第一所社區睦鄰中心是湯恩比館	⑶美國的社區組織發展由珍亞當斯(Jane Adams)在1889年於水牛城建立霍爾館(Hull House)	⑷ 1952年聯合國成立「社區組織與發展」小組
+為了讓某社區內的山坡地不再被濫墾，社區內居民進行了抗議活動。該社區主要運用了那一個社區工作模式？(101障特四15)	3	⑴社區發展模式	⑵社區計畫模式	⑶社區行動模式	⑷社區充權模式
+有關社區印象法(community impressions)的敘述，下列何者正確？(109師1_34)	4	⑴透過公共集會的方式，以互動的方法，收集社區居民需求的資訊	⑵透過召集各社區、各團體的代表，以收集有關社區的資訊	⑶以社區意見領袖為對象，一再向社區領袖請益與釐清相關問題，收集社區需求的資訊	⑷結合社區的資訊、意見領袖的訪談、社區居民的訪談及實地的踏勘，而獲得社區綜合需求的方法
+英國學者布雷德紹(Bradshaw)將社區社會需求(social needs)分成四大類，其中「社區居民因感覺需要而採取行動的需求」，這是屬於下列何種需求？(111特五48)	3	⑴規範的需求	⑵感覺的需求	⑶表達的需求	⑷比較的需求
+下列何者不是Ross(1955)認為社區工作在實務過程中的推動原則？(109師2_29)	1	⑴社區意識	⑵社區自決	⑶社區步調	⑷社區改變的意願
+釐清社區相關問題與優先順序，決定要努力改變的目標，並運用具體的工作步驟、方法，協助社區改變，以解決社區問題。這是下列何種社區工作理論之核心看法？(112初19)	1	⑴任務中心與任務團體理論	⑵資源動員與交換理論	⑶權力與培力理論	⑷社會計畫與變遷理論
+下列有關個案、團體、社區工作的論述，何者錯誤？(104警24)	4	⑴個案工作的對象為有意願的案主，亦有非自願性案主	⑵團體工作對象為失功能或處於困難中的受助者	⑶社區工作的主要技術為方案規劃、動員及會議	⑷社區、團體及個案工作與社會工作專業人員，專業互動時間長短差距不大
+有關社區培力(充權)的敘述，下列何者錯誤？(103師1_1)	3	⑴屬於一個連續的過程	⑵可經由對話而覺察	⑶重視反思，對於行動則較保留，以避免衝突	⑷是一種提供反壓迫的綜合性方法
+通常在一項大型的硬體建設，如：高速公路、新社區開發計畫等之興建，可能對當地的社會互動或社會功能會產生影響而需做評估，這樣的評估被稱為下列何者？(108特四8)	1	⑴社會影響評估	⑵環境影響評估	⑶性別影響評估	⑷政治經濟影響評估
+德維夫斯(Twelvetress，2008)認為社區工作的方案，不能忽略先期的準備作業，下列何者錯誤？(113_2_39)	2	⑴成立方案規劃工作小組	⑵進行資金的募集	⑶考量方案的成本	⑷處理一些實務上的細節
+社區能力的建構，在於提升社區總體所具有的儲能，是透過那幾個層次進行？(110師1_38)	1	⑴個人、組織及社區三個層次	⑵基層、核心及領導三個層次	⑶微觀、中觀及鉅觀三個層次	⑷內部治理、外部環境、治理能力三個層次
+以下那種照顧類型不屬於社區照顧？(102普7)	3	⑴家事服務	⑵社區照顧關懷據點	⑶安養中心	⑷日間托老
+社區聯盟(community coalitions)為社區行動的有效策略之一，Feighery & Rogers(1989)將聯盟分成那三種類型？①草根聯盟 ②睦鄰聯盟 ③專業聯盟 ④社區聯盟(112師1_32)	1	⑴①③④	⑵②③④	⑶①②③	⑷①②④
+福利社區化重視社區服務和資源的整合，在整合的策略方面，以下何者是錯誤的？(100師_34)	2	⑴評估社區的資源需求，針對不足的資源進行募集，同時加以整合	⑵目前政府是整合的主導者，未來仍然要依賴政府整合的主導角色	⑶強化服務方案的宣導，建立居民對於福利社區化的觀念和認同	⑷透過聯繫會報和工作研討會，強化社區溝通協調的功能
+社福中心社會工作者發現社區有許多街友，三餐無以為繼，因此在社區發起區域性食物銀行，募集食物與罐頭，並與媒體合作撰寫專題報導，以提高社區民眾對於食物銀行的重視。下列何者為社會工作者所應扮演的角色？(107普3)	3	⑴使能者	⑵治療者	⑶ 行動者	⑷ 調解者
+有關社工人員在動員社區資源時，必備的知識技術能力，下列何者錯誤？(113師一34)	3	⑴建立工作人員在社區中的誠信與地位	⑵促進社區內成員有意識的參與	⑶進行資源的調查與資源的分工	⑷發展及提升社區成員的優勢與能力
+對於社區工作的定義，下列何者錯誤？(110普10)	3	⑴社區工作可以由社會工作者主動界定問題，排定問題優先順序，並鼓勵居民加入計畫	⑵社區工作包含社區組織與社區發展	⑶社區工作希望組織社區居民，發現社區需求，進而各自努力解決問題	⑷社區工作希望培養居民的歸屬感，並培養自助、互助及自決精神
+社區工作強調群眾參與為其重要的價值觀，下列何者可回應這個價值觀的說明？(99師1_1)	2	⑴雖然無法確保決策能夠符合社區需求，但可提升民主態度和能力	⑵因為參與是人民的一項權利，並可為群眾自身的需求和感受發聲	⑶不能避免決策被少數人壟斷和操縱，卻可提升居民歸屬感的需求	⑷透過社會制度運作，使社區能發揮幫助個別居民自我實現的功能
+下列何者屬於Rothman(1968)社會計畫模式？(108師1_32)	1	⑴以大型的科層組織，引導變遷的過程，並設計各種計畫與政策	⑵以大型教育方案，激勵其自立，協助改善社區居民生活	⑶將劣勢被壓迫一群人，組織起來，爭取權益	⑷重視社區組織之有效利用，避免服務之重疊和資源的缺乏
+社區有其功能，但是也有可能喪失其功能，下述何者可謂「典型功能衰退的社區」？(98師_4)	3	⑴老街	⑵監獄	⑶貧民窟	⑷舊部落
+下列何者不屬於Rothman(1968)所提社區工作的模式？(109師2_31)	4	⑴社會行動模式	⑵社會計畫模式	⑶地區發展模式	⑷社會參與模式
+某社區居民一直很熱心社會公益並參與社區活動，為了保護社區內的溪流不被工廠污染，並維護社區生態，他和居民自發性地共同組成了「社區保溪護魚巡守隊」，下列何者不是他和居民所運用的資源？(106普10)	4	⑴社區互助網絡	⑵志工	⑶鄰居	⑷水利局的經費
+推動福利社區化的方式可以「由社區提供照顧」(care by the community)，其意涵為？(102師2_40)	3	⑴由社區內小型福利機構所提供的照顧	⑵由社區內日間照顧中心所提供的照顧	⑶由社區內非正式支援網絡或民間志願團體所提供的照顧	⑷由社區內醫療衛生單位所提供的照顧
+社區社會工作之實踐立基於對社區社會問題或社區居民需求之掌握，當需要提報某社區的社區問題或需求時，可以透過一些方法進行社區評量，下列那一項方法錯誤？(106警19)	4	⑴次級資料	⑵里民大會、社區委員會、學校的親師座談會等會議	⑶問卷調查	⑷政策宣導活動
+關於社區工作的敘述，下列何者錯誤？①臺灣社區工作與福利工作並非自始相互結合②社區概念僅與特定地理區域連結③老舊市區經濟不振，政府推動城區更新，翻轉老舊市區樣貌，運用的是社區發展模式④為建立在地連結，志工式的服務方式，社區工作方能紮根經營(112師二33)	4	⑴①②③	⑵①③④	⑶①②④	⑷②③④
+有關「在社區內照顧」的敘述，下列何者正確？(108特五28)	1	⑴在社區內透過正式組織提供專業性的服務	⑵透過社區中的親友互相協助提供服務	⑶「在社區內照顧」和「由社區照顧」的定義相同	⑷若有社區照顧就不需要公部門服務
+如果比較社區層次的介入與以社區為基礎的介入，下列敘述何者正確？(105師2_37)	2	⑴以社區為基礎的介入目的是在於改變社區的態度或行為，充權是重要的哲學基礎	⑵社區層次的介入決策在於「由下而上」，充權是重要的哲學基礎	⑶以社區為基礎的介入係主要仍是「由上而下」進行決策，充權是重要的哲學基礎	⑷社區層次的介入是藉由個人與家庭的變遷作為結果測量，優勢是重要的哲學基礎
+社區工作者的角色會隨著工作歷程而有所變動，有關結案階段的角色敘述，下列何者錯誤？(110師1_40)	4	⑴當社區組織已經培養出在地人才時，可開始進行結案的預備	⑵社區工作者整理並移交該社區相關的工作資料	⑶社區工作者也需同時傳授社區工作的知識給接手者	⑷一旦移交完畢，工作者需立即且完全抽離該社區事務
+社區工作者做過了社區需求調查之後，依據自己的專業，研擬了一套具體的方案，進入社區並加以執行，這是何種社區工作模式？(101師2_30)	2	⑴地區發展模式	⑵社會計畫模式	⑶社會行動模式	⑷社區建設模式
+有關「社區健康營造」的陳述，下列何者正確？(101障特四13)	3	⑴社區健康是使社區裡每一位居民都沒有生病	⑵是以社會團體工作的方法，來促進社區健康的行動	⑶是激發居民主動參與，透過居民相互支持，實踐健康的生活	⑷是從中央到地方全面維護社區健康
+在社區中進行資源整合，下列那一項概念錯誤？(107師2_33)	1	⑴未有足夠的資源也可以整合	⑵要有整合者	⑶整合就是合作朝向某個目標努力	⑷整合就是進行工作重分配、資源重配置的活動
+聯合國自1948年開始大力推動社區發展，以促進亞非國家的建設與進步。多數學者們認為社區發展在於促進改變，而具有那些性質？(101原25)	1	⑴方法、過程、方案、運動	⑵方法、過程、資源、專業	⑶哲理、方法、過程、資源	⑷哲理、學說、過程、方案
+依社區發展工作綱要，「社區」如何劃定？(105特五28)	4	⑴居民自行認定	⑵鄉(鎮、市、區)公所劃定，送請代表會審查通過	⑶陳報直轄市、縣(市)政府逕行裁定	⑷鄉(鎮、市、區)公所劃定
+評析社區需求時，下列那一項方法所得到的需求觀點與其他三項的需求觀點不同？(100師_14)	1	⑴訪問鄉長/區長/里長	⑵進行居民抽樣調查	⑶在社區廟口與老人泡茶聊八卦	⑷參加里民大會
+所謂「社區資產」的類型，下列何者錯誤？(105師2_39)	4	⑴有形資本(physical capital)	⑵人力資本(human capital)	⑶社會資本(social capital)	⑷土地資本(land capital)
+有關「社區資源缺乏(deficiency of community based approach)」與「社區資產累積(asset based community development)」取向的敘述，下列何者正確？(107普21)	4	⑴社區資源缺乏取向，比較重視自我動力、強調推展社區本身的資源、希望透過互助合作滿足需求	⑵社區資產累積取向，比較看重發掘社會問題、評估社區底層缺乏的需求、期望引入捐獻填補需求	⑶社區資源缺乏取向，工作過程中比較強調夥伴關係，領導者以打造社區能力為工作目標而努力	⑷社區資產累積取向，工作過程中從蒐集成功案例著手，以自我動員、自我組織方式追求社區變革和改善
+運用社區力量開辦具在地特色的編織班，並進行產銷的服務。此類的社區工作所著力的是下列那一項？(102特五30)	1	⑴就業及產業發展	⑵社區照顧	⑶健康衛生	⑷保護弱勢
+以持續調整社區組織及提出社區願景、劃分各社區方案優先順序，列出分年度計畫、社區人才的訓練與培力、循環性的社區組織能力增長等為核心工作的階段，屬於下列何者？(111特五19)	4	⑴起步階段	⑵工作階段	⑶維持與擴張階段	⑷永續工作階段
+有關Rothman提出之社區組織模式─社會計畫，下列敘述何者錯誤？(106師1_18)	1	⑴社會計畫的行動目標強調社區自助、社區能量之整合，屬於過程目標	⑵社會計畫假設社區存在實質的社會問題	⑶社會工作者扮演方案執行者或催化者	⑷社會計畫是一種有計畫的變遷(planned change)，透過客觀的分析各種不同的情境，進行決策，最後訂定出一個最佳的方案
+社工員對案主社區系統預估架構的內容，可以不包括：(101師2_19)	1	⑴社區權力關係	⑵社區界線及人口統計特性	⑶社區主要的價值觀念	⑷社區服務輸送體系
+社區能力建構被用來提振弱勢及落後社區的公共能力，下列敘述何者正確？(102師1_31)	2	⑴社區刊物是一種動態的經驗分享，提供表達對公共事務的看法	⑵共同行動/學習是希望藉由社區中實際事件或方案進行共同行動	⑶社區能力建構是英國自 70 年代以來主要的社區工作議題	⑷自由分享空間是一種實體空間的概念，希望民眾聚集，以共同交換意見
+下列關於社區總體營造的敘述，何者錯誤？(105師1_38)	2	⑴對象是「有改變、追求幸福意願的社區」	⑵只要居民願意參與即可	⑶主張人與環境改變並重	⑷外部資源性質包含專業人力與財務資源
+社會工作者為精障者及愛滋病患做權益倡導及去汙名化的運動與活動，是屬於下列那一種社區工作的模式？(101師1_20)	3	⑴地方發展	⑵社會計畫	⑶社會行動	⑷社區照顧
+關於社區要素的敘述，下列何者錯誤？(112特五19)	2	⑴人民：社區是由人所組成的	⑵土地與地理疆界：是社區的必要條件，沒有土地不能稱為社區	⑶社會互動：社區內的居民基於生活會產生互動並發展各種關係	⑷認同：社區居民會有屬於同一集體的意識與行為
+以衰敗、失序、缺少能量之靜態社區為工作對象，希望促進社區自助，提高社區能量及整合，這是那一種社區工作模式？(110警25)	1	⑴地方發展	⑵社會計畫	⑶社會行動	⑷社會
+進行社區工作，社會工作者應了解社區的權力結構，下列敘述何者錯誤？(112普21)	4	⑴涉及誰是社區中有影響力的人	⑵涉及社區中的權力擁有者彼此的關係	⑶涉及社區領袖可以動員多少人力和物力	⑷涉及地方政府與中央政府的權責分工
+社區發展協會是屬於下列那一種組織屬性？(107特五28)	3	⑴營利組織	⑵財團法人	⑶社團法人	⑷公法人
+依據Rothman的社區工作實務模式，下列敘述何者正確？(102師2_37)	2	⑴社會行動模式關注社區的社會問題、住宅及休閒等，期待解決社區的實質問題	⑵地方發展模式關注社區的冷漠、疏離，期待社區以民主方式解決社區問題	⑶社會計畫模式改變的策略是透過對質、直接行動、談判、協商的技術	⑷地方發展模式改變的策略是蒐集問題資料，採取最合理的行動
+社區發展工作需投入大量志願服務人力資源，若依現行志願服務法之規定，下列何者正確？(107特五32)	4	⑴志願服務人員不法侵犯他人權利時，不用承擔法律責任	⑵志願服務年資滿3年且服務時數達200小時，即可申請核發志願服務榮譽卡	⑶志工之特殊訓練，由中央主管機關定之	⑷必須具專門執業證照之工作，應由具證照之志工為之
+社區需求調查方法中，透過政府既有的社會與公共衛生統計數據來認識社區，對社區人口、社會結構有基本的了解，屬於下列何種社區需求調查方法？(109師1_33)	3	⑴服務需求法	⑵服務提供與資源分析法	⑶社會與健康指標分析法	⑷德菲法
+社區工作已成為社會工作專業方法之一，以下敘述何者正確？(101師2_15)	3	⑴1929年藍尼(Robert P‧ Lane)報告書闡述社區工作方法	⑵1952年美國社會工作教育學會的課程政策聲明為社會工作三大方法之一	⑶社區工作也可以被視為「鉅觀實務工作」(macro practice)的一部分	⑷社區工作者最重要的技能是社區組織技術，不必瞭解個案與團體的知能，以免產生工作上的混淆
+下列有關「社區總體營造」的敘述，何者較正確？(106原27)	2	⑴著重鄉村公共衛生維護與鄉村合作社的廣泛建立	⑵「社區總體營造」工作的本質，在於建立社區共同體概念，並鼓勵居民運用社區資源從事社區發展	⑶建立一個核心專家領導體系，以任務導向協助社區居民解決社區問題	⑷目標之一為監督政府社區預算的規劃與執行
+下列何者不是Reamer(1995)提出有限資源分配的基本原則？(110_師1_27)	4	⑴償還原則	⑵需求原則	⑶補償原則	⑷公共原則
+和社區資源維繫良好關係，是社區工作者重要的工作任務之一。關於社區資源維繫的敘述，下列何者錯誤？(105師2_19)	3	⑴不管是社區內部或外部資源，對於資源的使用過程，應該儘量透明化，以符合責信原則	⑵社區資源的運用是為了協助社區解決問題或提供服務，因而必須以社區居民的實際需求為前提	⑶為了增加與某些社區資源更密切的互動機會，在社區資源的使用上，儘量集中在某些提供資源的個人與團體	⑷為因應社區居民多元且複雜的需求，並減少社區資源使用的重複與浪費，社區工作者應進行資源的統整與協調
+下列有關樓斯曼(Jack Rothman)之社區工作模式的陳述，何者正確？(105初26)	2	⑴三種工作模式為社區發展、社區組織及社會行動模式	⑵三種工作模式可作為社區工作者的實務指引	⑶三種模式是樓斯曼所研創出來的	⑷三種模式在本質上是分立的，在運用上要分別獨立使用
+Rowe與Frewer(2000)提出多種社區參與方式：「只限於有興趣的市民，參與的人數有限，真正參與且有決策權的為專業者及政治菁英」，請問這是屬於下列那一種社區參與方式？(105師1_39)	3	⑴市民審議/小組	⑵市民諮議委員會	⑶公聽會/諮詢	⑷公議會
+以下有關社區照顧的描述，何者正確？(101原29)	1	⑴社區照顧重視社區人力的投入，以滿足長者可在地老化的需求	⑵社區照顧是一種以機構化服務為主的推動模式	⑶社區照顧的推動不需注重成本效益	⑷社區照顧只能針對長者提供服務
+蒐集社區需求最常用的科學方法是下列那一項？(104原29)	1	⑴進行完整社區調查	⑵到便利超商問服務人員	⑶到學校問老師	⑷請教路過的行人
+評估案主所處環境的要項，下列敘述何者正確？①物理環境適當、穩定 ②足夠的社會支持系統 ③值得信賴的社區組織 ④日間照護的途徑 ⑤適當的財物及管理系統(106師2_6)	4	⑴②③④⑤	⑵①③④⑤	⑶①②④⑤	⑷①②③④
+透過系統性的方法蒐集與分析社區內既有和潛在的各類可用資源，稱之為：(101師1_29)	3	⑴社區凝聚	⑵社區培力	⑶社區資源盤點	⑷社區能力建構
+臺灣於何時開始推動社會福利社區化的相關方案？(104初47)	3	⑴1970年代	⑵1980年代	⑶1990年代	⑷千禧年之後
+社區工作者協助社區推動工作，不同階段扮演著不同的角色，以下何者非起步階段的角色？(107師1_15)	2	⑴研究者	⑵使能者	⑶親善者	⑷資料蒐集者
+社區中討論與協助受政策壓迫和不公平對待的群體，屬於下列何種社區工作模式？(113_2_31)	2	⑴地方發展模式(locality development)	⑵社會行動模式(social action)	⑶社會計畫模式(social plan)	⑷以資產為基礎的社區發展模式(asset-based community development)
+社區報或社區刊物是提升社區意識的重要途徑之一，有關社區報的敘述，下列何者錯誤？(113_2_35)	1	⑴社區報作為社區對內及對外連結的工具，但以內部連結為主	⑵藉由社區報介紹自己的組織，協助其他組織認識該社區組織	⑶社區報內容包括過去的績效及社區願景	⑷社區報可以記錄社區發展的軌跡
+社區發展工作綱要中所列三項社區建設，成果比較不容易被具體看見或測量的是：(101原26)	4	⑴基礎工程建設	⑵生產福利建設	⑶人力資源整合	⑷精神倫理建設
+對「社區關懷照顧據點」的實施情形，下列敘述何者錯誤？(111師1_38)	4	⑴多半仰賴社區志工來提供服務	⑵實踐長者在地安老的宗旨	⑶提供健康促進及關懷訪視服務	⑷依法限定社區發展協會為執行單位
+對於社區當中衝突與整合的動力，下列何者為真？(99師1_3)	1	⑴舉凡社區當中的文化背景、經濟因素、權力結構或區位關係都可能引發社區衝突	⑵社區工作者必須防堵社區衝突，因為它是社區歿落的指標，不是社區活力的指標	⑶所謂的社區整合，是指在社區當中能夠使所有行為標準或信仰價值達到一致性	⑷不論是積極或消極的社區各派系的領導者，都能讓該派系與社區進行有效整合
+下列那一項服務方案並不屬於社區照顧服務？(101障五35)	3	⑴送餐服務	⑵居家服務	⑶仁愛之家	⑷老人日間中心
+社會學者希拉蕊(Hillery)所稱社區要素的組合，下列何者正確？①人民 ②土地 ③信仰④社會互動 ⑤認同(108特四18)	4	⑴①②③④	⑵②③④⑤	⑶①③④⑤	⑷①②④⑤
+下列何者不是社區照顧中社工員的角色？(103普12)	4	⑴個案管理員	⑵行動方案規劃者	⑶使能者	⑷治療者
+下列有關社區工作(community work)的論述，何者錯誤？(104警13)	4	⑴美國藍尼報告(The Lane Report)奠定了社區工作為社會工作三大方法	⑵社區工作的目標在於解決問題與能力培養	⑶社區工作既強調社區意識的凝聚，也重視社區資源的開發	⑷社區睦鄰運動係指社區鄰里互助的組織及睦鄰的運動
+因為共同的宗教、認同、種族、文化而構成的社區，稱為：(113初27)	3	⑴地理社區(geo graphic community)	⑵組織社區(organizational community)	⑶信仰社區(community of believes)	⑷利益社區(community of interest)
+下列何者不是社區組織實務中，「社會行動模式」的特色？(105特五30)	4	⑴須評估社區領袖與分析社區權力結構	⑵相信「有權力的人正是最懂得組織結社的人」	⑶要讓人民覺得自己有權力、體會權力的滋味	⑷需要專門的社會規劃師來協助社區界定問題、評估需求
+依據內政部「建立社區照顧關懷據點實施計畫」，應具備的服務項目不包括：(101初47)	1	⑴就業資訊服務	⑵健康促進活動	⑶餐飲服務	⑷關懷訪視
+社區工作者在與部落原住民工作的過程中，面對非主流的族群文化，應考慮各種面向，下列敘述何者錯誤？(103師2_31)	1	⑴以規範性需求為導向，菁英專家意見才是社區重建的最佳實務	⑵試著了解性別、家族、少數族群的文化意涵和相互關係	⑶評估過程要尊重少數族群的聲音，並讓部落組織起來	⑷反省工作者本身的族群認同和文化對服務提供的意義
+某社區老、中、青全力投入，社區幹部有活力，社區凝聚力強，陣頭、技藝團隊、各種文化傳承活動多，生活方式很豐富，居民和樂融融…。請問該社區符合社區發展指定工作項目的那一項？(102師2_39)	2	⑴生產福利建設	⑵精神倫理建設	⑶公共設施建設	⑷社會福利社區化
+下列有關「社區發展協會」的敘述何者錯誤？(101障五27)	3	⑴社區發展協會設有會員大會	⑵為推動社區發展工作需要，得聘請顧問	⑶理監事會為社區發展協會最高權力機構	⑷社區發展協會應根據社區實際狀況，建立社區之人口資料及社區資源資料
+社區發展協會為基層社區推動之組織，下列有關社區發展協會的組織性質，何者錯誤？(106師2_34)	3	⑴非營利性質的人民團體	⑵組織的財源來自會費、捐款或其他補助收入	⑶理事會為最高權力機關	⑷由社區居民，年滿20歲，有30個人以上發起
+有關臺灣社區工作的發展，以下那一政府部門於 1994 年提出「社區總體營造」計畫，獲得社區工作的主導權？(101師2_29)	3	⑴行政院衛生署	⑵內政部營建署	⑶行政院文化建設委員會	⑷內政部社會司
+Weil與Gamble(1995)提出的鄰里與社區組織模式，下列何者為其基本前提？(108師1_33)	2	⑴改變人民的行為與態度	⑵社區能力的發展與整合	⑶透過有組織的團體去改變	⑷以方案設計來回應社區需求
+以下何者非社區需求調查的常見方法？(107師1_16)	1	⑴實驗法(Experimental method)	⑵社會與健康指標分析法(social and health indicator analysis)	⑶名目團體技術(nominal group techniques)	⑷德菲法(Delphi technique)
+2005年為宣示政府推動社區發展之決心，行政院通過「臺灣健康社區六星計畫」，下列何者不是其中一項？(106師2_14)	1	⑴科技農業	⑵環境景觀	⑶人文教育	⑷環保生態
+請問社區工作在1939年時那一個報告書之後，才逐漸被接受並成為社會工作的基本工作方法之一？(102特五27)	3	⑴貝佛里奇報告書	⑵羅斯福報告書	⑶藍尼報告書	⑷里約報告書
+都市型的社區常以大樓為單位，居民互動的機會不多，關於凝聚社區意識的作法，下列何者錯誤？(111特五18)	3	⑴藉由網路平台提供社區居民即時發生的社區資訊	⑵召開社區會議	⑶物業管理公司主導活動的舉辦	⑷建立社區正式組織，讓有社區工作經驗的熱心住戶發動
+對社區需求的了解，下列敘述何者正確？(110普14)	4	⑴要界定社區的問題和需求，應該要從公部門的視野來考慮	⑵社區的居民應該都對社區的問題和需求，都有一致的看法	⑶要了解社區的問題和需求，應該要避免詢問當事人的看法	⑷並非所有的社區居民對社區的問題和需求，都有相同的看法
+在開發中國家，社區發展實務理論中有些主張「計畫變遷」，下列那一個模式不屬於「計畫變遷模式」？(103警14)	2	⑴創新變革	⑵解凍與凍結	⑶行為改變	⑷過程取向
+下列關於社區的敘述，何者錯誤？(101特五30)	1	⑴所有有人住的地方皆為社區	⑵社區透過各種活動滿足人們的需求	⑶社區透過社區公約、學校等方式，達到社會控制的作用	⑷高犯罪率以及人口外流都是社區功能不佳的指標
+「無住屋組織聯盟」和「環境保護組織」所採取的運作模式，屬於下列何種社區模式？(104師2_22)	3	⑴社區組織	⑵社會計畫	⑶社會行動	⑷社區增權
+在福利社區化的過程中，社會工作者為了服務社區中的身心障礙者，必須整合多元的服務網絡，個案管理成為重要的議題，以下那些項目屬於福利社區化過程中，個案管理的主要目的？①提供全面和統整的連續性服務 ②促進服務的可近性和社會責信 ③監督服務的提供(106師1_23)	4	⑴僅①②	⑵僅②③	⑶僅①③	⑷①②③
+依社區發展工作綱要(103年09月18日)之規定，社區發展協會應配合政府政策訂定社區發展計畫，試問下列何者不屬配合政府政策之項目？(108特五30)	4	⑴公共設施建設	⑵生產福利建設	⑶精神倫理建設	⑷長期照顧服務建設
+當社區的需求係由既有的標準或指標而來，係屬於下列何種性質的需求？(110師1_11)	3	⑴表達性需求	⑵感覺性需求	⑶規範性需求	⑷比較性需求
+下列有關社區發展協會的敘述，何者正確？(102特五29)	1	⑴至少由30人發起組織，向縣(市)主管機關立案	⑵最多為20人發起組織，向縣(市)主管機關立案	⑶社區發展協會為財團法人	⑷社區發展協會的運作不需要組織章程
+有關「社區化」之概念，下列敘述何者錯誤？(106師2_29)	4	⑴地方化：指具有因地制宜的特色，著重滿足地方個別需求	⑵分權化：減少來自中央政府對服務輸送及決策的干預	⑶去機構化：需要被照顧者，得到適當的支持性與資訊服務	⑷公共化：指具有國家化的意涵，是由上而下的改革過程
+對於社區總體營造的源起和工作重點，下列敘述何者錯誤？(111特四14)	2	⑴此詞出於前行政院文化建設委員會提出的施政計畫	⑵以提供福利服務為重點的計畫	⑶以社區歷史文化和生活環境改善為重點的計畫	⑷以提升社區居民生活素質為目標的計畫
+社區發展協會有法定權責的正式會議，下列何者正確？(110師2_37)	2	⑴專家顧問會議	⑵會員大會	⑶志工大會	⑷專業活動籌備會議
+在Popple(1995)的社區工作模式中，下列那一種模式最仰賴志願服務者的投入？(112師1_33)	1	⑴社區照顧	⑵社區組織	⑶社區教育	⑷社區行動
+Adams指出培力過程的實務特性，下列敘述何者錯誤？(106師2_25)	2	⑴培力是一個連續的過程	⑵培力是經由對話得到權益	⑶培力乃反抗壓迫的綜合性方法	⑷培力是一種反思的實踐
+依據社會行動模式，社會工作者在促進社區發展過程中主要考慮的面向，下列敘述何者正確？①能力建構 ②網絡建構 ③競爭關係 ④相互協商 ⑤資源取得(111普14)	4	⑴①②③⑤	⑵①②③④	⑶②③④⑤	⑷①②④⑤
+當我們形容社區居民之間彼此互相關懷，很有凝聚力，請問主要是在形容社區下列那一項特質？(109特五27)	1	⑴社區意識	⑵社區需求	⑶社區資源	⑷社區組織
+某山區偏遠鄉的社區蓄水池在強烈颱風中嚴重受損，目前沒有自來水可以用，居民想重建。期望你扮演專家的角色，為大家在重建過程中提供技術建議。這種取向比較接近下列那種社區工作的模式？(109特四20)	1	⑴社會計劃(social planning)模式	⑵社會行動(social action)模式	⑶地區發展(locality development)模式	⑷平民教育(mass education)模式
+對於我國的社區發展和社區總體營造計畫的敘述，下列何者正確？(102特五28)	4	⑴社區總體營造強調環境的營造，而社區發展重視居民社團的經營	⑵社區總體營造由文史工作室推行，而社區發展由社區發展協會推動	⑶社區總體營造和社區發展的理念不同，推行的方法也不同，效果更不相同	⑷社區總體營造和社區發展的理念及精神相同，但推行的方法不同，效果不同
+下列有關社區行動模式的敘述，何者為正確？(102普10)	4	⑴關懷社區居民內長者及身心障礙者，並運用志工提供服務	⑵協調服務提供，以達成有效的福利輸送	⑶提出社區族群不平等的議題，並給予服務	⑷組織一群弱勢者，並採取行動以期社會予以合理的對待
+目前在社區議題中推動的參與式預算，是屬於下列那一種理念的實踐？(111初31)	1	⑴審議民主在社區參與的實踐	⑵社區需求在社區理念的實踐	⑶社區培力在社區能力的實踐	⑷社區服務在社區資源的實踐
+進行社區評估時應注意的面向，下列敘述何者錯誤？(112普12)	4	⑴了解社區的傳統文化	⑵認識社區受到歧視的族群	⑶了解社區中具有影響力的人	⑷了解社會工作者的偏好
+社區發展工作之推動需挹注不同的財務來源，若依現行公益勸募條例之規定，下列何者不是該條例所謂的勸募團體？(109初32)	4	⑴公立學校	⑵行政法人	⑶公益性社團法人	⑷遭逢不幸的個人
+`;
+
+        let allQuestions = [];
+        let currentQuizQuestions = [];
+        let userAnswers = {};
+        let currentQuestionIndex = 0;
+        let timerInterval;
+        let seconds = 0;
+
+        // Helper function to shuffle an array
+        const shuffleArray = (array) => {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        };
+
+        // Parse the raw text data into a structured question bank
+        const parseData = () => {
+             const lines = rawData.trim().split('\n').filter(line => line.trim() !== '');
+            
+            allQuestions = lines.map((line, index) => {
+                const parts = line.split(',');
+                if (parts.length < 3) {
+                    console.error(`Skipping invalid line ${index + 1}:`, line);
+                    return null;
+                }
+
+                const answerIndex = parseInt(parts[0], 10) - 1;
+                const questionPart = parts[1];
+                
+                const qMatch = questionPart.match(/(.*)(\(.*\))/);
+                const questionText = qMatch ? qMatch[1].trim() : questionPart.trim();
+                const source = qMatch ? qMatch[2] : '';
+                
+                const options = parts.slice(2).map(opt => opt.substring(1).trim());
+                
+                if (isNaN(answerIndex) || answerIndex < 0 || answerIndex >= options.length) {
+                    console.error(`Parsing error on line ${index + 1} (Invalid Answer Index):`, line);
+                    return null;
+                }
+                const answer = options[answerIndex];
+
+                return { id: index, question: questionText, source, options, answer };
+            }).filter(q => q !== null);
+        };
+
+        // Functions to manage UI visibility
+        const showScreen = (screenId) => {
+            ['start-screen', 'quiz-screen', 'results-screen'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById(screenId).classList.remove('hidden');
+        };
+
+        const formatTime = (totalSeconds) => {
+            const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+            const seconds = (totalSeconds % 60).toString().padStart(2, '0');
+            return `${minutes}:${seconds}`;
+        };
+
+        const startTimer = () => {
+            seconds = 0;
+            document.getElementById('timer').textContent = formatTime(seconds);
+            timerInterval = setInterval(() => {
+                seconds++;
+                document.getElementById('timer').textContent = formatTime(seconds);
+            }, 1000);
+        };
+        
+        // Main function to start the quiz
+        const startQuiz = (numQuestions) => {
+            userAnswers = {};
+            currentQuestionIndex = 0;
+            
+            const shuffled = shuffleArray([...allQuestions]);
+            currentQuizQuestions = shuffled.slice(0, numQuestions);
+            currentQuizQuestions.forEach(q => {
+                q.options = shuffleArray([...q.options]);
+            });
+
+            showScreen('quiz-screen');
+            renderQuestion(currentQuestionIndex);
+            startTimer();
+        };
+
+        // Render a single question on the screen
+        const renderQuestion = (index) => {
+            const question = currentQuizQuestions[index];
+            document.getElementById('question-text').textContent = question.question;
+            document.getElementById('question-source').textContent = question.source;
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            question.options.forEach((option, i) => {
+                const optionId = `q${index}_opt${i}`;
+                const checked = userAnswers[index] === option ? 'checked' : '';
+                optionsContainer.innerHTML += `
+                    <div class="macaron-option rounded-lg">
+                        <input type="radio" name="q${index}" id="${optionId}" value="${option}" class="hidden" ${checked} onchange="selectAnswer(${index}, '${option}')">
+                        <label for="${optionId}" class="block w-full text-left p-4 text-xl rounded-lg cursor-pointer">
+                            ${option}
+                        </label>
+                    </div>
+                `;
+            });
+
+            document.getElementById('progress').textContent = `第 ${index + 1} / ${currentQuizQuestions.length} 題`;
+            document.getElementById('prev-btn').style.visibility = index === 0 ? 'hidden' : 'visible';
+            document.getElementById('next-btn').style.display = index === currentQuizQuestions.length - 1 ? 'none' : 'block';
+            document.getElementById('submit-btn').style.display = index === currentQuizQuestions.length - 1 ? 'block' : 'none';
+        };
+
+        const selectAnswer = (index, answer) => {
+            userAnswers[index] = answer;
+        };
+
+        const prevQuestion = () => {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuestion(currentQuestionIndex);
+            }
+        };
+
+        const nextQuestion = () => {
+            if (currentQuestionIndex < currentQuizQuestions.length - 1) {
+                currentQuestionIndex++;
+                renderQuestion(currentQuestionIndex);
+            }
+        };
+        
+        const submitQuiz = () => {
+            clearInterval(timerInterval);
+            showScreen('results-screen');
+            renderResults();
+        };
+
+        const renderResults = () => {
+            let score = 0;
+            currentQuizQuestions.forEach((q, i) => {
+                if (userAnswers[i] === q.answer) {
+                    score++;
+                }
+            });
+
+            document.getElementById('score').textContent = `你的分數: ${score} / ${currentQuizQuestions.length}`;
+            document.getElementById('time-taken').textContent = `測驗時間: ${formatTime(seconds)}`;
+
+            const detailsContainer = document.getElementById('details-section');
+            detailsContainer.innerHTML = '';
+
+            currentQuizQuestions.forEach((q, i) => {
+                const userAnswer = userAnswers[i] || "未作答";
+                const isCorrect = userAnswer === q.answer;
+                
+                detailsContainer.innerHTML += `
+                    <div class="p-5 rounded-lg border macaron-card">
+                        <p class="text-xl font-semibold mb-3">${i + 1}. ${q.question} <span class="text-sm text-gray-500">${q.source}</span></p>
+                        <p class="p-3 rounded-md ${isCorrect ? 'correct-answer' : 'incorrect-answer'}">你的答案：${userAnswer}</p>
+                        ${!isCorrect ? `<p class="p-3 mt-2 rounded-md correct-answer">正確答案：${q.answer}</p>` : ''}
+                    </div>
+                `;
+            });
+        };
+        
+        // Functions to download results as PDF or CSV
+        const downloadResults = async (format) => {
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const filename = `social-work-ethics-quiz-results-${timestamp}`;
+
+            if (format === 'pdf') {
+                 try {
+                    const { jsPDF } = window.jspdf;
+                    const pdf = new jsPDF('p', 'mm', 'a4');
+                    const content = document.getElementById('results-screen');
+                    
+                    pdf.setFont('helvetica'); // Using a standard font
+                    pdf.setFontSize(20);
+                     // Using a placeholder text as jsPDF has issues with unicode without proper fonts
+                    pdf.text('Quiz Results', 105, 20, null, null, 'center');
+                    
+                    const canvas = await html2canvas(content, { 
+                        scale: 2,
+                        useCORS: true, 
+                        allowTaint: true 
+                    });
+                    const imgData = canvas.toDataURL('image/png');
+                    const imgProps= pdf.getImageProperties(imgData);
+                    const pdfWidth = pdf.internal.pageSize.getWidth() - 20; // with margin
+                    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+                    
+                    pdf.addImage(imgData, 'PNG', 10, 30, pdfWidth, pdfHeight);
+                    pdf.save(`${filename}.pdf`);
+                } catch (e) {
+                    console.error("Error generating PDF:", e);
+                    alert("抱歉，PDF下載功能目前無法使用。請嘗試下載CSV或截圖保存。");
+                }
+            } else if (format === 'csv') {
+                let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; // \uFEFF for BOM
+                csvContent += "題號,題目,你的答案,正確答案\n";
+
+                currentQuizQuestions.forEach((q, i) => {
+                    const userAnswer = userAnswers[i] || "未作答";
+                    const row = [
+                        i + 1,
+                        `"${q.question.replace(/"/g, '""')}"`,
+                        `"${userAnswer.replace(/"/g, '""')}"`,
+                        `"${q.answer.replace(/"/g, '""')}"`
+                    ].join(',');
+                    csvContent += row + "\r\n";
+                });
+
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", `${filename}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        };
+
+        // Initialize the app when the page loads
+        window.onload = () => {
+            parseData();
+        };
+    </script>
+</body>
+</html>
