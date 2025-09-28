@@ -3,257 +3,232 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>兒少社會工作隨機測驗</title>
+  <title>社會工作理論(三)隨機測驗</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
-    body { font-family: 'Noto Sans TC', 'Microsoft JhengHei', Arial, sans-serif; background: #f6f8fa; margin: 0; }
-    .container { max-width: 600px; margin: 40px auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); padding: 32px 24px 24px 24px; }
-    h1 { margin-top: 0; font-size: 2rem; color: #2b4a6f; text-align: center; }
-    h2 { font-size: 1.1rem; color: #4a6fa1; text-align: center; font-weight: normal; margin-top: 0; }
-    .btn-group { display: flex; justify-content: center; gap: 16px; margin: 24px 0 32px 0; }
-    button { background: #4a90e2; color: #fff; border: none; border-radius: 6px; padding: 12px 28px; font-size: 1rem; cursor: pointer; transition: background 0.2s; }
-    button:hover, button:focus { background: #357ab8; }
-    .progress { height: 8px; background: #e0e7ef; border-radius: 4px; margin-bottom: 24px; overflow: hidden; }
-    .progress-bar { height: 100%; background: #4a90e2; width: 0%; transition: width 0.3s; }
-    .question-card { margin-bottom: 24px; }
-    .question { font-size: 1.1rem; margin-bottom: 18px; color: #2b4a6f; }
-    .options { display: flex; flex-direction: column; gap: 12px; }
-    .option { background: #f2f6fa; border: 1px solid #c7d6e6; border-radius: 6px; padding: 10px 16px; cursor: pointer; transition: background 0.2s, border 0.2s; display: flex; align-items: center; font-size: 1rem; }
-    .option.selected { background: #dbefff; border: 2px solid #4a90e2; }
-    .option.correct { background: #d4f7d4; border: 2px solid #3bb143; color: #217a21; }
-    .option.incorrect { background: #ffe0e0; border: 2px solid #e24a4a; color: #a12b2b; }
-    .actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
-    .summary { text-align: center; margin-top: 32px; }
-    .score { font-size: 1.5rem; color: #357ab8; margin-bottom: 12px; }
-    .review { margin-top: 32px; background: #f8fafc; border-radius: 8px; padding: 18px 12px; }
-    .review h3 { margin-top: 0; color: #4a6fa1; font-size: 1.1rem; }
-    .review-item { margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid #e0e7ef; }
-    .review-item:last-child { border-bottom: none; }
-    .review-q { font-weight: bold; color: #2b4a6f; }
-    .review-a { margin-left: 8px; }
-    .review-correct { color: #217a21; font-weight: bold; }
-    .review-wrong { color: #a12b2b; font-weight: bold; }
-    @media (max-width: 600px) { .container { padding: 16px 4px 12px 4px; } h1 { font-size: 1.3rem; } }
+    body {
+      font-family: 'Noto Sans TC', 'Microsoft JhengHei', Arial, sans-serif;
+      background: #f8f6ff;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 700px;
+      margin: 32px auto;
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.10);
+      padding: 32px 24px 24px 24px;
+    }
+    h1 {
+      margin-top: 0;
+      font-size: 2.2rem;
+      color: #6c5ce7;
+      text-align: center;
+      letter-spacing: 2px;
+    }
+    h2 {
+      font-size: 1.1rem;
+      color: #b2bec3;
+      text-align: center;
+      font-weight: normal;
+      margin-top: 0;
+      margin-bottom: 24px;
+    }
+    .btn-group {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin: 24px 0 32px 0;
+    }
+    button {
+      background: linear-gradient(90deg,#fdcbf1 0%,#a1c4fd 100%);
+      color: #2d3436;
+      border: none;
+      border-radius: 8px;
+      padding: 14px 32px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      font-weight: bold;
+      box-shadow: 0 2px 8px rgba(200,200,200,0.10);
+      transition: background 0.2s;
+    }
+    button:hover, button:focus {
+      background: linear-gradient(90deg,#a1c4fd 0%,#fdcbf1 100%);
+    }
+    .progress {
+      height: 12px;
+      background: #ffeaa7;
+      border-radius: 6px;
+      margin-bottom: 24px;
+      overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%;
+      background: #fab1a0;
+      width: 0%;
+      transition: width 0.3s;
+    }
+    .question-card {
+      margin-bottom: 24px;
+    }
+    .question {
+      font-size: 1.3rem;
+      margin-bottom: 18px;
+      color: #00b894;
+      font-weight: bold;
+    }
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .option {
+      background: #ffeaa7;
+      border: 2px solid #fdcbf1;
+      border-radius: 10px;
+      padding: 16px 18px;
+      cursor: pointer;
+      font-size: 1.15rem;
+      font-weight: bold;
+      transition: background 0.2s, border 0.2s;
+      display: flex;
+      align-items: center;
+      letter-spacing: 1px;
+    }
+    .option.selected {
+      background: #a1c4fd;
+      border: 2px solid #6c5ce7;
+      color: #2d3436;
+    }
+    .option.correct {
+      background: #dff9fb;
+      border: 2px solid #00b894;
+      color: #00b894;
+    }
+    .option.incorrect {
+      background: #fab1a0;
+      border: 2px solid #d63031;
+      color: #d63031;
+    }
+    .actions {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 24px;
+    }
+    .timer {
+      text-align: right;
+      font-size: 1.1rem;
+      color: #636e72;
+      margin-bottom: 12px;
+      font-weight: bold;
+    }
+    .summary {
+      text-align: center;
+      margin-top: 32px;
+    }
+    .score {
+      font-size: 2rem;
+      color: #00b894;
+      margin-bottom: 12px;
+      font-weight: bold;
+    }
+    .review {
+      margin-top: 32px;
+      background: #f8fafc;
+      border-radius: 12px;
+      padding: 18px 12px;
+    }
+    .review h3 {
+      margin-top: 0;
+      color: #6c5ce7;
+      font-size: 1.2rem;
+    }
+    .review-item {
+      margin-bottom: 18px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #e0e7ef;
+    }
+    .review-item:last-child {
+      border-bottom: none;
+    }
+    .review-q {
+      font-weight: bold;
+      color: #00b894;
+      font-size: 1.1rem;
+    }
+    .review-a {
+      margin-left: 8px;
+      font-size: 1rem;
+    }
+    .review-correct {
+      color: #00b894;
+      font-weight: bold;
+    }
+    .review-wrong {
+      color: #d63031;
+      font-weight: bold;
+    }
+    .download-group {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin-top: 24px;
+    }
+    @media (max-width: 700px) {
+      .container { padding: 12px 2px 8px 2px; }
+      h1 { font-size: 1.3rem; }
+      .question { font-size: 1.1rem; }
+      .option { font-size: 1rem; }
+    }
   </style>
 </head>
 <body>
   <div class="container" id="app"></div>
   <script>
-// 題庫資料（請補齊50題）
+// 題庫資料（40題，已隨機排列）
 const questions = [
-  [
-  {
-    q: "政府對發展遲緩兒童，應按其需要給予特殊照顧。下列服務中，何者並非發展遲緩兒童立即性需求？",
-    options: ["早期療育", "醫療", "就學", "就養"],
-    answer: 3
-  },
-  {
-    q: "依據我國兒童及少年福利與權益保障法，下列有關「兒童及少年」的年齡範定之敘述，何者正確？",
-    options: ["「兒童」指的是未滿12歲之人", "「青少年」指的是12歲以上未滿15歲之人", "「少年」指的是12歲以上未滿20歲之人", "「幼兒」指的是未滿7歲之人"],
-    answer: 2
-  },
-  {
-    q: "直轄市、縣(市)主管機關對於依少年事件處理法交付安置輔導或感化教育結束、停止或免除，或經交付轉介輔導之兒童、少年及其家庭，應予追蹤輔導：",
-    options: ["至少1年", "至少2年", "至少3年", "至少4年"],
-    answer: 2
-  },
-  {
-    q: "有下列情事，何者並非兒童及少年福利與權益保障法第81條的規定，不得擔任兒童及少年福利機構或兒童課後照顧服務班及中心之負責人或工作人員？",
-    options: ["有性騷擾行為，經有罪判決確定", "有性侵害行為，被起訴", "行為不檢損害兒童及少年權益，其情節重大，經有關機關查證屬實", "身心狀況違常，經主管機關委請相關專科醫師認定不能執行業務"],
-    answer: 1
-  },
-  {
-    q: "依據『聯合國兒童權利公約』第 31 條指出『兒童及少年有從事適合其年齡之遊戲與娛樂活動之權利』。對兒童及少年來說，遊戲的正面功能不包括下列那一項？",
-    options: ["有助於免於貧窮", "有助於語言發展", "有助於情緒放鬆與調適", "有助於社會關係的學習"],
-    answer: 0
-  },
-  {
-    q: "兒童的家外安置被視為是兒童福利服務的最後一道防線，其最主要的原因為何？",
-    options: ["家外安置的服務提供者不易培養，供給有限", "家外安置的服務成本太高，排擠其他兒童福利資源", "研究顯示，長期接受寄養或機構服務的兒童，在不同照顧系統間流轉，其心理創傷及行為問題的改變成效一直備受質疑", "家外安置服務的專業系統太為複雜，對兒童會有適應上的困難"],
-    answer: 2
-  },
-  {
-    q: "最近國內學者借用美國兒童福利聯盟有關兒童的家庭服務實施內容，將家庭服務內涵分為三類，下列敘述何者錯誤？",
-    options: ["家庭支持服務：社區化的服務提供以支持及協助父母親職角色的扮演", "家庭中心服務：運用一系列的工作方法，如個案管理、諮商輔導、實務補助等協助家庭度過難關", "家庭維繫服務：提供各種密集性家庭服務、倡導服務等給發生危機的家庭", "家為基礎服務：短期的危機介入服務，提供家族治療與具體服務"],
-    answer: 3
-  },
-  {
-    q: "確保兒童在成長過程中，不因年齡、種族、性別及社會階級等而受到差別對待，這是反映何種兒童價值觀？",
-    options: ["兒童剝奪", "兒童人權", "社會排除", "社會歧視"],
-    answer: 1
-  },
-  {
-    q: "根據我國2011年所實施的「兒童及少年福利與權益保障法」之規定，安置兩年以上之兒童及少年，經主管機關評估其家庭功能不全或無法返家者，社會工作者應提出下列何種計畫？",
-    options: ["家庭維繫計畫", "長期輔導計畫", "課後服務計畫", "特別看護計畫"],
-    answer: 1
-  },
-  {
-    q: "有關兒童福利服務的敘述，下列何者錯誤？",
-    options: ["寄養服務屬於支持性服務", "補充性服務目的在於彌補家庭對子女照顧功能不足", "機構教養屬於替代性服務", "家庭津貼屬於補充性服務"],
-    answer: 0
-  },
-  {
-    q: "家庭不僅具有養育，照顧兒童的功能，也是塑造其價值觀、情感、人格等各方面的初級團體。請問家庭對兒童的重要性，下列敘述何者正確？",
-    options: ["夫妻離婚會導致兒童身心調適產生問題", "兒童已具備獨立生活的個體", "兒童大多數的生活資源容易取得", "家庭健全與兒童成長的關係不大"],
-    answer: 0
-  },
-  {
-    q: "少年法院依少年調查官調查之結果，認為情節輕微，以不付審理為適當者，得為不付審理之裁定，處分不包括下列那一項？",
-    options: ["轉介兒童或少年福利或教養機構為適當之輔導", "安置", "告誡", "交付兒童或少年之法定代理人或現在保護少年之人嚴加管教"],
-    answer: 1
-  },
-  {
-    q: "有關兒少保護親子探視的敘述，下列何者錯誤？",
-    options: ["定期探視提高家庭重聚的可能性", "社會工作者應協助家庭成員降低探視焦慮感與傷感", "探視時間只要家人願意，應儘可能安排", "探視結束時孩子有退縮行為或生氣情緒，應永久終止探視"],
-    answer: 3
-  },
-  {
-    q: "兒童司法權的主張，除了強調兒童享有和成人一樣憲法保障之基本權利，同時也應享有與成人不一樣的法律程序保障，因此兒童犯罪時，下列何者不是屬於法律程序保障內涵？",
-    options: ["社工陪同出庭", "避免重複訊問", "隱私權保障", "心理支持"],
-    answer: 3
-  },
-  {
-    q: "從事兒童工作的社會工作者主要扮演的角色，下列何者不正確？",
-    options: ["個案管理者", "提供直接服務者", "倡導者", "照顧者"],
-    answer: 3
-  },
-  {
-    q: "「建構友善托育環境－保母托育管理與托育費用補助實施計畫」支持父母兼顧就業和育兒，針對就業者提供部分托育費用，以協助家長解決托兒問題，使能投入就業市場，減輕家庭照顧及經濟負擔。請問上述計畫屬於兒童及少年福利服務中的那一種類別？",
-    options: ["支持性服務", "補充性服務", "替代性服務", "保護性服務"],
-    answer: 1
-  },
-  {
-    q: "依據「兒童及少年福利與權益保障法」，兒童因不當對待或未受適當照顧而有緊急安置必要時，除例外情形聲請法院裁定外，緊急安置至多不得超過幾小時？",
-    options: ["24小時", "48小時", "72小時", "96小時"],
-    answer: 2
-  },
-  {
-    q: "下列何者對於兒童少年保護工作的描述是錯誤的？",
-    options: ["警察、醫師對於發現受虐事實的兒童和少年有通報的責任", "即使社會工作者發現孩子需要被保護安置時，除非有法院的判決，否則也只能做緊急的72小時安置", "六歲以下的孩子因為照顧者疏忽，導致意外墜樓時，不屬於兒童保護案件", "如果照顧者確實有管教不當的虐待事實時，可以要求對其進行強制親職教育"],
-    answer: 2
-  },
-  {
-    q: "臺灣於那一年開始實施兒童權利公約施行法？",
-    options: ["西元1989年", "西元2003年", "西元2014年", "西元2017年"],
-    answer: 2
-  },
-  {
-    q: "以下為社會工作者所訪問的兒童疏忽個案，「我好像走入一個垃圾場，在雜亂的房間中，我看到一個黑瘦、吃驚的女孩，大約四歲，她身上非常的髒，手腳頭髮都是滿滿的食物碎片或汁液，家裡的環境充滿垃圾及排泄物...」。這個案例是屬於那一種類型的兒童疏忽？",
-    options: ["情緒疏忽", "不正當環境", "身體疏忽", "身體虐待"],
-    answer: 2
-  },
-  {
-    q: "早期發覺發展遲緩的兒童，及時給予適當的醫療照護與社會福利服務，可稱為：",
-    options: ["托育養護", "早期療育", "身心障礙教養", "轉銜服務"],
-    answer: 1
-  },
-  {
-    q: "下列何者並非兒童福利服務的類型？",
-    options: ["支持性", "補充性", "替代性", "教育性"],
-    answer: 3
-  },
-  {
-    q: "對於不適宜在家庭教養之兒少，依據「兒童及少年福利與權益保障法施行細則」第10條之規定，應以下列那一項安置場域為優先考慮？",
-    options: ["適當之親屬", "與兒少有長期正向穩定依附關係之第三人", "登記合格之寄養家庭", "核准立案之安置及教養機構"],
-    answer: 0
-  },
-  {
-    q: "社工人員為能接觸因逃學逃家在外遊蕩，或沉溺於網咖、撞球場遊樂場所的青少年，經常採取下列那一種工作方法？",
-    options: ["外展工作", "個案管理", "資源連結", "陪同"],
-    answer: 0
-  },
-  {
-    q: "兒童少年保護領域中，一般論及家外安置服務，下列敘述何者正確？",
-    options: ["兒童福利服務的第一道防線", "屬於支持性服務", "將兒童或少年安置於原生家庭以外之服務", "家外安置照顧者與兒童或少年無血緣關係"],
-    answer: 2
-  },
-  {
-    q: "依據我國兒童及少年福利與權益保障法施行細則，安置兒童及少年時應優先考慮那一個安置場域？",
-    options: ["合適之親屬家庭", "登記合格之寄養家庭", "經核准立案之兒童及少年安置及教養機構", "經縣市政府立案的兒童之家"],
-    answer: 0
-  },
-  {
-    q: "下列何者非屬於青少年社會工作原則？",
-    options: ["生活化原則", "發展性原則", "非主流化原則", "社區化原則"],
-    answer: 2
-  },
-  {
-    q: "下列那一項服務方案，是針對貧窮家庭、弱勢家庭或移民家庭的兒童所提供的早期介入服務，希望協助兒童在身體、語言、社會技巧、認知學習、情緒表達上有適切發展？",
-    options: ["啟蒙方案", "自立生活準備方案", "工讀脫貧方案", "職涯輔導方案"],
-    answer: 0
-  },
-  {
-    q: "如果你是兒童少年保護的社會工作者，依海渥斯等人(Hepworth et al1997)指出，可以用那些指標來評估兒童性虐待？①身體指標 ②情緒指標 ③人際指標 ④認知指標 ⑤行為指標 ⑥經濟指標",
-    options: ["僅①②③", "僅④⑤⑥", "①②③④⑤", "②③④⑤⑥"],
-    answer: 2
-  },
-  {
-    q: "關於少年網路沉迷或成癮的敘述，下列何者正確？",
-    options: ["因為壓力心煩而上網，取得放鬆和愉悅感，再上網後產生罪惡感，又再導致壓力心煩", "網路成癮者能夠自主控制上網渴望和衝動", "網路成癮者的離線空窗期，不會影響情緒或日常工作", "上網依賴產生時，上網時數和次數會遞減"],
-    answer: 0
-  },
-  {
-    q: "我國兒童少年福利相關法律的發展，下列敘述何者錯誤？",
-    options: ["從強調父母親權到視兒童少年為社會資產", "從福利服務到兒童少年基本人權保障", "從父母親權轉向學校干預", "從個體服務轉向以家庭為中心的服務觀點"],
-    answer: 2
-  },
-  {
-    q: "美國學者Nancy B. Webb(2003)提出在進行兒童生理心理社會評估時，所運用的三維評估是那三維？",
-    options: ["個人因素、家庭因素、學校因素", "個人因素、家庭因素、社會因素", "個人因素、情境因素、社會因素", "個人因素、情境因素、支持系統因素"],
-    answer: 3
-  },
-  {
-    q: "請問下列有關兒童福利服務的項目，何者不屬於現金給付的型態？",
-    options: ["保費補助", "育兒津貼", "安置服務", "經濟補助"],
-    answer: 2
-  },
-  {
-    q: "從事兒童保護的社會工作者，應了解兒童與家長通常需要不同的支持服務。下列那一個敘述是錯誤的？",
-    options: ["兒童需要獲得實質的幫助，他們喜歡能從各個角度了解兒童生活的社會工作者", "父母重視目的、預期成果和公開透明的服務，因此社會工作者不能迴避與父母接觸", "不管是父母還是孩子，他們都重視願意花時間傾聽、提供情感支持的社會工作者", "為了保障兒童的安全，要避免讓安置中的兒童進行親子接觸，並協助雙方克服失落感"],
-    answer: 3
-  },
-  {
-    q: "對於兒童及少年家庭的「支持性服務」之實施，下列敘述何者正確？",
-    options: ["以寄養或安置的服務方式來替代原生家庭的照顧功能", "以提供安置兒童少年的心理治療", "以托育服務來支持父母照顧之不足", "以早期療育服務來協助家庭照顧發展遲緩兒童"],
-    answer: 3
-  },
-  {
-    q: "社會工作開始關心犯罪矯治問題可追溯至19世紀末，Jane Addams倡導應將少年與成人犯罪分別處理，促使美國成立第一個少年法庭，位於何處？",
-    options: ["紐約", "水牛城", "芝加哥", "洛杉磯"],
-    answer: 2
-  },
-  {
-    q: "6歲的小真因在原生家庭沒有受到適當的養育與照顧，其所在的縣市主管機關經評估之後為小真辦理家庭寄養服務。該項服務屬於下列兒童及少年福利服務的那一種類別？",
-    options: ["支持性服務", "補充性服務", "替代性服務", "保護性服務"],
-    answer: 2
-  },
-  {
-    q: "依據Kadushin及Martin(1988)提出的「支持性服務」、「補充性服務」及「替代性服務」觀點，下列敘述何者錯誤？",
-    options: ["家庭經濟補助是屬於補充性服務", "收養是屬於替代性服務", "發展遲緩兒童社區療育服務是屬於支持性服務", "托育服務是屬於替代性服務"],
-    answer: 3
-  },
-  {
-    q: "關於1989年聯合國所通過的「兒童權利公約」，下列敘述何者錯誤？",
-    options: ["為世界各國保障兒童少年權利的共同準則", "彰顯現今對於兒童少年權利保障的重視", "因應兒童少年無能力的特質所發展的保護體系", "以人性尊嚴為理念，將兒童少年視為獨立的個體"],
-    answer: 3
-  },
-  {
-    q: "下列何者不是預防兒童虐待的適當方式？",
-    options: ["教導孩童順從父母不得反抗", "鼓勵發現者即早通報", "加強家長親職教育", "協助家庭處理經濟壓力"],
-    answer: 0
-  },
-  {
-    q: "下列那一項是關於兒少受虐的錯誤認知？",
-    options: ["兒少受虐現象存在於各種社經背景的家庭中", "會虐待兒少者對所有人都會暴力相向", "男孩也可能是性虐待的受害者", "疏忽是兒少虐待的類型之一"],
-    answer: 1
-  },
-  {
-    q: "下列何者不是幼兒時期的重要發展任務？",
-    options: ["能跑能跳", "手能握物", "絕不二過", "簡單會話"],
-    answer: 2
-  }
-]
-
-  // ...（請依照格式補齊題庫）
+  {q:"精神醫療社會工作早期以病理取向為主，近期轉變為強調優勢取向。請問優勢取向對精神治療與康復之看法，下列何者正確？",options:["精神疾病的治療最重要的是藥物治療，精神病患必須完全遵從醫囑","精神病患和普通人一樣有正常的需求、能力和潛能","專業人員在精神疾病的治療和康復中是具有權威和力量，只有專業人員才真正了解精神病患的需要","社區民眾的角色不重要，因為只有當精神病患不斷服藥和接受訓練時，才能回歸社區"],answer:1},
+  {q:"下列社會工作理論或觀點對人的問題的敘述，何者正確？",options:["心理暨社會學派傾向認為人的問題全部來自早期未竟事宜所引發的內在心理衝突與自我防衛機轉失靈","生態系統觀點傾向認為人的問題來自非理性的信念與不良的自我功能","增強權能觀點傾向認為人的問題來自長期負面評價所帶來的個人心理無力感，及優勢團體壓迫所帶來的機會剝奪","社會網絡處遇學派傾向認為人的問題來自資本主義政治經濟結構對於弱勢群體所帶來的不公"],answer:2},
+  {q:"Turner(1986)認為社會工作者在實務工作中強調理論的可運用性，可能會面臨的挑戰：①不重視個別化 ②過度強調分類 ③缺乏彈性 ④與人文取向為基礎的實務工作一致",options:["①②④","①③④","②③④","①②③"],answer:3},
+  {q:"有關靈性(spirituality)觀點在社會工作的運用，下列敘述何者正確？①社會工作強調身、心、靈、社會的全人關懷理念 ②社會工作專業早在19世紀末興起時，已經和宗教與靈性產生密切關係③社會工作的靈性觀點強調一種物質的世界 ④強調身、心、靈及社會彼此間的關係",options:["①②③","②③④","①②④","①③④"],answer:2},
+  {q:"關於增權(empowerment)對於社會工作實務的意義，下列敘述何者錯誤？",options:["重視案主的優勢與能力","強調社會工作者和案主的合作關係","增強個人與家庭的權力整合","對結構的批判性反思"],answer:3},
+  {q:"社會工作的處遇方式，近年來強調對案主「empowerment」，這個字的意思是：",options:["自決","充權","機會","診斷"],answer:1},
+  {q:"有關個人復原力，下列敘述何者正確？①復原力是一個動態的過程，是一種良好的適應，是一種個人力量的恢復②從結構的觀點來看，復原力是個人處於社會結構的結果③社會工作者必須以建構保護因子為目標，培養弱勢者的復原力④復原力主要是個人先天具備的某些能力特質，而非後天環境重要因素所培育而成",options:["①②③","①③④","②③④","①②④"],answer:0},
+  {q:"有關優勢觀點的社會工作實務，下列敘述何者錯誤？",options:["與服務使用者協力工作","採取樂觀的態度","建立在成功經驗的基礎上","社會工作者是問題解決的專家"],answer:3},
+  {q:"敘事治療(narrative therapy)被認為是利用後現代理論觀點於社會工作實務的重要方式，其在實務運用上的四個原則，下列何者不在其中？",options:["把焦點放在形成服務使用者生活的敘事和描述","把焦點放在協助個人面對問題、解決問題","用生存、勇氣、責任和積極抵抗來重新建構自己的生命故事","與案主形成平等且尊重的夥伴關係"],answer:1},
+  {q:"下列與優勢觀點有關的敘述，何者錯誤？",options:["社會工作專業主張優勢觀點，與刑事司法體系強調社會控制與懲罰的目標衝突","優勢觀點運用在刑事司法體系上的首要目標是預防、處遇和矯治","在監獄當中運用優勢警力是有效的嚇阻策略","應提供受刑人有效治療、教育機會和工作技巧訓練的管道"],answer:2},
+  {q:"Barbara Solomon在1976年出版的「Black Empowerment：Social Work in Oppressed Communities」書中開始使用「增強權能」這個名詞。下列那一個概念不是她書中主要的概念？",options:["無力感","制度性種族主義","高層次的同理心","壓迫與疏離"],answer:2},
+  {q:"優勢社會工作觀點的學者Rapp(2006)提出實務運作發展的6個假設，下列何者錯誤？",options:["個人有能力去學習、成長和改變","處遇的焦點在於個人的優點，而非病理","社工是助人關係的指導者","社區是一個資源的綠洲"],answer:2},
+  {q:"學者Healy，K.(2005)提出三項觀點說明「理論建構」在社會工作專業發展的位置，下列何者錯誤？",options:["社會工作者無暇發展實務研究，可直觀地運用經驗處遇","社會工作者必須向服務使用者與經費提供者負責","社會工作者必須能不斷改善服務品質","社會工作者有責任去參與專業理論的發展，以促進專業不斷進步"],answer:0},
+  {q:"如果你/妳採用增強權能理論與弱勢案主工作，下列何者不是你/妳的工作取向的基本假設？",options:["與案主建立協同的夥伴關係","案主的問題源自於社會功能障礙","認為案主是一個有能力且有價值的人","案主問題源於無力感以致無法與環境交流、實現自己"],answer:1},
+  {q:"下列何者不是Solomon在1976年提出的增強權能干預的元素？",options:["協助案主體認自己是自己問題的改變媒介","協助案主體認社會工作者的知識和技術是具有專業性的","協助案主體認社會工作者只是其努力解決問題的夥伴","協助案主體認無力感其實是可以被影響而改變的"],answer:1},
+  {q:"下列那個概念及工作方法是最早提出的？",options:["增權","焦點解決","正向心理學","敘事治療"],answer:0},
+  {q:"實踐「個人和政治權力的啟動，獲致感覺個人有能力和肯定自己的經驗，並進而能獲取機會、連結資源、採取行動以對抗社會控制」等主張，最接近下列那一個社會工作理論觀點？",options:["生態系統理論","充權與倡導觀點","心理及社會學派","多元文化觀點"],answer:1},
+  {q:"優勢觀點為社會工作經常運用原則，請問以下敘述何者錯誤？",options:["挑戰可能帶來威脅，但也可能是機會來源","透過專業人員與案主共同合作，案主方能獲得最好的服務","每個個人、團體和社區都有其優勢","評量環境中的情境與個人"],answer:1},
+  {q:"有關優勢觀點的理論假設，下列何者正確？1每個人都有優勢2社會工作者要促進個人對制度壓迫的覺察3童年經驗會決定個人如何反應4人在面對逆境時通常會展現復原力5服務使用者有能力決定什麼是對他們最好的",options:["145","124","125","123"],answer:0},
+  {q:"下列何者屬於「間接權能障礙」？",options:["貧窮者被標籤為福利依賴者","案主所需的醫療資源不足","限制案家取得生活扶助的資格","案主的童年創傷沒有被處理"],answer:0},
+  {q:"增強權能(empowerment)是一種歷程，目的在協助服務對象取得決定權與行動權。對於此歷程的介入策略之敘述，下列何者錯誤？",options:["發展個人與人連結的能力來抵抗制度性壓迫","鼓勵服務對象透過社會互動促進更多的個人與人際權能","增進服務對象因應與改變環境的技巧","協助服務對象爭取生活資源"],answer:3},
+  {q:"有關優勢觀點，下列敘述何者錯誤？",options:["Rapp(1998)指出優勢觀點的三大基本優勢為能力(competencies)、自信(confidence)和自我抉擇能力(self-determination)","案主在面對逆境時的勇氣和復原力，教導我們人性的可貴","此模式肯定人類內在的智慧和蛻變的能力","此模式重點在於案主看其問題與處境的視野改變，超越問題，看到改變的可能性"],answer:0},
+  {q:"有關家庭復原力(family resilience)的敘述，下列何者正確？",options:["復原力的展現必須是在面對重大家庭逆境時才會出現","家庭信念系統是家庭復原力的核心","家庭成員要能儘量表達對彼此真實的不滿","具有復原力的家庭是無壓力的"],answer:1},
+  {q:"增權觀點在美國的起源跟下列那一個族群密切相關？",options:["低收入戶","心理疾病患者","少數民族","老人"],answer:2},
+  {q:"「優勢觀點」(strengths perspective)的核心理念，下列何者錯誤？",options:["肯定與促進服務對象的能力","在個人生態脈絡中產生復原力","以角色示範來增進服務對象的角色學習","讓服務對象產生有資源感"],answer:2},
+  {q:"優勢觀點的敘述，下列何者正確？1優勢觀點的發源地來自西歐的英國 2優勢觀點與焦點解決有強烈的相關性 3優勢觀點強調探索案主未來的可能性 4優勢觀點強調個人不是問題",options:["123","124","234","134"],answer:2},
+  {q:"學者Bernard指出具有「復原力」的兒童擁有四種能力，下列何者錯誤？",options:["社會能力","問題解決能力","依賴能力","對未來具有目標感"],answer:2},
+  {q:"下列何者不是後現代社會工作的觀點？",options:["強調實務知識是由社會工作者和案主互動過程中創造出來的","強調情境參與者的直觀，透過社會論述可建構知識","強調所有參與者是平權的，因此社會工作者應抱持謙虛的態度","強調社會工作評量是一個了解問題和情境的過程，因此陪伴案主尋找自己內在的問題，使治療更有效能"],answer:3},
+  {q:"下列有關「充權」理論的敘述，何者錯誤？",options:["充權在社會工作領域中，代表的是協助案主在其生活歷程中獲得力量與權力","充權的引導原則中，其中一種方式便是將重點放在檢視案主的優勢方面","充權主要的焦點只在於消除壓迫案主之環境因素，而非案主個人能力的提升","在充權的過程中，案主必須先相信自己有能力為自己做某些事情，而後才能為自己的生活及生活以外的事件，增加主導與控制權"],answer:2},
+  {q:"「優勢觀點」已獲得社會工作實務界之認可與運用，但此觀點的限制為何？",options:["忽略結構面所帶來的壓迫","忽略個案的學習能力","忽視社區所潛藏的資源","忽視社會工作者與個案的合作關係"],answer:0},
+  {q:"有關美國衛生及公共服務部(Department of Health and Human Services)提出復原概念的十大原則，不包括下列何種原則？",options:["直線的過程(Linear)","全人關懷(Holistic)","以個人及個體為本(Individualized and Person Centered)","自我取向(Self Direction)"],answer:0},
+  {q:"下列何者為採優勢觀點個案管理者的任務？1協助案主覺察其問題的成因2促進案主澄清與確定目標3增強案主運用自然資源4協助案主確認其目標的意義與重要性",options:["1234","僅123","僅234","僅134"],answer:0},
+  {q:"社會工作者應與身障者建立「充權」的專業關係，下列何者不適用於「充權」敘述？",options:["案主自決的倫理原則是促進社會融合的先決條件，應該視身障者為專家","應依據過去的服務紀錄來判斷身障者的需求，而非只是聽從身障者自己的想法","擴大身障者在日常生活中的選擇機會，提供積極復健計畫以增加自主與獨立","體會身障者被邊緣化與烙印的感受，協助其面對與家人和社區的社會互動"],answer:1},
+  {q:"有關後現代敘事治療的主要論點，下列何者正確？",options:["社會工作者必須關注對服務使用者產生阻礙的結構和文化議題","社會工作者必須採取樂觀和正向態度質疑病理的論述","個人必須覺察社會壓迫的形式和權力流動","自身與他人建構出來的敘述可以形塑人們的經驗，以及對自我的覺察和生命的選擇"],answer:3},
+  {q:"所謂「優勢觀點」(strengths perspective)的社會工作模型，其核心概念不包含以下那一點？",options:["發現並協助案主發掘潛在的資源","聚焦於案主的優勢","肯定及促進案主的能力","協助案主發現問題比解決其問題重要"],answer:3},
+  {q:"「充權」案主是社會工作者的工作目標，下列何者屬於案主消權？①與拒絕申請保護令案主，討論返家後續安全計畫 ②說服從事季節性工作案主，接受職訓找薪水穩定的工作 ③與獨居老人討論安裝緊急救援系統，以降低獨居風險 ④說服未婚懷孕青少女要出養嬰兒，才能接續完成高中學業",options:["①②","③④","②④","①③"],answer:2},
+  {q:"根據所羅門(Solomon，1976)的觀點，社會工作者在運用增權觀點時，應具備下列那一條件？",options:["能協助案主看到他本身即為有助於問題改變的一個力量","能協助案主無條件接受社會工作者所具備的知識與技巧","幫案主抵抗外在的威脅","能協助案主順服社會工作者，以做為啟動問題解決的核心"],answer:0},
+  {q:"佛雷勒(Freire)提出增權的倡導策略，屬於下列何種類型？",options:["廣義的社會教育","廣義的社會運動","廣義的社會革命","廣義的社會秩序"],answer:0},
+  {q:"強調看見案主身處的壓迫情境、追溯被壓迫團體的社會歷史、看見階級、種族、性別等歧視的交互作用，讓人們管理、控制他們對需求和資源的定義。下列何者最符合此項定義的社會工作理論？",options:["基變社會工作","多元文化主義","增強權能理論","生態系統理論"],answer:2},
+  {q:"請問下列何者並非增強權能觀點社會工作取向的基本假設？",options:["承諾保護個人免於受剝削或壓迫","個人經驗深切且無力感，以致無法與環境交流實現自己","權能可以透過社會互動增加衍生更多的權能","案主被視為有能力、有價值的個人"],answer:0}
 ];
 
 const app = document.getElementById('app');
@@ -263,7 +238,10 @@ let quizState = {
   totalQuestions: 0,
   current: 0,
   userAnswers: [],
-  quizQuestions: []
+  quizQuestions: [],
+  quizOptions: [],
+  timer: 0,
+  timerInterval: null
 };
 
 function shuffle(array) {
@@ -276,12 +254,18 @@ function shuffle(array) {
   return array;
 }
 
+function shuffleOptions(q) {
+  let idxArr = Array.from({length: q.options.length}, (_, i) => i);
+  shuffle(idxArr);
+  return idxArr;
+}
+
 function renderHome() {
   quizState.quizStarted = false;
   quizState.quizFinished = false;
   app.innerHTML = `
-    <h1>兒少社會工作</h1>
-    <h2>從總題庫抽出50題</h2>
+    <h1>社會工作理論(三)</h1>
+    <h2>(從總題庫抽出40題)</h2>
     <div class="btn-group">
       <button onclick="startQuiz(5)">5題測驗</button>
       <button onclick="startQuiz(10)">10題測驗</button>
@@ -295,34 +279,51 @@ window.startQuiz = function(num) {
   quizState.totalQuestions = num;
   quizState.current = 0;
   quizState.userAnswers = [];
+  quizState.timer = 0;
   // 隨機抽題（不重複）
   let idxArr = Array.from({length: questions.length}, (_, i) => i);
   shuffle(idxArr);
   quizState.quizQuestions = idxArr.slice(0, num).map(i => questions[i]);
+  quizState.quizOptions = quizState.quizQuestions.map(q => shuffleOptions(q));
   renderQuiz();
+  if (quizState.timerInterval) clearInterval(quizState.timerInterval);
+  quizState.timerInterval = setInterval(() => {
+    quizState.timer++;
+    if (quizState.quizStarted && !quizState.quizFinished) {
+      document.getElementById('timer').innerText = formatTime(quizState.timer);
+    }
+  }, 1000);
+}
+
+function formatTime(sec) {
+  let m = Math.floor(sec/60);
+  let s = sec%60;
+  return `${m}:${s.toString().padStart(2,'0')}`;
 }
 
 function renderQuiz() {
   const q = quizState.quizQuestions[quizState.current];
+  const optOrder = quizState.quizOptions[quizState.current];
   const userAns = quizState.userAnswers[quizState.current];
   const progress = ((quizState.current) / quizState.totalQuestions) * 100;
   app.innerHTML = `
-    <h1>兒少社會工作</h1>
-    <h2>第 ${quizState.current + 1} / ${quizState.totalQuestions} 題</h2>
+    <h1>社會工作理論(三)</h1>
+    <h2>(從總題庫抽出40題)</h2>
+    <div class="timer">時間：<span id="timer">${formatTime(quizState.timer)}</span></div>
     <div class="progress"><div class="progress-bar" style="width:${progress}%;"></div></div>
     <div class="question-card">
       <div class="question">${q.q}</div>
       <div class="options">
-        ${q.options.map((opt, i) => `
+        ${optOrder.map((idx, i) => `
           <div class="option${userAns === i ? ' selected' : ''}" onclick="selectOption(${i})">
-            <span style="font-weight:bold;margin-right:8px;">${String.fromCharCode(65+i)}.</span> ${opt}
+            <span style="font-weight:bold;margin-right:8px;">${String.fromCharCode(65+i)}.</span> ${q.options[idx]}
           </div>
         `).join('')}
       </div>
     </div>
     <div class="actions">
       <button onclick="prevQ()" ${quizState.current === 0 ? 'disabled' : ''}>上一題</button>
-      <button onclick="nextQ()">${quizState.current === quizState.totalQuestions - 1 ? '交卷' : '下一題'}</button>
+      <button onclick="nextQ()">${quizState.current === quizState.totalQuestions - 1 ? '繳交' : '下一題'}</button>
     </div>
   `;
 }
@@ -354,34 +355,103 @@ window.nextQ = function() {
 
 function finishQuiz() {
   quizState.quizFinished = true;
+  quizState.quizStarted = false;
+  clearInterval(quizState.timerInterval);
   let correct = 0;
+  let detail = [];
   quizState.quizQuestions.forEach((q, i) => {
-    if (quizState.userAnswers[i] === q.answer) correct++;
+    const optOrder = quizState.quizOptions[i];
+    const userIdx = quizState.userAnswers[i];
+    const correctIdx = optOrder.indexOf(q.answer);
+    if (userIdx === correctIdx) correct++;
+    detail.push({
+      q: q.q,
+      options: optOrder.map(idx => q.options[idx]),
+      user: userIdx,
+      correct: correctIdx
+    });
   });
   app.innerHTML = `
-    <h1>兒少社會工作</h1>
+    <h1>社會工作理論(三)</h1>
+    <h2>(從總題庫抽出40題)</h2>
     <div class="summary">
       <div class="score">得分：${correct} / ${quizState.totalQuestions}</div>
-      <div>正確：<span style="color:#217a21;font-weight:bold;">${correct}</span>　錯誤：<span style="color:#a12b2b;font-weight:bold;">${quizState.totalQuestions - correct}</span></div>
+      <div>正確：<span style="color:#00b894;font-weight:bold;">${correct}</span>　錯誤：<span style="color:#d63031;font-weight:bold;">${quizState.totalQuestions - correct}</span></div>
+      <div>作答時間：${formatTime(quizState.timer)}</div>
       <button style="margin-top:24px;" onclick="renderHome()">重新開始</button>
     </div>
+    <div class="download-group">
+      <button onclick="downloadPDF()">下載PDF</button>
+      <button onclick="downloadCSV()">下載CSV</button>
+    </div>
     <div class="review">
-      <h3>答題回顧</h3>
-      ${quizState.quizQuestions.map((q, i) => {
-        const user = quizState.userAnswers[i];
-        const isCorrect = user === q.answer;
+      <h3>答題詳解</h3>
+      ${detail.map((d, i) => {
+        const isCorrect = d.user === d.correct;
         return `
           <div class="review-item">
-            <div class="review-q">${i+1}. ${q.q}</div>
+            <div class="review-q">${i+1}. ${d.q}</div>
             <div class="review-a">
-              你的答案：<span class="${isCorrect ? 'review-correct' : 'review-wrong'}">${user !== undefined ? String.fromCharCode(65+user) + '. ' + q.options[user] : '未作答'}</span><br>
-              正確答案：<span class="review-correct">${String.fromCharCode(65+q.answer)}. ${q.options[q.answer]}</span>
+              你的答案：<span class="${isCorrect ? 'review-correct' : 'review-wrong'}">${d.user !== undefined ? String.fromCharCode(65+d.user) + '. ' + d.options[d.user] : '未作答'}</span><br>
+              正確答案：<span class="review-correct">${String.fromCharCode(65+d.correct)}. ${d.options[d.correct]}</span>
             </div>
           </div>
         `;
       }).join('')}
     </div>
   `;
+}
+
+window.downloadPDF = function() {
+  const { jsPDF } = window.jspdf;
+  let doc = new jsPDF();
+  let y = 20;
+  doc.setFontSize(18);
+  doc.text('社會工作理論(三) 測驗詳解', 15, y);
+  y += 10;
+  doc.setFontSize(12);
+  doc.text(`得分：${quizState.userAnswers.filter((ans, i) => {
+    const optOrder = quizState.quizOptions[i];
+    return ans === optOrder.indexOf(quizState.quizQuestions[i].answer);
+  }).length} / ${quizState.totalQuestions}  時間：${formatTime(quizState.timer)}`, 15, y);
+  y += 10;
+  quizState.quizQuestions.forEach((q, i) => {
+    const optOrder = quizState.quizOptions[i];
+    const userIdx = quizState.userAnswers[i];
+    const correctIdx = optOrder.indexOf(q.answer);
+    doc.text(`${i+1}. ${q.q}`, 15, y);
+    y += 8;
+    optOrder.forEach((idx, j) => {
+      let mark = '';
+      if (j === correctIdx) mark = ' (正確)';
+      if (j === userIdx) mark += ' (你的答案)';
+      doc.text(`${String.fromCharCode(65+j)}. ${q.options[idx]}${mark}`, 20, y);
+      y += 7;
+      if (y > 270) { doc.addPage(); y = 20; }
+    });
+    y += 4;
+    if (y > 270) { doc.addPage(); y = 20; }
+  });
+  doc.save('社會工作理論三_測驗詳解.pdf');
+}
+
+window.downloadCSV = function() {
+  let csv = '題號,題目,你的答案,正確答案\n';
+  quizState.quizQuestions.forEach((q, i) => {
+    const optOrder = quizState.quizOptions[i];
+    const userIdx = quizState.userAnswers[i];
+    const correctIdx = optOrder.indexOf(q.answer);
+    csv += `${i+1},"${q.q}","${userIdx !== undefined ? String.fromCharCode(65+userIdx)+'. '+q.options[optOrder[userIdx]] : '未作答'}","${String.fromCharCode(65+correctIdx)+'. '+q.options[optOrder[correctIdx]]}"\n`;
+  });
+  const blob = new Blob([csv], {type: 'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = '社會工作理論三_測驗詳解.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 renderHome();
