@@ -1,95 +1,336 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>兒少社會工作測驗</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>兒少社會工作隨機測驗</title>
+  <style>
+    body {
+      font-family: 'Noto Sans TC', 'Microsoft JhengHei', Arial, sans-serif;
+      background: #f6f8fa;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 600px;
+      margin: 40px auto;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      padding: 32px 24px 24px 24px;
+    }
+    h1 {
+      margin-top: 0;
+      font-size: 2rem;
+      color: #2b4a6f;
+      text-align: center;
+    }
+    h2 {
+      font-size: 1.1rem;
+      color: #4a6fa1;
+      text-align: center;
+      font-weight: normal;
+      margin-top: 0;
+    }
+    .btn-group {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin: 24px 0 32px 0;
+    }
+    button {
+      background: #4a90e2;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 12px 28px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover, button:focus {
+      background: #357ab8;
+    }
+    .progress {
+      height: 8px;
+      background: #e0e7ef;
+      border-radius: 4px;
+      margin-bottom: 24px;
+      overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%;
+      background: #4a90e2;
+      width: 0%;
+      transition: width 0.3s;
+    }
+    .question-card {
+      margin-bottom: 24px;
+    }
+    .question {
+      font-size: 1.1rem;
+      margin-bottom: 18px;
+      color: #2b4a6f;
+    }
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .option {
+      background: #f2f6fa;
+      border: 1px solid #c7d6e6;
+      border-radius: 6px;
+      padding: 10px 16px;
+      cursor: pointer;
+      transition: background 0.2s, border 0.2s;
+      display: flex;
+      align-items: center;
+      font-size: 1rem;
+    }
+    .option.selected {
+      background: #dbefff;
+      border: 2px solid #4a90e2;
+    }
+    .option.correct {
+      background: #d4f7d4;
+      border: 2px solid #3bb143;
+      color: #217a21;
+    }
+    .option.incorrect {
+      background: #ffe0e0;
+      border: 2px solid #e24a4a;
+      color: #a12b2b;
+    }
+    .actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 24px;
+    }
+    .summary {
+      text-align: center;
+      margin-top: 32px;
+    }
+    .score {
+      font-size: 1.5rem;
+      color: #357ab8;
+      margin-bottom: 12px;
+    }
+    .review {
+      margin-top: 32px;
+      background: #f8fafc;
+      border-radius: 8px;
+      padding: 18px 12px;
+    }
+    .review h3 {
+      margin-top: 0;
+      color: #4a6fa1;
+      font-size: 1.1rem;
+    }
+    .review-item {
+      margin-bottom: 18px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #e0e7ef;
+    }
+    .review-item:last-child {
+      border-bottom: none;
+    }
+    .review-q {
+      font-weight: bold;
+      color: #2b4a6f;
+    }
+    .review-a {
+      margin-left: 8px;
+    }
+    .review-correct {
+      color: #217a21;
+      font-weight: bold;
+    }
+    .review-wrong {
+      color: #a12b2b;
+      font-weight: bold;
+    }
+    @media (max-width: 600px) {
+      .container {
+        padding: 16px 4px 12px 4px;
+      }
+      h1 {
+        font-size: 1.3rem;
+      }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <!-- 首頁 -->
-        <div id="home-page" class="page">
-            <div class="hero-section">
-                <h1 class="main-title">兒少社會工作</h1>
-                <p class="subtitle">從總題庫抽出50題</p>
-                <div class="quiz-options">
-                    <button class="btn btn--primary btn--lg quiz-start-btn" data-count="5">
-                        5題測驗
-                    </button>
-                    <button class="btn btn--primary btn--lg quiz-start-btn" data-count="10">
-                        10題測驗
-                    </button>
-                </div>
-            </div>
-        </div>
+  <div class="container" id="app">
+    <!-- 內容由 JS 動態產生 -->
+  </div>
+  <script>
+// 題庫資料
+const questions = [
+  {
+    q: "政府對發展遲緩兒童，應按其需要給予特殊照顧。下列服務中，何者並非發展遲緩兒童立即性需求？",
+    options: ["早期療育", "醫療", "就學", "就養"],
+    answer: 3
+  },
+  {
+    q: "依據我國兒童及少年福利與權益保障法，下列有關「兒童及少年」的年齡範定之敘述，何者正確？",
+    options: ["「兒童」指的是未滿12歲之人", "「青少年」指的是12歲以上未滿15歲之人", "「少年」指的是12歲以上未滿20歲之人", "「幼兒」指的是未滿7歲之人"],
+    answer: 2
+  },
+  {
+    q: "直轄市、縣(市)主管機關對於依少年事件處理法交付安置輔導或感化教育結束、停止或免除，或經交付轉介輔導之兒童、少年及其家庭，應予追蹤輔導：",
+    options: ["至少1年", "至少2年", "至少3年", "至少4年"],
+    answer: 2
+  },
+  {
+    q: "有下列情事，何者並非兒童及少年福利與權益保障法第81條的規定，不得擔任兒童及少年福利機構或兒童課後照顧服務班及中心之負責人或工作人員？",
+    options: ["有性騷擾行為，經有罪判決確定", "有性侵害行為，被起訴", "行為不檢損害兒童及少年權益，其情節重大，經有關機關查證屬實", "身心狀況違常，經主管機關委請相關專科醫師認定不能執行業務"],
+    answer: 1
+  },
+  {
+    q: "依據「聯合國兒童權利公約」第 31 條指出「兒童及少年有從事適合其年齡之遊戲與娛樂活動之權利」。對兒童及少年來說，遊戲的正面功能不包括下列那一項？",
+    options: ["有助於免於貧窮", "有助於語言發展", "有助於情緒放鬆與調適", "有助於社會關係的學習"],
+    answer: 0
+  },
+  // ...（請將所有題目依照上述格式繼續補齊，建議50題）
+];
 
-        <!-- 測驗頁面 -->
-        <div id="quiz-page" class="page hidden">
-            <div class="quiz-header">
-                <div class="progress-info">
-                    <span id="current-question">1</span> / <span id="total-questions">5</span>
-                </div>
-                <div class="progress-bar">
-                    <div id="progress-fill" class="progress-fill"></div>
-                </div>
-            </div>
+// --- UI 元件 ---
+const app = document.getElementById('app');
 
-            <div class="quiz-container">
-                <div class="card">
-                    <div class="card__body">
-                        <h3 id="question-text" class="question-text">題目載入中...</h3>
-                        
-                        <div id="options-container" class="options-container">
-                            <!-- 選項將透過 JavaScript 動態生成 -->
-                        </div>
-                        
-                        <div class="quiz-actions">
-                            <button id="next-btn" class="btn btn--primary" disabled>下一題</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+let quizState = {
+  quizStarted: false,
+  quizFinished: false,
+  totalQuestions: 0,
+  current: 0,
+  selected: [],
+  userAnswers: [],
+  quizQuestions: []
+};
 
-        <!-- 結果頁面 -->
-        <div id="result-page" class="page hidden">
-            <div class="result-container">
-                <div class="card">
-                    <div class="card__body">
-                        <h2 class="result-title">測驗結果</h2>
-                        
-                        <div class="score-summary">
-                            <div class="score-item">
-                                <span class="score-label">總分</span>
-                                <span id="total-score" class="score-value">0/5</span>
-                            </div>
-                            <div class="score-item">
-                                <span class="score-label">正確題數</span>
-                                <span id="correct-count" class="score-value success">0</span>
-                            </div>
-                            <div class="score-item">
-                                <span class="score-label">錯誤題數</span>
-                                <span id="wrong-count" class="score-value error">0</span>
-                            </div>
-                        </div>
-                        
-                        <div class="detailed-results">
-                            <h3>詳細結果</h3>
-                            <div id="detailed-list" class="detailed-list">
-                                <!-- 詳細結果將透過 JavaScript 動態生成 -->
-                            </div>
-                        </div>
-                        
-                        <div class="result-actions">
-                            <button id="restart-btn" class="btn btn--primary btn--lg">重新開始</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+function shuffle(arr) {
+  // Fisher-Yates 洗牌
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function renderHome() {
+  quizState.quizStarted = false;
+  quizState.quizFinished = false;
+  app.innerHTML = `
+    <h1>兒少社會工作</h1>
+    <h2>從總題庫抽出50題</h2>
+    <div class="btn-group">
+      <button onclick="startQuiz(5)">5題測驗</button>
+      <button onclick="startQuiz(10)">10題測驗</button>
     </div>
+  `;
+}
 
-    <script src="app.js"></script>
+window.startQuiz = function(num) {
+  quizState.quizStarted = true;
+  quizState.quizFinished = false;
+  quizState.totalQuestions = num;
+  quizState.current = 0;
+  quizState.userAnswers = [];
+  // 隨機抽題
+  let idxArr = Array.from({length: questions.length}, (_, i) => i);
+  shuffle(idxArr);
+  quizState.selected = idxArr.slice(0, num);
+  quizState.quizQuestions = quizState.selected.map(i => questions[i]);
+  renderQuiz();
+}
+
+function renderQuiz() {
+  const q = quizState.quizQuestions[quizState.current];
+  const userAns = quizState.userAnswers[quizState.current];
+  // 進度條
+  const progress = ((quizState.current) / quizState.totalQuestions) * 100;
+  app.innerHTML = `
+    <h1>兒少社會工作</h1>
+    <h2>第 ${quizState.current + 1} / ${quizState.totalQuestions} 題</h2>
+    <div class="progress"><div class="progress-bar" style="width:${progress}%;"></div></div>
+    <div class="question-card">
+      <div class="question">${q.q}</div>
+      <div class="options">
+        ${q.options.map((opt, i) => `
+          <div class="option${userAns === i ? ' selected' : ''}" onclick="selectOption(${i})">
+            <span style="font-weight:bold;margin-right:8px;">${String.fromCharCode(65+i)}.</span> ${opt}
+          </div>
+        `).join('')}
+      </div>
+    </div>
+    <div class="actions">
+      <button onclick="prevQ()" ${quizState.current === 0 ? 'disabled' : ''}>上一題</button>
+      <button onclick="nextQ()">${quizState.current === quizState.totalQuestions - 1 ? '交卷' : '下一題'}</button>
+    </div>
+  `;
+}
+
+window.selectOption = function(idx) {
+  quizState.userAnswers[quizState.current] = idx;
+  renderQuiz();
+}
+
+window.prevQ = function() {
+  if (quizState.current > 0) {
+    quizState.current--;
+    renderQuiz();
+  }
+}
+
+window.nextQ = function() {
+  if (quizState.userAnswers[quizState.current] === undefined) {
+    alert('請先選擇答案！');
+    return;
+  }
+  if (quizState.current < quizState.totalQuestions - 1) {
+    quizState.current++;
+    renderQuiz();
+  } else {
+    finishQuiz();
+  }
+}
+
+function finishQuiz() {
+  quizState.quizFinished = true;
+  // 計分
+  let correct = 0;
+  quizState.quizQuestions.forEach((q, i) => {
+    if (quizState.userAnswers[i] === q.answer) correct++;
+  });
+  app.innerHTML = `
+    <h1>兒少社會工作</h1>
+    <div class="summary">
+      <div class="score">得分：${correct} / ${quizState.totalQuestions}</div>
+      <div>正確：<span style="color:#217a21;font-weight:bold;">${correct}</span>　錯誤：<span style="color:#a12b2b;font-weight:bold;">${quizState.totalQuestions - correct}</span></div>
+      <button style="margin-top:24px;" onclick="renderHome()">重新開始</button>
+    </div>
+    <div class="review">
+      <h3>答題回顧</h3>
+      ${quizState.quizQuestions.map((q, i) => {
+        const user = quizState.userAnswers[i];
+        const isCorrect = user === q.answer;
+        return `
+          <div class="review-item">
+            <div class="review-q">${i+1}. ${q.q}</div>
+            <div class="review-a">
+              你的答案：<span class="${isCorrect ? 'review-correct' : 'review-wrong'}">${user !== undefined ? String.fromCharCode(65+user) + '. ' + q.options[user] : '未作答'}</span><br>
+              正確答案：<span class="review-correct">${String.fromCharCode(65+q.answer)}. ${q.options[q.answer]}</span>
+            </div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+// 頁面初始化
+renderHome();
+  </script>
 </body>
 </html>
