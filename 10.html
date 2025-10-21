@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>社政立法(一) 題庫測驗</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Include jsPDF and html2canvas for PDF export functionality -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles for the macaron color theme and overall look */
+        body {
+            background-color: #FEFBF6; /* Creamy background */
+            font-family: 'Noto Sans TC', sans-serif;
+            color: #5C5470; /* Muted purple text */
+        }
+        .macaron-card {
+            background-color: #FAF0E4; /* Soft peach card */
+            border: 1px solid #E4D5C7;
+        }
+        .macaron-btn {
+            background-color: #B2D8B2; /* Pistachio green */
+            color: #354F52;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        .macaron-btn:hover {
+            background-color: #A1C7A1; /* Darker pistachio */
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .macaron-option {
+            background-color: #FFFFFF;
+            border: 2px solid #EAD7D7; /* Soft pink border */
+            transition: all 0.3s ease;
+        }
+        .macaron-option:hover {
+            border-color: #B2D8B2; /* Pistachio green on hover */
+            background-color: #F7FDF7;
+        }
+        .macaron-option input:checked + label {
+            border-color: #79A379;
+            background-color: #E9F5E9;
+            font-weight: 500;
+        }
+        .correct-answer {
+            background-color: #D4EDDA !important; /* Light green for correct */
+            border-color: #C3E6CB !important;
+        }
+        .incorrect-answer {
+            background-color: #F8D7DA !important; /* Light red for incorrect */
+            border-color: #F5C6CB !important;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <div id="app-container" class="w-full max-w-4xl mx-auto">
+        <!-- Start Screen: Visible by default -->
+        <div id="start-screen" class="text-center p-8 sm:p-12 macaron-card rounded-2xl shadow-lg">
+            <h1 class="text-4xl sm:text-5xl font-bold mb-2 text-[#354F52]">社政立法(一)</h1>
+            <p class="text-lg sm:text-xl mb-8 text-[#5C5470]">(從總題庫抽出160題)</p>
+            <p class="text-xl mb-6">請選擇測驗題數：</p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <button onclick="startQuiz(5)" class="macaron-btn text-2xl py-4 px-10 rounded-full shadow-md">5 題</button>
+                <button onclick="startQuiz(10)" class="macaron-btn text-2xl py-4 px-10 rounded-full shadow-md">10 題</button>
+            </div>
+        </div>
+
+        <!-- Quiz Screen: Hidden by default -->
+        <div id="quiz-screen" class="hidden p-6 sm:p-10 macaron-card rounded-2xl shadow-lg">
+            <div class="flex justify-between items-center mb-6">
+                <div id="progress" class="text-xl font-bold">第 1 / 10 題</div>
+                <div id="timer" class="text-2xl font-bold text-[#354F52]">00:00</div>
+            </div>
+            <div id="question-container" class="mb-8">
+                <h2 id="question-text" class="text-2xl sm:text-3xl font-semibold mb-2"></h2>
+                <p id="question-source" class="text-sm text-gray-500 mb-6"></p>
+                <div id="options-container" class="space-y-4"></div>
+            </div>
+            <div class="flex justify-between mt-8">
+                <button id="prev-btn" onclick="prevQuestion()" class="macaron-btn text-lg py-3 px-8 rounded-full">上一頁</button>
+                <button id="next-btn" onclick="nextQuestion()" class="macaron-btn text-lg py-3 px-8 rounded-full">下一頁</button>
+                <button id="submit-btn" onclick="submitQuiz()" class="hidden macaron-btn text-lg bg-[#E8A0A0] hover:bg-[#D78F8F] text-white py-3 px-8 rounded-full">繳交</button>
+            </div>
+        </div>
+
+        <!-- Results Screen: Hidden by default -->
+        <div id="results-screen" class="hidden p-6 sm:p-10 macaron-card rounded-2xl shadow-lg">
+            <div id="summary-section" class="text-center mb-8">
+                <h2 class="text-4xl font-bold mb-4">測驗完成！</h2>
+                <p id="score" class="text-3xl mb-2"></p>
+                <p id="time-taken" class="text-xl mb-6"></p>
+                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <button onclick="downloadResults('pdf')" class="macaron-btn text-lg py-3 px-6 rounded-full">下載 PDF</button>
+                    <button onclick="downloadResults('csv')" class="macaron-btn text-lg py-3 px-6 rounded-full">下載 CSV</button>
+                    <button onclick="window.location.reload()" class="macaron-btn text-lg py-3 px-6 rounded-full">再測一次</button>
+                </div>
+            </div>
+            <div id="details-section" class="space-y-6">
+                <!-- Detailed results will be injected here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // The entire application logic is contained within this script tag.
+        
+        const rawData = `
+1,下列何者對於社會福利模式中「俾斯麥模式」與「貝佛里奇模式」的比較分析是正確的？(102地6),⑴前者關心「所得維持」，後者關心「預防貧窮」,⑵前者屬於「普及式供給」，後者屬於「社會保險」,⑶前者採行「均一費」，後者採行「所得相關」,⑷前者財源是「稅收」，後者財源是「提撥金」
+1,下列何種女性主義論點認為改變國家既有的立法及制度可以改善性別平等現象？(103地2),⑴自由主義女性主義,⑵社會主義女性主義,⑶激進主義女性主義,⑷馬克思主義女性主義
+1,根據Esping-Andersen的研究，從福利體制的去商品化程度來看，下列哪一國家的去商品化程度可能是最高的？(113初13),⑴瑞典,⑵德國,⑶英國,⑷美國
+1,各中小學校的學生應享有相同的預算，是屬於學者Le Grand(1982)所提出政府在推動社會政策時所採取的何種平等策略？(110障五46),⑴公共支出的平等,⑵最後所得的平等,⑶福利使用的平等,⑷負擔成本的平等
+1,根據學者Le Grand提出有關平等觀念的論述中，指出「公共支出的分配較偏向窮人，讓他們接受福利後，縮小與有錢人的所得差距」，此為何種平等類別？(110初6),⑴最後所得的平等,⑵福利使用的平等,⑶公共支出的平等,⑷負擔成本的平等
+1,關於福利國家的分類，艾斯平－安德森(Esping-Andersen)的政體理論最常被引用，他將福利國家分作三種類型：自由主義體制、社會民主體制以及保守組合主義體制。其中有關保守組合主義體制，下列陳述何者正確？(103普14),⑴人們作為公民的福利權與其所屬的階級與地位團體高度相關,⑵透過普及性的公共服務分擔家庭的照顧責任,⑶福利與工作的融合為三種體制中最高，將工作視作一種權利,⑷主要的代表國家為美、加、英、紐、澳這類英語系國家
+1,社會政策的基本價值，應該包括哪些？1維護個人自由；2推動機會平等；3促進社會正義；4保障公民權利(111初2),⑴1234,⑵234,⑶123,⑷134
+1,主張政策制定過程可以有全盤的考量，包括政策目的、所需資源、是否有替代方案、並衡量社會價值和長期性的影響，此乃屬於何種政策制定途徑？(108特五6),⑴理性途徑,⑵漸進途徑,⑶政治途徑,⑷多元途徑
+1,1970年代全球發生石油危機，各種有關福利國家危機的論調相繼出現。「影響自由市場運作、降低工作誘因和投資意願、工會介入而影響生產效率」是指下列哪一方面的危機？(107師二21),⑴經濟危機,⑵人口危機,⑶科層危機,⑷道德危機
+1,將社會政策視為後進國家向先進國家學習，或鄰近國家彼此相互傳播結果的說法，比較傾向下列哪項理論要旨？(103師二36),⑴擴散論,⑵社會共識論,⑶經濟決定論,⑷社會衝突論
+1,費邊主義(Fabianism)影響社會福利政策的制定與取向，對於費邊主義的內涵，下列何者正確？(108初11),⑴國家應從政策面介入，提供社會保護，以對抗整體的社會問題,⑵認為社會福利政策的制定，只是協助市場經濟的發展,⑶強烈批評福利國家的浪費與無效率,⑷認為福利政策的實施，強化了社會的分化與不平等
+1,人們覺察到自己的需求，例如：「我認為自己薪水太低」，屬於學者Bradshaw 所認為的哪一類社會需求？(108初18),⑴感受性需求,⑵規範性需求,⑶表達性需求,⑷相對性需求
+1,需求是社會政策分配資源的準則；下列何種需求型態是指規範性需求？(106障五3),⑴由專業、行政科層所界定,⑵受個人認知差異所影響,⑶將感覺的需求付諸行動,⑷分析服務對象之差異
+1,我國的二代健保改革，未能完成最初學者規劃的以家戶總所得課徵保費的改革目標，而改以課徵補充保費並保留原來的六大被保險人的保費課徵方式，請問下列何種理論最無法解釋此種社會政策的發展現象？(106師一37),⑴菁英主義,⑵漸進主義,⑶利益團體政治,⑷歷史制度論
+1,在社會政策制定模式中，哪一種模式著重「全盤性的考量，除了考量成本，尚包含社會價值與長期性的影響」？(113初2),⑴理性模式,⑵政治模式,⑶漸進模式,⑷多元統合模式
+1,在Esping-Andersen(1990)《資本主義三個世界》之著作中，下列哪一種福利體制採取的方式是以迫使福利依賴者進入勞動力市場，以作為活化勞動力市場的政策？(105師一25),⑴自由主義模式,⑵社會民主主義模式,⑶統合主義模式,⑷東亞福利模式
+1,對於普及性(universal)福利與選擇性(selective)福利的論述，下列何者正確？(107初32),⑴普及性福利強調公民權利,⑵普及性福利的行政成本較高,⑶選擇性福利可促進社會整合,⑷國民義務教育為選擇性福利
+4,下列何者不屬於財稅福利(fiscal welfare)或稅式給付(tax credit)的範圍？(100普21),⑴所得稅中的寬減額,⑵負所得稅,⑶對福利機構捐款列入所得稅的扣除額,⑷消費券
+4,下列何者是有關社會政策現金給付「替代所得」水準的正確敘述？(103師一24),⑴替代所得水準必須高於薪資所得水準,⑵替代所得水準必須與薪資所得水準一樣才行,⑶替代所得水準應該低於最低生活水準,⑷替代所得水準應該至少符合最低生活水準
+4,社會政策與下列哪一個公民權(citizenship)的發展最有關？(111普1),⑴生態權,⑵政治權,⑶經濟權,⑷社會權
+4,下列何種觀點主張政策是國家為確保統治階級優勢的方式？(111師一8),⑴功能論觀點,⑵符號互動論觀點,⑶現代化理論觀點,⑷衝突論觀點
+4,下列哪一個理論觀點，強調國家行政官僚在社會政策過程中的重要性？(106普2),⑴多元主義,⑵菁英主義,⑶統合主義,⑷國家中心主義
+4,社會政策強調每個人均擁有與其他人相同的基本權利的原則為何？(101師一8),⑴資源重分配原則,⑵保障最低生活水準原則,⑶國民自立原則,⑷社會正義原則
+4,下列對「需求(need)」的敘述，何者比較正確？(106原五24),⑴「規範性需求」來自於公民的界定，它帶有公民權利的意涵,⑵「感覺性需求」來自個人客觀中立的認知測量，它適合用來進行比較,⑶「技術性需求」就是自主性的需求，它是人們參與社會生活的必要條件,⑷「比較性需求」來自福利服務對象的差異分析，它適用區域之間的比較
+4,下列有關「社區主義模式」(communitarian model)的敘述，何者為正確？(112初32),⑴社區居民在資本市場依其需求購買托育服務,⑵由公部門統籌，提供公共托育的服務,⑶透過安養機構提供長者的照顧服務,⑷非營利組織依在地需求，針對在地不利處境家庭內的兒少提供照顧服務
+4,下列何項較屬於學者笛姆斯(Richard Titmuss)所稱財稅福利(fiscal welfare)？(102普3),⑴勞工退休金帳戶,⑵國民年金保險,⑶長期照顧補助,⑷所得稅之身心障礙扣除額
+4,在社會政策決策模型中，下列何者為「漸進模型」？(107特五7),⑴社會政策主要是政府行政部門依當前的社會情況制訂,⑵社會政策是邀請專家學者一起討論後，依社會問題修正政策,⑶社會政策是透過團體間協商所達成的決策結果,⑷社會政策主要是參考以往的做法，立基於既有的基礎上，把政策加以修正
+4,R. Titmuss(1958 & 1968)提出福利的社會分工(Social division of welfare)包括三種來源：社會福利、財稅福利及職業福利。請問下列何者屬於財稅福利的範圍？(109特五12),⑴全民健保保費補助,⑵職業災害生活津貼,⑶員工子女教育補助,⑷扶養親屬寬減額
+4,Bradshaw(1972)提出福利服務輸送的四種需求類型，下列敘述何者屬於「表達性需求」？(112特4/113師一4),⑴由專業、行政科層所界定，帶有權威或父權主義傾向,⑵由個人主觀表達其感受與需求,⑶隨著新需求的產生而伴隨出不同的供給模式,⑷將個人需求具體付諸行動
+4,在多元主義的思想中，人們會為共同的利益形成利益團體，進而影響政府的公共及社會政策決策。此模型固然可以反映多元社會的動態實況，但也受到一些批評，對於此團體決策模型的批評何者正確？(103地4),⑴人們會因為利益的關係積極投入影響政府的活動，如示威遊行，而影響社會的正常運作,⑵資產階級者因已有豐厚的生活，而較中下階級者不願投入進行影響政策之活動,⑶中下階級會因知識不足，而受到他人的搧動或利用而干擾政府政策規劃,⑷在利益團體的運作下，決策易流於解決社會壓力而非追求幸福，而造成創造更大社會不平等的效果
+4,政府提供「扶養親屬寬減額」屬於提莫斯(Richard Titmuss)所稱之何類型福利？(105師一20),⑴職業福利,⑵公共福利,⑶社區福利,⑷財稅福利
+4,社會福利政策的財源有很大部分來自政府的稅收。因此財稅制度會深刻地影響社會福利政策的重分配效果。一般來說，若依租稅對資源的重分配程度，稅制可分成兩大類：累進稅(progressive tax)與累退稅(regressive tax)。請問：下列哪一種類型租稅項目為「累退稅」？(104師一12),⑴所得稅,⑵遺產稅,⑶社會安全稅,⑷加值型營業稅
+4,依據Bradshaw(1972/1981)提出的四種需求類型，以相似的區域或人口群作比較，評量兩者間差距所形成的需求差異，這是屬於下列何種需求類型？(109初30),⑴規範性需求,⑵感覺性需求,⑶表達性需求,⑷比較性需求
+4,Esping-Anderson(1990)採用「去商品化」的概念來測量下列哪一個福利國家價值的實踐程度？(103師一2),⑴全球化程度,⑵階層化程度,⑶政府的自由裁量權,⑷社會福利作為一種公民權
+4,英國學者Richard M. Titmuss指出社會服務(現金與實物給付)是具有多元目標的多元體系。他認為多數國家通常並存著三種社會服務體系。以下哪一個選項的組合是Titmuss所指的社會服務體系？A志願服務體系；B家庭福利體系；C職業福利體系；D財稅福利體系；E社會福利體系(107師一14),⑴ACE,⑵ABE,⑶BCD,⑷CDE
+3,女性主義對於福利國家的制度提出許多批判，但不同的女性主義流派對於福利國家有不同的看法，認為福利國家可以在法制上做修改，而消除女性在參與公共及社會機會的阻礙，此女性主義派別為：(102師一8),⑴基進主義女性主義,⑵社會主義女性主義,⑶自由主義女性主義,⑷後現代主義女性主義
+3,社會福利學者對於全球化與福利國家發展的關係提出不同的觀點，下列何者是Gosta Esping Andersen的主張？(113師二6),⑴經由資本主義的主宰，全球化導致福利縮減,⑵全球化對福利國家只有一些小影響,⑶不同的福利國家對全球化有不同回應方式，可能維持，也可能縮減,⑷全球化與社會政策間是靜態的過程，各個福利國家有相似的發展脈絡
+3,透過個人本身儲蓄的方式，讓個人在工作年齡擁有較充裕所得時，向日後退休所得較不充裕時進行移轉的作法，比較傾向下列那種重分配？(106原五2),⑴正向垂直重分配,⑵逆向水平重分配,⑶生命歷程重分配,⑷地理區域重分配
+3,在社會政策制定過程當中，下列哪一種論點認為政策決定過程並非是多元利益進行角逐，而是集中在政治體系中有力量影響其他行動者的一群人手中？(106地2),⑴統合論,⑵國家中心論,⑶菁英論,⑷多元論
+3,1990年代「第三條路」(the third way)的論述曾經盛行一時，美國柯林頓政府與英國布萊爾政府關於社會福利政策的許多改革措施都受到該論述的影響。有關「第三條路」的價值立場或主張，下列陳述何者正確？(103普7),⑴「夜警國家」是最理想的國家形式,⑵社會福利政策的目的在維繫資本主義的社會再生產,⑶國家應致力於人力資本的投資以增加人民的就業能力,⑷國家有責任提供人民從「搖籃到墳墓」的保障
+3,強調福利國家是因應工業化社會的需要而形成的學者，下列何者正確？(112師二10),⑴密須拉(R. Mishra),⑵布里格斯(A. Briggs),⑶威連斯基(H.L. Wilensky),⑷古丁(R.E. Goodin)
+3,Titmuss(1958 & 1968)指出社會福利包括三種類屬：社會服務(福利)、財稅福利及職業福利，請問下列何者屬於職業福利之範圍？(109初31),⑴配偶、子女、身心障礙者、老人等免稅額以及各種支出的特別扣除額,⑵身心障礙者社會保險保費補助,⑶差旅補助、伙食費、治裝費、員工諮商,⑷福利津貼
+3,下列關於「社會投資國家」的敘述，何者比較正確？(106原五13),⑴主張透過市場來滿足公民所有的福利需求,⑵認為國家是社會福利的唯一合法供給者,⑶強調國家大力投資人力資源與社會基礎建設,⑷反對積極性福利和福利混合經濟的政策
+3,Marshall將公民權利分成三個部分；下列何者是指社會權？(106障五4),⑴個人享有自由所需的權利，包括言論的自由和私有財產權利,⑵參與政治組織並進行投票,⑶適度的經濟福利安全,⑷相應而生的制度是法院
+3,下列哪一位學者強調政府越介入經濟規劃，將無可避免地產生獨裁性權力，最後步向「奴役之路」(the road to serfdom)？(109師二2),⑴貝佛里奇(Beveridge),⑵凱因斯(Keynes),⑶海耶克(Hayek),⑷馬歇爾( Marshall)
+3,有關新右派對於福利國家的主張，下列敘述何者正確？(109普2),⑴福利國家可以消弭社會的不幸或匱乏,⑵福利國家可以促進利他精神,⑶福利國家取代傳統家庭與社區所提供的支持,⑷福利國家可以減少水平或是垂直不平等
+3,社會福利政策區分成三個層次(宏觀層次、中觀層次、微觀層次)，下列何者屬於微觀層次 ？(109初33),⑴長照十年計畫2.0、身心障礙者權益保障法,⑵社會福利機構組織分工、規則建立,⑶第一線人員所進行自由裁量與採取符合機構行為的行動,⑷社會福利機構新進員工訓練、方案設計與評估
+3,厄斯金(Erskine)提出社會政策分析的四個取向，不包含下列何者？(109師一3),⑴社會議題(social issues),⑵社會問題(social problems),⑶社會關係(social relationships),⑷社會服務(social services)
+3,因應經濟的全球化，不同體制的福利國家採取的策略重點有所不同，請問下列敘述何者正確？(106師一39),⑴自由主義的福利國家偏重消極的勞動市場方案，增加失業給付等政府社會支出,⑵保守主義模式的福利國家偏向勞動市場的彈性化，減少政府的社會支出,⑶社會民主模式的福利國家偏重積極的勞動市場方案，例如就業服務和職業訓練等社會支出,⑷自由主義模式的福利國家認為需求導向的經濟需要更增加政府的社會支出，以維持社會消費3
+3,下列有關社會投資理論的敘述，何者正確？(110障五26),⑴協助窮人最好的方法就是給現金,⑵最好的兒童照顧者就是母親,⑶人力資本投資應該是社會政策的重心,⑷協助失業者最重要的是現金給付
+3,邀請專家學者參與長期照顧10年計畫2.0決策過程，屬於下列何種社會政策制定模型？(108初20),⑴制度模型,⑵團體理論模型,⑶菁英模型,⑷漸進模型
+3,社會政策的制定常受許多因素或理論所影響，下列何種理論觀點認為社會政策的制定是基於各種利益相互競逐的狀態下而制定？(107師二35),⑴菁英論,⑵國家中心論,⑶多元論,⑷權力資源理論
+3,強調「大部分的失業者在取得給付的同時，必須先證明他們有求職的行為或參與促進就業方案」，以上敘述最接近下列何種社會福利意識形態？(107師二14),⑴女性主義,⑵民主社會主義,⑶新右派,⑷馬克思主義
+3,英國學者T. H. Marshall將公民權利分成3個部分，其中社會福利制度依據何種權利？(106特五3),⑴公民權,⑵政治權,⑶社會權,⑷經濟權
+3,在社會政策的制定過程中，下列決策模式何者正確？(112初7),⑴政策決定的過程有非常多的因素，在這個複雜的過程產生的是一系列的協調，此稱為理性決策模式,⑵在政策制定過程必須針對社會問題和可解決方案，制定最佳的政策，此稱為漸進主義的決策模式,⑶政策有時涉入群體的利益衝突，把制定過程聚焦在政治與經濟過程的相互影響，此稱為政治途徑或衝突理論的決策模式,⑷政策是讓各個群體可以妥協或利益均衡，此稱為理性決定模式
+2,下列何者最符合社會政策之國民自立原則？(108初16),⑴資源重分配,⑵全民就業,⑶保障最低生活水準,⑷以弱勢為優先受益的對象
+2,Esping-Andersen所著的「福利資本主義的三個世界」，下列哪一類體制的國家，其福利服務是基於公民權的福利制度設計，而在福利給付上以去商品化為主要特色：(110初10),⑴自由的福利體制,⑵社會民主福利體制,⑶組合主義體制,⑷保守主治體制
+2,將社區公共事務交由少數政治領袖或宗族長老決定的作法，比較傾向下列那種決策模式？(106原五12),⑴多元論,⑵菁英論,⑶統合論,⑷國家中心論
+2,下列關於社會政策制定過程的敘述，何者正確？(106原五15),⑴先讓公共政策合法化再來定義政策問題,⑵先確認問題後再來形成政策計畫,⑶先做方案設計再來確認問題,⑷先發展政策目標再來確認問題
+2,「性別間的不平等乃經濟力量的分配不均所致」，此主張係屬女性主義學派中的哪個流派之觀點？(103師一19),⑴自由主義的女性主義,⑵社會主義/馬克思主義的女性主義,⑶激進主義的女性主義,⑷現代主義的女性主義
+2,下列有關T.H. Marshall公民權利(citizenship)的敘述，何者較為正確？(103師二1),⑴社會權(social right)指個人享有自由所需的人身、言論、思想、信仰、私有財產、締約、及受司法保護等權利,⑵公民權(civil right)指個人享有自由所需的人身、言論、思想、信仰、私有財產、締約、及受司法保護等權利,⑶政治權(political right)指的是個人享有過著普遍標準文明生活，從而具有締約、及受司法保護的權利,⑷社會權(social right)指的是參與政治力運作的權利，即參與政治組織，進行投票，並享有社會遺業的權利
+2,關於社會福利政策的發展理論，主張社會福利體系的發展是為回應一個國家的工業化導致社會秩序變遷，進而產生都市工業社會問題的結果，該理論觀點是：(105普2),⑴擴散理論,⑵工業主義邏輯,⑶社會抗爭論,⑷全球化觀點
+2,下列哪一個現象是在描述「新社會風險」？(106障五47),⑴在風險源上，新社會風險較集中於國內的經濟現象，政府得以藉由政策因應,⑵在風險源上，新社會風險包括了國境外的政治經濟作用，往往超過政府治權所及的範圍,⑶在所得與經濟安全上，只有勞工階級的人會受到新社會風險的影響,⑷新社會風險不會衝擊社會福利制度
+2,關於政策制定過程的權力角力，可以區分成不同的理論觀點，主張政策的制定是由國家與具影響力的利益團體所結盟協議的結果，是什麼理論？(106特五4),⑴國家中心論,⑵統合論,⑶多元論,⑷菁英論
+2,社會政策的執行，受歐美新公共管理(new public management)思潮的影響，下列何者屬於「後福特主義」的供給型態？(108初22),⑴社會福利採標準化，大量生產與消費，讓人民在福利使用上缺乏選擇性,⑵彈性生產、具備責信、透明化，回應人民的需求,⑶福利輸送的主體還是獨尊政府,⑷重在調節爭議
+2,對於福利提供的形式，下列哪一項敘述是最適當的？(101師二32),⑴對於重災區居民最好採用現金給付的形式,⑵實物給付會限制使用者的選擇權,⑶國內給的現金給付通常足以購買相關的服務,⑷實物給付可以提供案主個別化的需求
+2,依據Le Grand的界定，「公共支出的分配較偏向窮人，讓他們接受給付後，縮小與有錢人的所得差距」，這是屬於下列何種平等的類型？(113師二2),⑴公共支出的平等,⑵最後所得的平等,⑶福利使用的平等,⑷負擔成本的平等
+2,請問哪位學者提倡以「社會投資國家」(social investment state)來取代原有的「福利國家」(welfare state)？(106地10),⑴Gøsta Esping-Andersen,⑵Anthony Giddens,⑶Rene Lenoir,⑷Jonathan Bradshaw
+2,政策的形成乃是依據過去的經驗，經由社會變遷的過程，而獲致共同一致的政策，此種政策制定的模型稱為：(105師二16),⑴理性模型,⑵漸進決策模型,⑶菁英決策模型,⑷團體決策模型
+2,關於社會政策制定模式的敘述，下列何者最接近「漸進模式」？(105地2),⑴全盤考量局勢並衡量社會政策所能達到的社會、政治、經濟價值,⑵主張從既有政策做小幅度調整，使引發的爭議較小，政策改革成本較低，並相對安全,⑶主張政策難免涉及團體間的利益衝突，一旦牽扯資源分配，很難讓所有群體都滿意政策決定,⑷強調政治理性，有權有勢的人比較有影響力
+2,有關「後福特主義」(post-fordism)的涵義，下列敘述何者正確？(112師一15),⑴社會福利標準化大量生產與消費，讓人民在福利使用上缺乏可選擇性,⑵強調重視彈性生產，具備責信、透明化及回應人民聲音的能力,⑶一種社會福利的供給型態，指的是由政府主導、訂定標準化流程的供給型態,⑷指的是一種福利多元主義的論述，公營機關擔負起福利最後一道防線的任務
+2,針對資源配置不均所導致富者愈富、貧者愈貧的兩極化現象，稱為：(108特23),⑴政府失靈(Government Failure),⑵馬太效應(Matthew Effect),⑶玻璃天花板效應(Glass Ceiling Effect),⑷鄰避效應(Not In My Back Yard Effect)
+2,公民身分(citizenship)的主張是支持社會福利政策學者最常聲明的用語之一，依據學者T.H. Marshall(1964)就英國的歷史發展，將公民身分分成三個部分，但不包括下列哪一種權利？(106地4),⑴公民權,⑵全球公民權,⑶政治權,⑷社會權
+2,有關理性主義、漸進主義及衝突理論等三種決策模式的敘述，下列何者最正確？(104師二6),⑴理性主義決策模式幫助我們了解社會政策何以出現結構性、大幅變遷的理由,⑵漸進主義決策模式重視政治運作的可行性，將決策視為永無休止的過程,⑶衝突理論決策模式聚焦在技術菁英的科學理性，以及問題解決能力,⑷理性主義決策模式偏向結構功能論，漸進主義決策模式偏向點滴改革論，衝突理論決策模式偏向個人行為論
+2,女性主義強調消除女性不利的地位，其中較關注國家的社會政策應該透過教育與社會立法使女性獲得機會平等與權利保障之女性主義為：(109特五48),⑴社會主義女性主義,⑵自由女性主義,⑶激進女性主義,⑷平等女性主義
+2,北歐福利國家長期以來被視為國際最高的社會福利標準，其福利國家模式大致有四個方向，下列敘述何者錯誤？(108師一7),⑴強調社會分配的普遍性,⑵由私部門運作福利輸送系統,⑶社會供給重點在保護勞工,⑷社會福利的供給已經視為公民的基本權利
+2,有關選擇式福利的敘述，下列何者錯誤？(109特五9),⑴透過資產調查機制，政府把錢花在刀口上,⑵能夠避免福利烙印標籤效果,⑶公共支出的壓力較小,⑷和普及式福利相比，較具公正性
+2,下列有關第三路線之政策主張的敘述何者錯誤？(100師3),⑴強調積極性的福利體系,⑵主張直接給予人們經濟上協助,⑶重視機會而非結果的平等,⑷降低福利普及性的承諾
+2,社會民主主義是當代主要的社會福利意識型態之一，下列何者不是社會民主主義的核心理念？(100地13),⑴認知到資本主義對勞工階級帶來嚴重的壓迫性,⑵認為在資本主義的運作下，社會階級將造成兩極化的結果，而僅存資本階級及勞工階級,⑶認為資本主義是可以透過改革而促進社會進步,⑷認為在資本主義的運作下，社會將透過持續的經濟成長，而達到社會進步3
+2,關於「社會資本」的敘述，下列何者錯誤？(110師一14),⑴社會資本的特性包括網絡、規範、信任等,⑵強調政黨與社區緊密結合,⑶社會資本是提升民主、地方網絡及支持體系的重要資源,⑷社會資本也有助提升物質和人力資本投資的效益
+2,下列何者不是社會政策原則？(106原五19),⑴社會連帶,⑵使用者付費,⑶社會正義,⑷資源重分配
+2,關於社會政策的綠色主義或生態主義，下列敘述何者錯誤？(112特10),⑴溫和的綠色主義主張以革新而非革命，以達成環境保護目的,⑵綠色主義強調政策應由上而下主導，減少分權帶來不負責任及漠視環境的惡果,⑶強硬的生態主義認為，必須澈底改革現行的政治經濟體制及社會生活模式,⑷溫和的綠色主義，基本上接受現存的經濟及社會結構可以與環保共存
+2,下列哪些屬於福利服務的給付？(110障五20),⑴機構安置,⑵發放國民年金,⑶諮詢建議,⑷家庭訪視
+2,請問何者不是普及式福利的優點？(105師一19),⑴個人尊嚴,⑵烙印效果,⑶人人平等,⑷社會團結
+2,1990年，Esping-Andersen帶動福利國家體制(welfare-regime)的研究，後續也有一些學者有所補充，對於福利國家體制的敘述，下列何者錯誤？(101師二31),⑴在社會民主體制中，強調全民充分就業，由國家提供普及性福利,⑵在統合主義體制中，強調市場機制，福利主要提供給低收入戶,⑶女性主義學者批評Esping-Andersen未將「照顧」放入研究指標,⑷臺灣是屬於福利資本主義類型
+2,關於女性主義不同流派的敘述，下列何者錯誤？(109師二4),⑴女性主義強調消除女性不利的地位,⑵自由女性主義較關注生殖科技、性別暴力等議題,⑶激進女性主義認為女性是被男性壓迫的群體或階級，所有社會制度都由男性或父權體制掌控,⑷社會主義女性主義者較關注國家福利與資本之間的關係，及其對女性的影響
+2,有關英國費邊社(Fabian Society)的敘述，下列何者錯誤？(109普1),⑴其認為國家應該從政策面介入，提供社會保護,⑵英國自由黨的成立，成為費邊社革新與改革政策的重要政治力量,⑶其主張導致英國社會政策界具有強烈社會行政取向,⑷其起因於資本主義經濟結構的變遷，於1884年成立
+3,對於了解社會政策整體輪廓的三個主體，下列何者錯誤？(102地1),⑴社會政策理念基礎(why),⑵政策過程(how),⑶政策時機(when),⑷政策內容(what)
+3,下列對於社會福利模型的描述，何者錯誤？(109初22),⑴T. H. Marshall提出公民權、政治權及社會權,⑵Richard Titmuss提出社會政策三個模型，包括殘補式福利模式、工業成就模式、制度再分配模式,⑶Wilensky和Lebeaux提出殘補式模式及工業成就模式,⑷Esping-Andersen提出自由主義、保守統合主義及社會民主
+3,有關福利與意識形態的敘述，下列何者錯誤？(103師二20),⑴後現代主義主張政策應超越意識形態，擁抱多元的價值觀,⑵馬克思主義認為意識形態是一種占支配地位的觀念系統，用以維護統治階級的利益,⑶女性主義認為福利國家是對女性友善的，並關心女性的生命週期發展與自主選擇,⑷新自由主義認為福利意識形態不應該左右自由市場的運作，對政治和經濟產生妨礙
+3,關於Thomas H. Marshall對於權利(right)的論述，下列何者錯誤？(107師二3),⑴公民權是指法律之下的基本自由，例如，免於受到歧視,⑵政治權是指在政治制度之下，投票、參與政黨等自由,⑶經濟權是指在經濟制度之下，擁有私人財產的權利,⑷權利的演化可以從歷史找到發展軌跡，但也並非自然演化就有
+3,下列何者不屬於東亞福利國家的特色？(108師二5),⑴自由主義殘補式福利特色,⑵受到傳統思想及擴散家庭的影響，具備家庭經濟的特色,⑶屬於制度再分配模式，重現公民權及普及性,⑷以生產為導向，各項社會政策偏重經濟與工業的特性
+3,關於「社會政策合法化過程存在那些特性，能否真正處理最初所欲解決的問題」，有不同的理論觀點，下列何者錯誤？(109特五1),⑴理性決策模式會全盤考量局勢，充分蒐集相關的資訊，周詳考慮問題解決的方案,⑵漸進主義模式認為政策的形成乃是依據過去的經驗，經由社會變遷的過程，而獲致共同一致的政策,⑶政治途徑模式主張不同意識型態所堅持的理性存有差異，所以應在可接受的成本支出下尋找最佳方案，以實現重要價值,⑷衝突理論模式認為當工人階級與支配菁英之間爆發衝突，可能引發重大的政策變革
+3,1990年代以來逐漸發展成形的「社會投資福利國家」，大致著重於三個政策領域。下列我國各類福利服務與現金給付之中，何者不屬於社會投資的政策領域？(113師二10),⑴兒童照顧服務,⑵職業訓練生活津貼政策,⑶社會救助法所提供的生活扶助給付,⑷職業重建服務
+3,英國社會學家紀登斯(Anthony Giddens)認為第三條路(the third way)走的是中間路線社會主義者的社會正義價值，整體社會應該具備平等或包容性。下列何者不是第三條路的特性？(106初31),⑴積極性的社會福利體系,⑵重視機會而非結果平等,⑶增加福利普及性的承諾,⑷密切監督服務標準
+3,平等(equality)有許多不同的類型，下列關於各種平等類型的敘述，何者錯誤？(108師一4),⑴以平等的道德原則來看，平等指的是無論性別、種族、階級、性向或其他差異，人類應具有的平等價值,⑵平等的分配原則關心的是資源的享用,⑶機會平等指的是無論每個人的起點及原有能力高低，最終人們應享有共同的資源,⑷結果平等主要透過強制立法與政治手段，盡量縮小競爭性市場造成的不平等
+3,有關社會政策擴散理論的敘述，下列何者錯誤？(112師一5),⑴擴散方式可能是垂直擴散,⑵擴散方式可以是空間擴散,⑶可以對最先提出該政策作法之國家，解釋其政策形成,⑷未能說明在政策學習的情況下，為何又出現政策差異
+3,有關全球化對於社會政策的影響程度有三種主要的觀點，不包括下列何者？(112師二5),⑴經由資本主義的主宰，全球化導致福利縮減,⑵全球化對福利國家只有一些小影響,⑶全球化促成民族國家發展擴張,⑷全球化對福利國家的影響仍需經由國家政治作為的中介運作
+3,下列哪個治理特徵不是社會投資福利國家的重點？(111師一15),⑴強調積極性的福利體系,⑵重視對人力資本的投資,⑶提高福利普及性的承諾,⑷服務的多元供給
+3,有關選擇性社會政策的特性，下列何者錯誤？(111師二19),⑴較能有效地運用資源，達成政策目標,⑵行政成本較高,⑶需要較多的公共資源,⑷對貧窮者而言，其邊際稅率相當高，而危害工作誘因，產生貧窮的陷阱
+4,關於在社會政策中的「需求」，下列敘述何者錯誤？(112特10),⑴「需求」是社會政策資源分配的準則,⑵「需求」的界定通常伴隨著特殊目的,⑶社會政策的首要任務是滿足人們的「需求」,⑷「需求」完全是以享有者或福利使用者的立場來考量
+4,對於社會政策過程具有影響的統合論(corporatism)，下列敘述何者錯誤？(110師二10),⑴統合論是多元論與菁英論的綜合,⑵統合論認為權力並非集中在某些菁英，亦非有效分配給大眾，而是由影響力被認可的利益團體參與決策制定,⑶統合論分為國家統合論與社會統合論,⑷國家統合論重視弱勢團體的需求
+4,根據英國學者Anthony Giddens的第三條路(The Third Way)理念所提出的積極性社會福利政策，下列敘述何者錯誤？(104地5),⑴強調社會投資,⑵強調社區工作,⑶強調就業促進,⑷強調排富條款
+4,下列有關社會政策理論的論述，何者錯誤？(104普4),⑴政黨分化理論主張執政黨因執政優勢，在政策的決定過程中扮演重要角色,⑵經濟全球化對社會政策發展的負面影響應是居多,⑶現代化理論認為社會政策是因應社會問題而產生的,⑷福利多元主義主張應將商業部門的服務排除
+4,全球化對於福利國家的影響，不包括下列何者？(111師二11),⑴全球化會弱化國家採取更多社會福利政策的力量,⑵全球化會對國家社會福利財政產生壓力,⑶福利國家的改變不完全歸因於全球化的發展,⑷面臨全球化，雇主會更願意支持社會福利政策
+4,有關民眾社會福利請求權利的資格要件，下列何者錯誤？(112師一20),⑴契約,⑵專業裁量判斷,⑶司法判決,⑷地位階級
+4,下列關於女性主義與福利國家的敘述，何者錯誤？(106原五21),⑴社會對女性的歧視是造成性別不公的主因，因此訂定反歧視法非常重要,⑵傳統福利國家賦予就業的男性許多公共福利權利，但女性卻被視為私領域中依賴男性生活者,⑶因為福利國家擴張讓許多婦女獲得就業機會，但卻是低薪工作,⑷福利國家不應改變傳統女性的家庭照顧者角色，以免增加政府的照顧支出
+4,Richard M.Titmuss談論福利的社會分工時指出，福利可以區分為公共福利、職業福利和財稅福利三種。下列何者不屬於職業福利？(107師二11),⑴勞保年金,⑵勞退基金,⑶公保退休年金,⑷國民年金
+4,依社會民主觀點(social democracy perspective)對福利國家的看法，下列何者錯誤？(106初27),⑴福利國家可促進利他精神與社會整合,⑵福利國家可以補償社會進步所帶來的反福利,⑶福利國家可以減少水平或垂直的不平等,⑷福利國家可採行資產調查式的選擇性福利
+4,經濟全球化對先進國家的福利體系造成相當大的衝擊。有關經濟全球化對福利體系的衝擊，下列陳述何者錯誤？(103普6),⑴資本跨國流動的能力增加，導致國家對企業的徵稅能力受到挑戰,⑵製造部門外移到開發中國家，導致低技術勞工所得下降與失業,⑶歐洲國家普遍透過勞資間的集體協商來決定薪資，但經濟全球化削弱勞工的談判權力,⑷政治意識型態更為左傾3
+1,關於社會福利資源供給的形式，下列敘述何者錯誤？(103師一40),⑴現金給付強調社會控制的原則，實物給付強調選擇自由的原則,⑵社會福利資源供給的形式，直接反映政策價值,⑶儲蓄或教育脫貧方案是以選擇自由的形式，加上社會控制的附帶條件,⑷抵用券的形式可平衡社會控制與消費者選擇
+1,關於「第三條路」(The Third Way)的意識型態，下列敘述何者錯誤？(113初30),⑴主張純粹的自由市場,⑵採福利混合經濟,⑶不主張純粹的社會主義,⑷重視機會平等
+1,有關選擇式福利的敘述，下列何者錯誤？(104師二3),⑴可以考量個人尊嚴，避免烙印效應,⑵透過資產調查機制，把錢花在刀口上,⑶具有提高成本效率的功能,⑷可以達到降低總體財政支出的效果
+1,有關社會政策的起源，下列敘述何者錯誤？(105師二5),⑴1883年「德國社會政策學會」成立，成為社會政策領域之開端,⑵1884年英國「費邊社」成立，認為國家應在政策面予以介入,⑶1906年英國工黨成立，成為費邊社達成政策革新與改革的重要政治力量,⑷1912年英國倫敦經濟學院設立社會科學與行政學系，形成對社會政策學門最重要的基礎
+1,社會排除(social exclusion)一詞的概念內涵，不包括下列何者？(101師一15),⑴它指的是所得的單一面向,⑵它指的是各種加深排除的因素,⑶它指的是被排除人口群的類別,⑷它指的是排除的心理、社會影響
+1,社會政策制定的理論中，關於「國家中心論」的觀點，下列敘述何者錯誤？(100普13),⑴國家本身不是行動者,⑵國家擁有自主性,⑶行政官僚在政策制訂過程中是積極參與者,⑷為史卡司波(T. Skocpol)所提出
+1,學者T.H. Marshall提出公民權利應包含公民權、政治權以及社會權，下列何者不是社會權的內涵？(112特5),⑴言論及信仰自由,⑵接受教育的權利,⑶享有年金福利,⑷擁有社會安全保障
+1,Anthony Giddens在1990年代中期提出第三條路，帶動社會投資理念的討論。Esping-Andersen(2002)指出傳統福利國家必須轉型為社會投資福利國家，將社會資源引導到生產性政策。下列政策何者不符合社會投資理念？(107特五15),⑴社會救助,⑵家庭政策,⑶積極勞動市場政策,⑷高等教育政策
+1,有關新馬克思主義(Neo-Marxism)的敘述，下列何者錯誤？(108師二37),⑴福利國家進行社會控制所形成的集中式行政科層，會提高社會服務行政效率與效能,⑵福利國家用物質利益交換有需要者對社會道德秩序的順從,⑶社會控制是新馬克思主義對福利國家的首要論述,⑷O’Conner從Marx的經濟分類觀點，將國家支出分成社會資本與社會費用兩種
+1,經濟全球化已造成全面性福利國家的變遷，對於主要社會政策改革的討論，不包括下列何者？(108師二14),⑴政府責任的提高,⑵去管制化,⑶第三部門的落實,⑷社會企業的增強
+        let allQuestions = [];
+        let currentQuizQuestions = [];
+        let userAnswers = {};
+        let currentQuestionIndex = 0;
+        let timerInterval;
+        let seconds = 0;
+
+        // Helper function to shuffle an array
+        const shuffleArray = (array) => {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        };
+
+        // Parse the raw text data into a structured question bank
+        const parseData = () => {
+             const lines = rawData.trim().split('\n').filter(line => line.trim() !== '');
+            
+            allQuestions = lines.map((line, index) => {
+                const parts = line.split(',');
+                if (parts.length < 3) {
+                    console.error(`Skipping invalid line ${index + 1}:`, line);
+                    return null;
+                }
+
+                const answerIndex = parseInt(parts[0], 10) - 1;
+                const questionPart = parts[1];
+                
+                const qMatch = questionPart.match(/(.*)(\(.*\))/);
+                const questionText = qMatch ? qMatch[1].trim() : questionPart.trim();
+                const source = qMatch ? qMatch[2] : '';
+                
+                const options = parts.slice(2).map(opt => opt.substring(1).trim());
+                
+                if (isNaN(answerIndex) || answerIndex < 0 || answerIndex >= options.length) {
+                    console.error(`Parsing error on line ${index + 1} (Invalid Answer Index):`, line);
+                    return null;
+                }
+                const answer = options[answerIndex];
+
+                return { id: index, question: questionText, source, options, answer };
+            }).filter(q => q !== null);
+        };
+
+        // Functions to manage UI visibility
+        const showScreen = (screenId) => {
+            ['start-screen', 'quiz-screen', 'results-screen'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById(screenId).classList.remove('hidden');
+        };
+
+        const formatTime = (totalSeconds) => {
+            const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+            const seconds = (totalSeconds % 60).toString().padStart(2, '0');
+            return `${minutes}:${seconds}`;
+        };
+
+        const startTimer = () => {
+            seconds = 0;
+            document.getElementById('timer').textContent = formatTime(seconds);
+            timerInterval = setInterval(() => {
+                seconds++;
+                document.getElementById('timer').textContent = formatTime(seconds);
+            }, 1000);
+        };
+        
+        // Main function to start the quiz
+        const startQuiz = (numQuestions) => {
+            userAnswers = {};
+            currentQuestionIndex = 0;
+            
+            const shuffled = shuffleArray([...allQuestions]);
+            currentQuizQuestions = shuffled.slice(0, numQuestions);
+            currentQuizQuestions.forEach(q => {
+                q.options = shuffleArray([...q.options]);
+            });
+
+            showScreen('quiz-screen');
+            renderQuestion(currentQuestionIndex);
+            startTimer();
+        };
+
+        // Render a single question on the screen
+        const renderQuestion = (index) => {
+            const question = currentQuizQuestions[index];
+            document.getElementById('question-text').textContent = question.question;
+            document.getElementById('question-source').textContent = question.source;
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            question.options.forEach((option, i) => {
+                const optionId = `q${index}_opt${i}`;
+                const checked = userAnswers[index] === option ? 'checked' : '';
+                optionsContainer.innerHTML += `
+                    <div class="macaron-option rounded-lg">
+                        <input type="radio" name="q${index}" id="${optionId}" value="${option}" class="hidden" ${checked} onchange="selectAnswer(${index}, '${option}')">
+                        <label for="${optionId}" class="block w-full text-left p-4 text-xl rounded-lg cursor-pointer">
+                            ${option}
+                        </label>
+                    </div>
+                `;
+            });
+
+            document.getElementById('progress').textContent = `第 ${index + 1} / ${currentQuizQuestions.length} 題`;
+            document.getElementById('prev-btn').style.visibility = index === 0 ? 'hidden' : 'visible';
+            document.getElementById('next-btn').style.display = index === currentQuizQuestions.length - 1 ? 'none' : 'block';
+            document.getElementById('submit-btn').style.display = index === currentQuizQuestions.length - 1 ? 'block' : 'none';
+        };
+
+        const selectAnswer = (index, answer) => {
+            userAnswers[index] = answer;
+        };
+
+        const prevQuestion = () => {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuestion(currentQuestionIndex);
+            }
+        };
+
+        const nextQuestion = () => {
+            if (currentQuestionIndex < currentQuizQuestions.length - 1) {
+                currentQuestionIndex++;
+                renderQuestion(currentQuestionIndex);
+            }
+        };
+        
+        const submitQuiz = () => {
+            clearInterval(timerInterval);
+            showScreen('results-screen');
+            renderResults();
+        };
+
+        const renderResults = () => {
+            let score = 0;
+            currentQuizQuestions.forEach((q, i) => {
+                if (userAnswers[i] === q.answer) {
+                    score++;
+                }
+            });
+
+            document.getElementById('score').textContent = `你的分數: ${score} / ${currentQuizQuestions.length}`;
+            document.getElementById('time-taken').textContent = `測驗時間: ${formatTime(seconds)}`;
+
+            const detailsContainer = document.getElementById('details-section');
+            detailsContainer.innerHTML = '';
+
+            currentQuizQuestions.forEach((q, i) => {
+                const userAnswer = userAnswers[i] || "未作答";
+                const isCorrect = userAnswer === q.answer;
+                
+                detailsContainer.innerHTML += `
+                    <div class="p-5 rounded-lg border macaron-card">
+                        <p class="text-xl font-semibold mb-3">${i + 1}. ${q.question} <span class="text-sm text-gray-500">${q.source}</span></p>
+                        <p class="p-3 rounded-md ${isCorrect ? 'correct-answer' : 'incorrect-answer'}">你的答案：${userAnswer}</p>
+                        ${!isCorrect ? `<p class="p-3 mt-2 rounded-md correct-answer">正確答案：${q.answer}</p>` : ''}
+                    </div>
+                `;
+            });
+        };
+        
+        // Functions to download results as PDF or CSV
+        const downloadResults = async (format) => {
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const filename = `social-work-ethics-quiz-results-${timestamp}`;
+
+            if (format === 'pdf') {
+                 try {
+                    const { jsPDF } = window.jspdf;
+                    const pdf = new jsPDF('p', 'mm', 'a4');
+                    const content = document.getElementById('results-screen');
+                    
+                    pdf.setFont('helvetica'); // Using a standard font
+                    pdf.setFontSize(20);
+                     // Using a placeholder text as jsPDF has issues with unicode without proper fonts
+                    pdf.text('Quiz Results', 105, 20, null, null, 'center');
+                    
+                    const canvas = await html2canvas(content, { 
+                        scale: 2,
+                        useCORS: true, 
+                        allowTaint: true 
+                    });
+                    const imgData = canvas.toDataURL('image/png');
+                    const imgProps= pdf.getImageProperties(imgData);
+                    const pdfWidth = pdf.internal.pageSize.getWidth() - 20; // with margin
+                    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+                    
+                    pdf.addImage(imgData, 'PNG', 10, 30, pdfWidth, pdfHeight);
+                    pdf.save(`${filename}.pdf`);
+                } catch (e) {
+                    console.error("Error generating PDF:", e);
+                    alert("抱歉，PDF下載功能目前無法使用。請嘗試下載CSV或截圖保存。");
+                }
+            } else if (format === 'csv') {
+                let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; // \uFEFF for BOM
+                csvContent += "題號,題目,你的答案,正確答案\n";
+
+                currentQuizQuestions.forEach((q, i) => {
+                    const userAnswer = userAnswers[i] || "未作答";
+                    const row = [
+                        i + 1,
+                        `"${q.question.replace(/"/g, '""')}"`,
+                        `"${userAnswer.replace(/"/g, '""')}"`,
+                        `"${q.answer.replace(/"/g, '""')}"`
+                    ].join(',');
+                    csvContent += row + "\r\n";
+                });
+
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", `${filename}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        };
+
+        // Initialize the app when the page loads
+        window.onload = () => {
+            parseData();
+        };
+    </script>
+</body>
+</html>
