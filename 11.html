@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>社政立法(二) 題庫測驗</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Include jsPDF and html2canvas for PDF export functionality -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles for the macaron color theme and overall look */
+        body {
+            background-color: #FEFBF6; /* Creamy background */
+            font-family: 'Noto Sans TC', sans-serif;
+            color: #5C5470; /* Muted purple text */
+        }
+        .macaron-card {
+            background-color: #FAF0E4; /* Soft peach card */
+            border: 1px solid #E4D5C7;
+        }
+        .macaron-btn {
+            background-color: #B2D8B2; /* Pistachio green */
+            color: #354F52;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        .macaron-btn:hover {
+            background-color: #A1C7A1; /* Darker pistachio */
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .macaron-option {
+            background-color: #FFFFFF;
+            border: 2px solid #EAD7D7; /* Soft pink border */
+            transition: all 0.3s ease;
+        }
+        .macaron-option:hover {
+            border-color: #B2D8B2; /* Pistachio green on hover */
+            background-color: #F7FDF7;
+        }
+        .macaron-option input:checked + label {
+            border-color: #79A379;
+            background-color: #E9F5E9;
+            font-weight: 500;
+        }
+        .correct-answer {
+            background-color: #D4EDDA !important; /* Light green for correct */
+            border-color: #C3E6CB !important;
+        }
+        .incorrect-answer {
+            background-color: #F8D7DA !important; /* Light red for incorrect */
+            border-color: #F5C6CB !important;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <div id="app-container" class="w-full max-w-4xl mx-auto">
+        <!-- Start Screen: Visible by default -->
+        <div id="start-screen" class="text-center p-8 sm:p-12 macaron-card rounded-2xl shadow-lg">
+            <h1 class="text-4xl sm:text-5xl font-bold mb-2 text-[#354F52]">社政立法(二)</h1>
+            <p class="text-lg sm:text-xl mb-8 text-[#5C5470]">(從總題庫抽出120題)</p>
+            <p class="text-xl mb-6">請選擇測驗題數：</p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <button onclick="startQuiz(5)" class="macaron-btn text-2xl py-4 px-10 rounded-full shadow-md">5 題</button>
+                <button onclick="startQuiz(10)" class="macaron-btn text-2xl py-4 px-10 rounded-full shadow-md">10 題</button>
+            </div>
+        </div>
+
+        <!-- Quiz Screen: Hidden by default -->
+        <div id="quiz-screen" class="hidden p-6 sm:p-10 macaron-card rounded-2xl shadow-lg">
+            <div class="flex justify-between items-center mb-6">
+                <div id="progress" class="text-xl font-bold">第 1 / 10 題</div>
+                <div id="timer" class="text-2xl font-bold text-[#354F52]">00:00</div>
+            </div>
+            <div id="question-container" class="mb-8">
+                <h2 id="question-text" class="text-2xl sm:text-3xl font-semibold mb-2"></h2>
+                <p id="question-source" class="text-sm text-gray-500 mb-6"></p>
+                <div id="options-container" class="space-y-4"></div>
+            </div>
+            <div class="flex justify-between mt-8">
+                <button id="prev-btn" onclick="prevQuestion()" class="macaron-btn text-lg py-3 px-8 rounded-full">上一頁</button>
+                <button id="next-btn" onclick="nextQuestion()" class="macaron-btn text-lg py-3 px-8 rounded-full">下一頁</button>
+                <button id="submit-btn" onclick="submitQuiz()" class="hidden macaron-btn text-lg bg-[#E8A0A0] hover:bg-[#D78F8F] text-white py-3 px-8 rounded-full">繳交</button>
+            </div>
+        </div>
+
+        <!-- Results Screen: Hidden by default -->
+        <div id="results-screen" class="hidden p-6 sm:p-10 macaron-card rounded-2xl shadow-lg">
+            <div id="summary-section" class="text-center mb-8">
+                <h2 class="text-4xl font-bold mb-4">測驗完成！</h2>
+                <p id="score" class="text-3xl mb-2"></p>
+                <p id="time-taken" class="text-xl mb-6"></p>
+                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <button onclick="downloadResults('pdf')" class="macaron-btn text-lg py-3 px-6 rounded-full">下載 PDF</button>
+                    <button onclick="downloadResults('csv')" class="macaron-btn text-lg py-3 px-6 rounded-full">下載 CSV</button>
+                    <button onclick="window.location.reload()" class="macaron-btn text-lg py-3 px-6 rounded-full">再測一次</button>
+                </div>
+            </div>
+            <div id="details-section" class="space-y-6">
+                <!-- Detailed results will be injected here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // The entire application logic is contained within this script tag.
+        
+        const rawData = `
+1,有關臺灣社會保險與退休金體系的敘述，下列何者正確？(103師二21),⑴目前年金體系以職業類別作為區隔之設計，不同保險間之所得替代率差距甚大，導致福利階層化問題,⑵年滿20歲至未滿65歲者，如未參加任何社會保險且未領有任何保險給付者，可以獲得國民年金保障,⑶目前軍公教與勞工人員，都享有三柱式的年金保險體系,⑷國民年金制度之實施，可望嘉惠弱勢者，且扮演整合行政體系與降低成本的角色
+1,下列何者為醫療保險之財務制度設計？(109師二18),⑴隨收隨付制,⑵基金制,⑶修正準備提存制,⑷完全準備提存制
+1,下列有關社會保險與社會救助制度的論述比較，何者正確？(103師一28),⑴兩者所提供的給付水準有所差異,⑵兩者請領時都需要經過資產調查,⑶社會保險的福利再分配程度比社會救助高,⑷兩者都具有脫貧的功能
+1,世界銀行於2005年所提之多柱式老人經濟保障模式圖的第四柱是指何種制度？(100師9/113初50),⑴倫理性家庭供養制度,⑵自願性商業保險儲蓄制度,⑶強制性社會保險制度,⑷非納費性社會救助制度
+1,有關全民健康保險法之被保險人區分為六類，下列何者為第一類保險人？(105師二14),⑴公、民營事業、機關之受僱者,⑵低收入戶成員,⑶農會及水利會會員,⑷服替代役期間之役齡男子
+1,有關聯合國所訂之權利公約，我國最早制定施行法的是下列何者？(106特6),⑴「公民與政治權利國際公約」與「經濟社會文化權利國際公約」(兩公約),⑵兒童權利公約,⑶身心障礙者權利公約,⑷消除對婦女一切形式歧視公約
+1,依國民年金法第50條規定，以詐欺或其他不正當行為領取保險給付者，除應予追回外並按其領取之保險給付處幾倍罰鍰？(102特24),⑴2倍,⑵3倍,⑶4倍,⑷5倍
+1,我國一般受僱者(勞工)的育嬰留職停薪津貼的發放，是根據下列哪個社會立法的給付項目？(105普22),⑴就業保險法,⑵勞工保險條例,⑶勞動基準法,⑷性別平等工作法
+1,當災難發生時，直轄市或縣(市)主管機關應視災情需要，辦理災害救助，下列何者不屬於災害救助的範圍？(101特17),⑴致贈土地,⑵給與傷、亡或失蹤濟助,⑶提供受災戶膳食口糧,⑷設立臨時災害收容場所
+1,當代關於社會福利的輸送，強調應關注福利財的特性、善用福利混合經濟的概念來發揮輸送管道的優點，請問對於「尚未市場化的福利財貨」，應該由何者扮演主要提供者較合適？(109特五10),⑴政府,⑵企業,⑶非營利組織,⑷家戶
+1,我國社會福利發展有三個黃金十年(分別為民國四十年代、六十年代和八十年代)，請問下列敘述何者正確？(109普3),⑴社區工作發展始於第二個黃金十年,⑵社會福利基金之設置起源於第三個黃金十年,⑶奠定我國成為「軍公教福利國」的傳統在第三個黃金十年,⑷社會工作專業制度始於第一個黃金十年
+1,依據「全民健康保險法」所示，我國辦理全民健康保險的主要目的為何？(110特五4),⑴增進全體國民健康,⑵有效分配有限的醫療資源,⑶建立醫療照顧的風險分擔機制,⑷建立穩定的醫療服務財務機制
+1,下列有關社會保險與社會救助比較之敘述，何者正確？(110障五17),⑴社會保險的功能在於防貧，社會救助的功能在於安貧,⑵社會保險和社會救助一樣領取給付都需經過資產調查,⑶社會保險只提供實物給付，社會救助只提供現金給付,⑷社會保險和社會救助的保障水準皆為最低生活水準
+1,職業災害保險不包含下列何種給付？(110特五38),⑴失業給付,⑵失能給付,⑶傷病給付,⑷死亡給付
+1,商業部門參與提供福利服務，可以用下列哪一種觀點來解釋？(110普23/110初9),⑴福利多元主義,⑵福利集中化,⑶國家提供人民「從搖籃到墳墓」的基本生活保障,⑷福利服務志願化
+1,1980年代新自由主義開始檢視政府主導的公共福利活動時，強調3Es的概念。下列哪一個選項組合為3Es？①經濟(economy)；②效益(effectiveness)；③影響(effect)；④效率(efficiency)(110師一4),⑴①②④,⑵①②③,⑶②③④,⑷①③④
+1,下列有關國民年金被保險人資格的敘述，何者正確？(110障五2),⑴年滿25歲，且未領取相關社會保險老年給付者,⑵年滿25歲，且未領取相關社會保險職災給付者,⑶年滿25歲，且未領取相關社會保險醫療給付者,⑷年滿25歲，且未領取相關社會保險留職停薪給付者
+1,在社會安全制度中扮演事後補救或最後社會安全網角色的是指：(109特五8),⑴社會救助,⑵社會保險,⑶社會津貼,⑷就業安全
+1,新公共管理觀點認為，下列哪個福利供給部門最沒有效率？(112師一12),⑴國家,⑵市場,⑶家庭,⑷非營利組織
+1,社會立法的目的，在於：(106障五13),⑴以社會公平及社會安全為目的的法律,⑵以經濟發展及社會權力為目的的法律,⑶以政黨合法化為目的的法律,⑷以利益團體的利益為目的的法律
+1,有關「科層—專業主義」的敘述，下列何者正確？(111師二15),⑴注重程序以及規則對於服務輸送的規範,⑵強調績效的標準與測量,⑶重視去集中化以及分散化,⑷重視服務使用者的選擇權
+1,有關於貧窮的定義，George與Howard(1991)認為可以貧窮深度(depth of poverty)的概念，將貧窮分為： ①飢餓(starvation) ②維生(subsistence)③社會因應(social coping) ④社會參與(social participation)等四種狀況，其中最為核心的面向，也是人類生存不可或缺的為：(110障五49),⑴僅①②,⑵僅①②③,⑶僅①②④,⑷①②③④
+1,社會保險制度為各國社會安全制度中所廣泛採用，下列有關社會保險的特性，何者正確？(103特10),⑴社會保險仍具保險特性，必須繳費參加保險始取得權利資格，保費高低與風險率具有關聯性,⑵政府為鼓勵人們參加社會保險，常將保險給付水準設定在充足的水準,⑶社會保險之被保險人的保費負擔常較輕，是因為有來自於政府補助及保險基金投資收益所致,⑷為有效精算社會保險成本，社會保險仍依實際的風險事故機率有精細的風險分類及保費計算
+1,參照英國的濟貧法改革歷史，我國社會救助法第8條規定「依本法或其他法令每人每月所領取政府核發之救助總金額，不得超過當年政府公告之基本工資」，與下列何種概念較為相符？(102普4),⑴低於合格標準(less eligibility),⑵習藝所考驗(work house test),⑶行政權集中化,⑷親屬責任
+1,死亡而無遺屬與遺產者，應由當地鄉(鎮、市、區)公所辦理葬埋，屬於下列何項社會救助給付？(113普9),⑴急難救助,⑵醫療補助,⑶生活扶助,⑷災害救助
+1,下列哪些項目為國民年金保險之保險事故？①老年②生育③身心障礙④疾病⑤死亡(113初46/106原五27/110特五6/107初41),⑴①②③⑤,⑵①②③④,⑶②③④⑤,⑷①③④⑤
+1,「勞動基準法」規定雇主不得僱用未滿幾歲之人從事工作？(110特五39),⑴15歲,⑵16歲,⑶17歲,⑷18歲
+1,在福利多元主義的思潮之下，社會福利的輸送不再獨尊政府，下列哪一個部門在提供社會福利時，缺點是會造成貧富差距的不公平？(108特五9),⑴商業部門,⑵志願部門,⑶非正式部門,⑷家庭部門
+1,世界銀行(World Bank)在2005年曾提出多柱年金制度概念，建議各國建立五柱年金制度，其中第一柱為？(105師一29),⑴強制性社會保險制度,⑵自願性商業保險,⑶非納費型社會救助,⑷任意性員工保險制度
+2,依據「就業保險法」規定，提供勞工「失業給付」每月按申請人離職辦理退保之當月起前6個月平均月投保薪資多少百分比發給？(110特五37),⑴50%,⑵60%,⑶70%,⑷80%
+2,根據世界銀行(World Bank)對於年金體系多柱的分類，所謂的「零柱」(zero or basic pillar)較符合哪種制度？(102特13),⑴老農津貼,⑵社會救助,⑶國民年金,⑷社區互助金
+2,有關聯合國1966年公民與政治權利國際公約及經濟社會文化權利國際公約(以下合稱兩公約)的敘述，下列何者正確？(111普8),⑴目前只適用於有加入聯合國的國家，在臺灣不具有法律效力,⑵兩公約所揭示的重點在於保障人權,⑶政府目前尚未撰寫人權報告制度,⑷在臺外籍人士不受兩公約的保障
+2,依據全民健康保險法第8條之規定，具有中華民國國籍，最近2年內曾有參加本保險紀錄且在臺灣地區設有戶籍，或參加本保險前幾個月繼續在臺灣地區設有戶籍，始符合投保資格？(100師38),⑴3個月,⑵6個月,⑶9個月,⑷12個月
+2,社會保險的制度設計主要是考量：(106障五29),⑴以救災濟貧手段達到最低生活保障,⑵以風險管理機制達到為先分攤的效果,⑶注重機會均等，積極獎勵弱勢族群發展,⑷以象徵性補償為主要的設計
+2,有關勞工保險的描述，下列何者正確？(106障五49),⑴勞工保險條例所指稱的勞工，不包括在職外國籍員工,⑵年滿15歲以上，65歲以下之勞工，應以其雇主或所屬團體或所屬機構為投保單位，全部參加勞工保險為被保險人,⑶參加勞工保險的勞工不能再組織工會,⑷經主管機關認定其工作性質及環境無礙身心健康，未滿15歲勞工不適用勞工保險條例
+2,有關社會保險保費的敘述，下列何者正確？(110師二18),⑴社會保險保費通常與給付成固定比例,⑵社會保險保費不一定與給付成比例,⑶社會保險保費通常與稅收成固定比例,⑷社會保險保費通常與所得不成比例
+2,1980年代後「新管理主義」的思潮對福利服務輸送產生影響，請問：下列關於福利服務輸送的陳述，哪一個選項跟新管理主義的影響無關？(104師一10),⑴政府部門被期待仿效企業的運作方式，在組織運作上更為扁平化與彈性，這亦間接促成福利私有化的趨勢,⑵家庭外部照顧服務體系的興起，某些國家透過市場供給的方式來回應，某些則由政府透過現金補貼或公共服務的建立來回應,⑶政府部門與社會福利機構為了對福利服務的產出作更嚴密的控制，相當看重績效指標的建立與績效的衡量方法,⑷過去弱勢者被稱呼為「案主」，近年來，已逐漸被「消費者」或「顧客」這樣的概念所取代
+2,我國社會福利政策綱領對於就業安全的敘述指出，政府應積極協助勞工運用就業服務、職業訓練、技能檢定等資源，提升其職業能力及工作所得，以協助勞工脫離工作貧窮之困境。此敘述視貧窮是什麼因素所致？(105普1/109師二6),⑴貧窮為一種文化,⑵貧窮為缺乏人力資本,⑶貧窮為階級剝削,⑷貧窮為福利依賴
+2,中央主管機關為監督國民年金保險業務及審議保險爭議事項，由有關政府機關代表、被保險人代表及專家各占多少比例為原則，以合議制方式監理之？(101特21),⑴二分之一,⑵三分之一,⑶四分之一,⑷五分之一
+2,依據「全民健康保險法」規定眷屬的保險費是由被保險人繳納，但為了不造成多眷口家庭負擔過重，全民健康保險有規定眷口數的上限，請問最多計算幾人？(109特五25),⑴2人,⑵3人,⑶4人,⑷5人
+2,若個人的財產或存款帳戶因遭強制執行、凍結或其他原因未能及時運用，致生活陷於困境者，依社會救助法規定，可檢同有關證明，向戶籍所在地主管機關申請：(103師一23),⑴生活扶助,⑵急難救助,⑶緊急救助,⑷災害救助
+2,我國社會救助法規定，下列哪一類人員在執行業務知悉有社會救助需要之個人或家庭時，沒有強制通報直轄市、縣(市)主管機關之要求？(102師一18),⑴警察人員,⑵村(里)長,⑶醫事人員,⑷村(里)幹事
+2,依據2005年世界銀行(World Bank)多柱年金保障的模式，我國實施的勞工退休金個人帳戶制屬於該模式中的哪一柱？(108特五13),⑴第一柱,⑵第二柱,⑶第三柱,⑷第四柱
+2,下列何法是我國第一個普及性的福利立法？(110普6),⑴國民年金法,⑵全民健康保險法,⑶老人福利法,⑷勞工保險條例
+2,有關我國社會保險概念之敘述，下列何者正確？(111初6),⑴社會保險是自由加保,⑵社會保險是透過先盡義務的繳費，再享權利的互助,⑶社會保險保費負擔比商業保險高,⑷社會保險設有排富條款
+2,下列關於國民年金保險當中身心障礙年金的敘述，何者正確？(106原五26),⑴每六年需查核身心障礙年金領取者的障礙程度,⑵必須要有重度以上經評估無工作能力的條件方能領取,⑶如果同時符合相關社會保險領取規定，可以一起領取,⑷該年金的基本保障水準為新臺幣五千元
+2,請問就業保險法規定，就業保險業務由行政院勞工委員會委任何機關辦理？(102師二29),⑴直轄市或縣市勞工局,⑵勞工保險局,⑶公立就業服務機構,⑷行政院勞工委員會所設立之職業訓練中心
+2,就業服務法之規定，直轄市、縣(市)轄內原住民人口達多少人以上者，得設立因應原住民族特殊文化之原住民公立就業服務機構？(107特25),⑴五千人以上者,⑵二萬人以上者,⑶三萬人以上者,⑷五萬人以上者
+2,依國民年金法規定，保險人為辦理本保險所需之人事及行政管理經費，以當年度應收保險費總額之百分之多少為上限，由中央主管機關負擔？(107師一39),⑴百分之一點五,⑵百分之三點五,⑶百分之五點五,⑷百分之六點五
+2,福利混合經濟強調福利應該由不同的部門來提供，下列哪個部門主要目標為營利？(111師一11),⑴國家,⑵市場,⑶家庭,⑷非營利組織
+2,依據新修正的社會救助法，「中低收入戶」係指家庭總收入平均分配全家人口，每人每月不超過最低生活費幾倍？(100普3/104師一25/106特15),⑴1.3倍,⑵1.5倍,⑶2倍,⑷2.5倍
+2,我國憲法第157條的公醫制度，主要是受到英國哪一項制度的影響？(100師8),⑴醫療保險(Medicare),⑵國民健康服務(National Health Service，NHS),⑶醫療補助(Medicaid),⑷社會安全(Social Security)
+2,福利輸送的來源可區分為四個部門，下列何者代表第三部門？(106障五7改),⑴商業部門,⑵非營利組織,⑶家庭,⑷政府
+4,在福利私有化的趨勢下，福利輸送的來源不再獨尊政府；除了「政府部門」外，「非正式部門」、「志願部門」與「商業部門」也是重要來源。在福利輸送過程中，這四個部門有各自的特點，彼此之間也存在互動。下列關於四個部門的描述，何者錯誤？(104師一8改),⑴志願部門雖然以非營利為導向，但在運作過程中仍容許利潤的賸餘，只不過利潤不能用於私人性的目的,⑵非正式部門係指以家庭為中心而延伸出的親屬網絡。隨著家庭不穩定的增加以及家庭型態的轉變，此部門的福利輸送能力有日益衰退的跡象,⑶商業部門是以利潤的追求作為其行動邏輯，因此政府在契約委託時，應避免其營利屬性破壞社會福利對公正與安全價值的追求,⑷政府將福利服務透過公設民營或契約委外，交由志願部門或商業部門輸送時，應儘可能鬆綁規範，不為福利服務設定任何標準，讓兩部門的參與者有最大的空間去發揮創意
+4,我國現行的社會救助法仍遵循英國濟貧法許多精神，下列何者不包括在內？(101師二30),⑴重視親屬責任,⑵強調救助貧民是地方政府的責任,⑶限制貧民移動與獲得福利的權利,⑷重視財富累積的重要性
+4,行政院在2012年10月成立「年金制度改革小組」，研議整體年金改革相關事宜，該小組秉持四大原則進行改革規劃，下列所述原則何者錯誤？(104師一14改),⑴社會公平,⑵財務健全,⑶世代包容,⑷政府責任
+4,針對社會保險措施的目的，下列何者錯誤？(112初11改),⑴可以減緩貧窮的狀況,⑵可以促成社會的團結,⑶可以達到所得的重分配,⑷可以達成資產累積
+4,下列何者不屬於我國就業保險法的給付項目內容？(102師一37改),⑴提早就業獎助津貼,⑵育嬰留職停薪津貼,⑶失業被保險人眷屬全民健康保險補助,⑷跨區就業生活補助
+4,下列有關社會救助和社會保險的陳述，何者錯誤？(101普25改),⑴社會救助是事後協助脫貧，社會保險是事前預防落入貧窮,⑵社會救助給付需經資產調查，社會保險給付以風險事故發生為條件,⑶社會救助依據人道及人民的生存權利，社會保險強調契約的權利關係,⑷社會救助給付是依據假定需求原則給付，社會保險是依據個別需求而定
+4,下列有關國民年金保險費的規定，何者錯誤？(100特20改),⑴被保險人為符合社會救助法規定之低收入戶者，全額政府負擔,⑵輕度身心障礙者自行負擔45%，政府負擔55%,⑶中度身心障礙者自行負擔30%，政府負擔70%,⑷被保險人，其家庭總收入平均分配全家人口，每人每月達當年度最低生活費1
+4,下列何者不包含在民國101年版的社會福利政策綱領的內涵中？(112師一3改),⑴社會救助與津貼,⑵福利服務,⑶居住正義與社區營造,⑷社會教育
+4,依民國100年頒布之「縣(市)遊民安置輔導自治條例範例」，何者錯誤？(100特25改),⑴本自治條例範例是依社會救助法(以下稱本法)第17條第2項頒定,⑵有關遊民的查報，除由民眾報案外，縣(市)政府社會處(局)、警察局、各鄉(鎮、市、區)公所、公立醫院及私立醫療機構應主動查報,⑶遊民之處理依權責分工，例如遊民之身分調查、家屬查尋、違法查辦等事項，由縣(市)警察局辦理,⑷為執行本法第17條推動遊民安置及輔導工作，應由縣(市)社會處(局)主管擔任召集人，邀集相關單位首長定期召開連繫會報，以強化遊民之安置及輔導功能
+4,社會救助有幾個重要特質，下列何者錯誤？(106特五12改),⑴政府租稅支應,⑵申請人須經過財力調查(資產調查)來決定資格,⑶較少合格,⑷依通案審查
+4,社會救助法規定，有關家庭應計算人口範圍，不包含下列何者？(113師二32改),⑴同一戶籍或共同生活的其他直系血親,⑵配偶,⑶認列綜合所得稅扶養親屬免稅額之納稅義務人,⑷在學領有公費者
+4,關於社會保險一次性給付的給付方式，下列敘述何者錯誤？(112特30改),⑴是指對「該次保險之風險事件」的給付,⑵保險人無須考量通膨而必須適時調整給付額度,⑶一次性給付的行政費用較低,⑷老年的保險給付最適合一次性給付
+4,下列有關英、美兩國社會政策與立法的發展，何者錯誤？(109特14改),⑴1601年英國頒布「濟貧法」,⑵1942年英國出版「貝佛里奇報告書」,⑶1935年美國通過「社會安全法案」,⑷1965年美國通過「全民健保法案」
+4,下列何者不屬於我國就業保險的給付項目？(105普25改),⑴職業訓練生活津貼,⑵育嬰留職停薪津貼,⑶失業給付,⑷生育給付
+4,關於社會保險及量能原則之敘述，何者錯誤？(105師一14改),⑴量能原則係指衡量保險對象的經濟負擔能力，再決定其分攤的費用,⑵量能原則的垂直公平指保險對象負擔的費用與其經濟負擔能力呈正相關、水平公平是指經濟負擔能力相同者，應負擔相同的費用，不因職業類別或眷口數多寡而有不同,⑶社會保險對於無法預期風險事故的發生及有相同風險的一群人，依量能原則強制由參與風險分擔團體成員來共同分擔,⑷社會保險制度強調個人公平性，財源籌措上採取受益原則
+4,有關「專業主義」的敘述，下列何者錯誤？(110師二4改),⑴在需求複雜的領域，服務輸送奠定在運用專業判斷的基礎上,⑵專業人員相對於服務使用者，是屬於有權力的一方,⑶權力正當性來自於專業人員所擁有的專家知識,⑷專業自主權只依賴國家權威的保障
+4,下列何者不是全民健康保險法中所定義之「眷屬」？(112特16改),⑴被保險人之配偶，且無職業者,⑵被保險人二親等內直系血親卑親屬未成年且無職業者,⑶被保險人之直系血親尊親屬，且無職業者,⑷被保險人之直系姻親尊親屬，且無職業者
+4,下列何者不是屬於社會救助的基本特質？(108初23改),⑴財源來自稅收,⑵資產調查,⑶提供最低的生活保障,⑷救助金額均一化
+4,對於我國社會政策制定、修正與內涵的敘述，下列何者錯誤？(102師二5改),⑴民國54年「民生主義現階段社會政策」首次提到要僱用專業社工人員推動社區發展工作,⑵民國83年「社會福利政策綱領」的實施要項不包括社會救助,⑶民國93年「社會福利政策綱領」的版本，將「投資積極福利」作為基本原則之一,⑷民國100年修正的「社會福利政策綱領」當中，推動項目包括「社會住宅與社區營造」
+4,社會福利學者通常將社會安全體系分為三個類屬，下列何者不包括其中？(108特五10改),⑴社會保險,⑵社會救助,⑶社會津貼,⑷福利服務
+4,下列何者不是社會救助法提供的現金給付之扶助方式？(105師一40改),⑴家庭生活補助,⑵兒童生活補助,⑶中低收入老人生活津貼,⑷以工代賑
+4,下列何者不包含在我國2012年版的社會福利政策綱領之內涵中？(103師一18改),⑴社會救助與津貼,⑵就業安全,⑶健康與醫療照護,⑷社會教育及社區發展
+4,社會福利輸送體制的設計，是一連串相互關聯之不同選擇的集合。Gilbert和Terrell(2014)列出幾個需要考量的向度，下列何者不是為其考量的項目？(110師一11改),⑴行政集中化或分散化,⑵單一的個別體系或綜合式體系,⑶不同體系間的整合或分散,⑷成效效率或服務品質之維持
+4,目前在新管理主義的趨勢下，有關傳統科層—專業主義面臨的挑戰，下列敘述何者錯誤？(112師二16改),⑴專業角色的界線受到民間和志願部門的影響，而其專業權力被迫受到重新界定,⑵因為要求使用契約或是績效測量，而使得其專業責信受到挑戰,⑶專業決策會受到新式充權的大眾所挑戰,⑷專業者與管理者之間的界線依然清楚劃分
+4,依據社會救助法之規定，家庭總收入的計算，不包括下列何者？(100師30改),⑴薪資所得,⑵失業給付,⑶職業訓練生活津貼,⑷低收入戶生活扶助費
+4,下列有關兩公約，即公民與政治權利國際公約及經濟社會文化權利國際公約的內容敘述，何者錯誤？(107師一31改),⑴兩公約是聯合國在1966年頒定,⑵兩公約與世界人權宣言，合稱國際人權憲章,⑶我國在2009年通過兩公約施行法，且兩公約所揭示保障人權之規定具有國內法律之效力,⑷各級政府機關應依兩公約規定之內容，檢討所主管之法令及行政措施，有不符兩公約規定者，應於本法施行後3年內完成法令之制(訂)定、修正或廢止及行政措施之改進
+4,下列關於政府的社會救助制度和宗教團體的救濟制度之比較，何者錯誤？(110障五18改),⑴政府社會救助的理念是國家責任，宗教團體救濟的理念是慈善,⑵政府社會救助的財源大多來自稅收，宗教團體救濟的財源大都來自捐款,⑶政府社會救助和宗教團體救濟制度的目的都是協助解決生活困難,⑷政府和宗教團體的制度辦理者都是志工
+4,有關臺灣「社會救助」的特性，下列何者錯誤？(112師二17改),⑴財源來自稅收,⑵接受救助者需經資產調查，存在污名效果,⑶屬於事後救貧措施，提供最低生活保障,⑷救助金額有其普遍一致性，不因受救助者個別差異的影響
+4,有關社會救助法之急難救助之規定，下列何者錯誤？(108師二30改),⑴流落外地者，缺乏返鄉車資者,⑵戶內人口死亡，無力殮葬者,⑶財產或存款帳戶遭強制執行，未能即時運用，致生活陷於困境者,⑷急難救助方式只限於現金給付
+3,為避免人口老化與社會結構改變引發老人所得安全之危機，世界銀行(World Bank)於2005年提出多柱(pillars)式的年金體系保障模式，下列敘述何者錯誤？(103師一26改),⑴第零柱保障：係指非繳納性的社會救助制度，其目的在於提供貧窮老人的最低生活保障,⑵第一柱保障：係指強制性的社會保險制度，藉由世代間所得移轉作用提供老年退休者最低生活水準的終身保障,⑶第二柱保障：係指倫理性的家庭供養制度，對於無工作的家庭成員提供晚年生活照顧,⑷第三柱保障：係指自願性的個人商業保險儲蓄制度，不論職業年金或個人年金，均以事前提存準備方式，用以提供長期保障
+3,依據民國112年5月頒布之社會福利基本法第6條，社會救助應結合相關措施，對於低收入戶、中低收入戶及遭受急難、災害、不利處境之國民，提供救助及緊急照顧，並協助其自立。請問下列何者不是所指之相關措施？(112特16改),⑴就業,⑵教育,⑶國民年金,⑷福利服務
+3,對於臺灣社會福利發展的描述，下列何者錯誤？(113普23改),⑴1990年代之後，臺灣社會福利立法開始以反應國內社會問題為主,⑵兒童福利法是我國第一個通過之社會福利專法,⑶「兒童及少年性剝削條例」係由「兒少年福利法」修改而來,⑷性侵害防治法是我國第一個通過與婦女人身安全有關之社會立法
+3,關於請領老年給付或退休金之年齡標準，下列敘述何者錯誤？(112普21改),⑴請領國民年金老年年金給付，必須年滿65歲,⑵依勞工保險條例第58條規定，年滿60歲有保險年資者，得請領勞工保險老年給付，但自民國97年7月17日修正之條文施行之日起，第10年提高1歲，其後每2年提高1歲，以提高至65歲為限,⑶依勞工退休金條例第24條，勞工年滿65歲，得依下列規定之方式請領退休金：一、工作年資滿15年以上者，選擇請領月退休金或一次退休金。二、工作年資未滿15年者，請領一次退休金,⑷老年農民福利津貼之請領年齡，必須年滿65歲
+3,依據社會救助法規定低收入戶成員中有下列情形之一者，主管機關得依其原領取現金給付之金額增加補助，但最高不得逾百分之四十，下列何者錯誤？(106特五27改/100特15/112特47/105師一1/107初17/107普13/107師二33/102特12/102師一25/108師一25/111初11),⑴年滿六十五歲,⑵懷胎滿三個月,⑶配偶入獄服刑、因案羈押或依法拘禁,⑷領有身心障礙手冊或身心障礙證明
+3,有關社會政策執行的論述，下列何者錯誤？(112初31改),⑴公部門透過政策規劃，通過法令規章，以作為後續福利執行或者服務提供的依據,⑵在社會政策執行時，十分重視公私協力，以落實服務,⑶透過志願服務所提供福利服務，可依志工的自己意願執行，不需要受到相關法令的規範,⑷非正式部門，也是提供福利服務的方法之一
+3,有關社會保險與私人保險之間的特性比較，下列何者錯誤？(102師一10改),⑴社會保險是強制性的，私人保險是自願性的,⑵社會保險的成本難以預測，私人保險則比較容易事先精算,⑶社會保險具有水平風險分擔效果，私人保險偏向垂直風險分擔效果,⑷社會保險財源來自被保險人、雇主與政府，私人保險財源主要來自被保險人
+3,下列何者不屬於農民健康保險條例之保險範圍？(105特7改),⑴生育,⑵身心障礙,⑶老年,⑷死亡
+3,世界銀行於2005年提出「多柱(pillars)年金制度」的概念，下列何者錯誤？(107普11改),⑴第零柱—非納費性社會年金及補助,⑵第一柱—強制性社會保險制度,⑶第二柱—自願性員工商業保險,⑷第四柱—家庭供養制度2
+3,一般所謂的勞動三法歷經諸多的波折和協商，終於在民國100年5月的勞動節正式推動，請問勞動三法下列所示那些屬其範圍？(101普11改),⑴工會法,⑵勞資爭議處理法,⑶勞動基準法,⑷團體協約
+3,個人儲金制是一種社會給付的型式，下列敘述何者錯誤？(111師一19改),⑴性質為強制性儲蓄,⑵個人儲金帳戶不會更動,⑶個人帳戶內儲金的使用，可由個人依自主意願提領運用,⑷政府在個人儲金制中多為監督者及管理者的角色
+3,有關社會保險的保費與薪資關係的敘述，下列何者錯誤？(111師一9改),⑴社會保險保費經常由薪資當中扣除,⑵社會保險保費是雇主除了薪資以外要負擔的生產成本之一,⑶社會保險保費應該全部由政府負擔,⑷雇主可能把應該負擔的社會保險保費轉嫁到薪資上
+3,貧窮一直是許多國家欲積極解決之議題，晚近有學者提倡整併既有之救助津貼制度，定期發放全民基本收入(Universal Basic Income)，下列敘述何者錯誤？(113初35改),⑴重視公民權,⑵以個人而非家庭為單位領取,⑶請領資格複雜,⑷定期發放
+3,下列何者不是全民健康保險所要保障的事故？(110障五3改),⑴疾病事故,⑵傷害事故,⑶長照事故,⑷生育事故
+3,社會救助法有關生活扶助之規定，下列何者錯誤？(110特8改/112師一38/105師二27),⑴以現金給付為原則,⑵現金給付得依收入差別訂定等級,⑶現金給付金額每3年調整一次,⑷消費者物價指數成長率為零或負數時，不予調整
+3,下列何者不是社會救助政策需要遵守的原則？(109特五7改),⑴需經資產調查,⑵保障最低生活水準,⑶對價性原則,⑷國家社會救助之行政機關必須制度化
+3,下列關於社會保險保費特質的敘述，何者錯誤？(106原五9改),⑴保費常與工作所得有關,⑵保費與給付不一定成比例,⑶保費負擔常比商業保險高,⑷保費負擔比較輕
+3,政府在民國99年所修訂的社會救助法中，特別凸顯對中低收入戶的照顧，並在主條文中說明當國內經濟情形發生重大變化時，中央主管機關得視實際需要，對中低收入戶提供短期生活扶助。民國100年頒定「因應經濟重大變化中低收入戶短期生活扶助辦法」，下列內容陳述何者錯誤？(100特7改),⑴短期生活扶助實施期以3個月以上6個月以下為原則，必要時得延長實施，並以3個月為限,⑵短期生活扶助以現金給付為原則，並視實際需要，提供實物給付,⑶短期生活扶助現金給付，其金額每一中低收入戶每月最高不得逾新臺幣5千元,⑷短期生活扶助實物給付，以維持家庭基本生活必要者為限
+3,請問下列有關就業保險之保險給付規定，何者錯誤？(102師二28改),⑴給付項目有失業給付、提早就業獎勵津貼、職業訓練生活津貼及全民健保之保費補助,⑵失業給付之請領條件需自求職登記之日起十四日內仍無法推介就業或安排職業訓練者,⑶提早就業獎勵津貼之請領要件，需參加保險年資達一年以上者,⑷職業訓練生活津貼，需在公立就業服務機構安排參加全日制職業訓練者
+3,有關美國宗教組織在福利服務輸送上扮演的角色與功能，下列何者錯誤？(109師二12改),⑴早期美國社會福利體系中，宗教組織扮演主導的角色,⑵福利國家的興起，宗教在社會福利的角色漸形式微,⑶1996年社會福利改革之後宗教組織又開始明顯復興起來，尤其是克林頓總統強調慈悲的保守主義(Compassionate Conservatism)更是提倡宗教與社區對福利貢獻,⑷對於宗教組織承接政府各項服務，被左派觀點者視為政府的合作夥伴，而右派觀點則認為是政府的替代工具，但兩者皆肯定宗教組織是福利服務推動的利器
+3,傳統福利國家的社會福利服務的輸送體系建構在科層制度與專業主義的組織型態，但此型態卻被新公共管理認為有諸多問題，下列何者錯誤？(109師二9改),⑴科層制度與專業主義自認其組織型態是中立的，但其實並非如此,⑵科層制度與專業主義的組織型態無法控制公共支出，導致成本增加,⑶科層制度及專業主義的組織型態，其人員屬於無私的公僕，且不為既得利益者去維持和擴張他們的版圖,⑷國家機構身為壟斷供應者的地位，意味著他們毫無競爭壓力，無須改善效率也不必更敏感回應消費者的需求
+3,下列何者不是社會保險要保障的事故？(110障五15改),⑴疾病,⑵失業,⑶提前老化,⑷死亡
+3,有關國民年金保險之保險給付規定，下列何者錯誤？(110師二37改),⑴同一保險給付，不得因同一事故，重複請領,⑵被保險人得申請減額保險給付,⑶保險給付的請求權為2年,⑷被保險人故意犯罪行為，致發生保險事故者，除未涉案之當序受益人外，不予保險給付
+3,下列何者不是社會保險制度的特性？(107普2改),⑴強制性,⑵不需核保,⑶需完全提存基金準備,⑷可加強社會連帶責任
+2,關於臺灣福利政策執行確實受到各種思潮和理念變化的影響，下列對這些思潮變化的敘述，何者錯誤？(110師一9改),⑴受到歐美1980年代新公共管理或新管理主義的影響,⑵將過去「通用主義」式的社會福利供給走向「後通用主義」的彈性生產,⑶為了管控政府人事編制與支出，透過契約委外方式進行,⑷非營利組織承擔多數地方的福利服務，呈現福利多元主義或福利混合經濟的現象
+2,關於美國社會福利政策的發展，下列敘述何者錯誤？(100普9改),⑴羅斯福總統提出「新政」,⑵甘乃迪總統提出「大社會」,⑶柯林頓總統提出「終結我們所知道的福利」,⑷布希總統提出「憐憫式的保守主義」
+2,影響我國推動社會福利民營化的相關法令，下列何者錯誤？(109師一11改),⑴推動社會福利民營化實施要點,⑵行政法,⑶促進民間參與公共建設法,⑷政府採購法
+2,相較於社會保險與社會救助，社會津貼具有某些特質。下列關於社會津貼的描述，何者錯誤？(104師一11改),⑴基於公民權或居留權的普及性給付,⑵考量領受者的所得水準，採取所得相關給付，所得越高，領取水準越高,⑶財源主要來自一般稅收,⑷雖然財務規模大，但因無須進行個案審查，所以行政成本低
+2,關於我國少子女化對策計畫(107年-113年)核定本中的主要工作項目，下列敘述何者錯誤？(110障五47改),⑴減輕國人養育幼兒租稅負擔方面包括社會住宅作為托育服務、幼兒園使用得減免所得稅、營業稅、地價稅及房屋稅,⑵新婚及育有未成年子女者優先享有住宅補貼方面不包括將胎兒計入家庭成員數、視為未成年子女數,⑶強化社會安全網計畫方面包括推動兒少保護區域醫療整合中心,⑷孕產婦健康服務方面包括新移民懷孕婦女設籍前未納健保之產前檢查
+2,有關民生主義現階段社會政策的敘述，下列何者錯誤？(104師二7改),⑴行政院於民國54年核定施行,⑵希望採取社區營造方式，啟發民眾自治精神,⑶社會教育中規定要設置獎學金，獎助在學暨社會清寒優秀青年，依其志願與資質，完成學業,⑷要僱用曾受專業訓練之社會工作人員，負責推進各項工作
+2,有關福利多元主義之相關敘述，下列何者錯誤？(107普15改),⑴指政府不再是社會福利服務提供的主體,⑵社會福利服務的提供主體完全排除商業部門,⑶社會福利服務的提供主體納入非營利部門,⑷社會福利服務的提供主體納入非正式部門
+2,下列何者不屬於公教人員保險法之保險範圍？(105特8改),⑴失能,⑵醫療,⑶眷屬喪葬,⑷育嬰留職停薪
+2,依全民健康保險法之規定，被保險對象應自行負擔之費用，下列何者錯誤？(113初34改/109普9),⑴門診費用百分之二十,⑵居家照顧醫療費用百分之十,⑶不經轉診，區域醫院門診百分之四十,⑷不經轉診，醫學中心門診百分之五十
+2,下列對於志願部門應具備之特性的說明，何者錯誤？(100師5改),⑴正式且有組織,⑵不可以有利潤的剩餘,⑶不是政府組織,⑷自我治理
+1,有關社會福利中的私有福利(private welfare)的描述，下列何者錯誤？(101師二1改),⑴私有福利一直是英國社會主義經濟式照顧體系中的一環，儘管有其地位但卻被忽略,⑵私有福利之所以被忽視有二個因素，前者是政策分析者的學術興趣，另一種為戰後時期的政治形勢,⑶私有福利在1980年代至1990年代因英國保守黨相繼發展福利市場來改進服務的效率與效能而重新被重視,⑷私有福利在英國新工黨執政後仍持續推動而民眾也意識到重要性，企業也做了相對的回應
+1,有關英國1601年伊莉莎白濟貧法之敘述，下列何者錯誤？(113師二8改),⑴正式規範勞工與流浪漢不得擅自遷徙,⑵地方教區負責救濟之責任,⑶強調親屬責任,⑷將貧民進行分類
+`;
+        let allQuestions = [];
+        let currentQuizQuestions = [];
+        let userAnswers = {};
+        let currentQuestionIndex = 0;
+        let timerInterval;
+        let seconds = 0;
+
+        // Helper function to shuffle an array
+        const shuffleArray = (array) => {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        };
+
+        // Parse the raw text data into a structured question bank
+        const parseData = () => {
+             const lines = rawData.trim().split('\n').filter(line => line.trim() !== '');
+            
+            allQuestions = lines.map((line, index) => {
+                const parts = line.split(',');
+                if (parts.length < 3) {
+                    console.error(`Skipping invalid line ${index + 1}:`, line);
+                    return null;
+                }
+
+                const answerIndex = parseInt(parts[0], 10) - 1;
+                const questionPart = parts[1];
+                
+                const qMatch = questionPart.match(/(.*)(\(.*\))/);
+                const questionText = qMatch ? qMatch[1].trim() : questionPart.trim();
+                const source = qMatch ? qMatch[2] : '';
+                
+                const options = parts.slice(2).map(opt => opt.substring(1).trim());
+                
+                if (isNaN(answerIndex) || answerIndex < 0 || answerIndex >= options.length) {
+                    console.error(`Parsing error on line ${index + 1} (Invalid Answer Index):`, line);
+                    return null;
+                }
+                const answer = options[answerIndex];
+
+                return { id: index, question: questionText, source, options, answer };
+            }).filter(q => q !== null);
+        };
+
+        // Functions to manage UI visibility
+        const showScreen = (screenId) => {
+            ['start-screen', 'quiz-screen', 'results-screen'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById(screenId).classList.remove('hidden');
+        };
+
+        const formatTime = (totalSeconds) => {
+            const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+            const seconds = (totalSeconds % 60).toString().padStart(2, '0');
+            return `${minutes}:${seconds}`;
+        };
+
+        const startTimer = () => {
+            seconds = 0;
+            document.getElementById('timer').textContent = formatTime(seconds);
+            timerInterval = setInterval(() => {
+                seconds++;
+                document.getElementById('timer').textContent = formatTime(seconds);
+            }, 1000);
+        };
+        
+        // Main function to start the quiz
+        const startQuiz = (numQuestions) => {
+            userAnswers = {};
+            currentQuestionIndex = 0;
+            
+            const shuffled = shuffleArray([...allQuestions]);
+            currentQuizQuestions = shuffled.slice(0, numQuestions);
+            currentQuizQuestions.forEach(q => {
+                q.options = shuffleArray([...q.options]);
+            });
+
+            showScreen('quiz-screen');
+            renderQuestion(currentQuestionIndex);
+            startTimer();
+        };
+
+        // Render a single question on the screen
+        const renderQuestion = (index) => {
+            const question = currentQuizQuestions[index];
+            document.getElementById('question-text').textContent = question.question;
+            document.getElementById('question-source').textContent = question.source;
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            question.options.forEach((option, i) => {
+                const optionId = `q${index}_opt${i}`;
+                const checked = userAnswers[index] === option ? 'checked' : '';
+                optionsContainer.innerHTML += `
+                    <div class="macaron-option rounded-lg">
+                        <input type="radio" name="q${index}" id="${optionId}" value="${option}" class="hidden" ${checked} onchange="selectAnswer(${index}, '${option}')">
+                        <label for="${optionId}" class="block w-full text-left p-4 text-xl rounded-lg cursor-pointer">
+                            ${option}
+                        </label>
+                    </div>
+                `;
+            });
+
+            document.getElementById('progress').textContent = `第 ${index + 1} / ${currentQuizQuestions.length} 題`;
+            document.getElementById('prev-btn').style.visibility = index === 0 ? 'hidden' : 'visible';
+            document.getElementById('next-btn').style.display = index === currentQuizQuestions.length - 1 ? 'none' : 'block';
+            document.getElementById('submit-btn').style.display = index === currentQuizQuestions.length - 1 ? 'block' : 'none';
+        };
+
+        const selectAnswer = (index, answer) => {
+            userAnswers[index] = answer;
+        };
+
+        const prevQuestion = () => {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuestion(currentQuestionIndex);
+            }
+        };
+
+        const nextQuestion = () => {
+            if (currentQuestionIndex < currentQuizQuestions.length - 1) {
+                currentQuestionIndex++;
+                renderQuestion(currentQuestionIndex);
+            }
+        };
+        
+        const submitQuiz = () => {
+            clearInterval(timerInterval);
+            showScreen('results-screen');
+            renderResults();
+        };
+
+        const renderResults = () => {
+            let score = 0;
+            currentQuizQuestions.forEach((q, i) => {
+                if (userAnswers[i] === q.answer) {
+                    score++;
+                }
+            });
+
+            document.getElementById('score').textContent = `你的分數: ${score} / ${currentQuizQuestions.length}`;
+            document.getElementById('time-taken').textContent = `測驗時間: ${formatTime(seconds)}`;
+
+            const detailsContainer = document.getElementById('details-section');
+            detailsContainer.innerHTML = '';
+
+            currentQuizQuestions.forEach((q, i) => {
+                const userAnswer = userAnswers[i] || "未作答";
+                const isCorrect = userAnswer === q.answer;
+                
+                detailsContainer.innerHTML += `
+                    <div class="p-5 rounded-lg border macaron-card">
+                        <p class="text-xl font-semibold mb-3">${i + 1}. ${q.question} <span class="text-sm text-gray-500">${q.source}</span></p>
+                        <p class="p-3 rounded-md ${isCorrect ? 'correct-answer' : 'incorrect-answer'}">你的答案：${userAnswer}</p>
+                        ${!isCorrect ? `<p class="p-3 mt-2 rounded-md correct-answer">正確答案：${q.answer}</p>` : ''}
+                    </div>
+                `;
+            });
+        };
+        
+        // Functions to download results as PDF or CSV
+        const downloadResults = async (format) => {
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const filename = `social-work-ethics-quiz-results-${timestamp}`;
+
+            if (format === 'pdf') {
+                 try {
+                    const { jsPDF } = window.jspdf;
+                    const pdf = new jsPDF('p', 'mm', 'a4');
+                    const content = document.getElementById('results-screen');
+                    
+                    pdf.setFont('helvetica'); // Using a standard font
+                    pdf.setFontSize(20);
+                     // Using a placeholder text as jsPDF has issues with unicode without proper fonts
+                    pdf.text('Quiz Results', 105, 20, null, null, 'center');
+                    
+                    const canvas = await html2canvas(content, { 
+                        scale: 2,
+                        useCORS: true, 
+                        allowTaint: true 
+                    });
+                    const imgData = canvas.toDataURL('image/png');
+                    const imgProps= pdf.getImageProperties(imgData);
+                    const pdfWidth = pdf.internal.pageSize.getWidth() - 20; // with margin
+                    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+                    
+                    pdf.addImage(imgData, 'PNG', 10, 30, pdfWidth, pdfHeight);
+                    pdf.save(`${filename}.pdf`);
+                } catch (e) {
+                    console.error("Error generating PDF:", e);
+                    alert("抱歉，PDF下載功能目前無法使用。請嘗試下載CSV或截圖保存。");
+                }
+            } else if (format === 'csv') {
+                let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; // \uFEFF for BOM
+                csvContent += "題號,題目,你的答案,正確答案\n";
+
+                currentQuizQuestions.forEach((q, i) => {
+                    const userAnswer = userAnswers[i] || "未作答";
+                    const row = [
+                        i + 1,
+                        `"${q.question.replace(/"/g, '""')}"`,
+                        `"${userAnswer.replace(/"/g, '""')}"`,
+                        `"${q.answer.replace(/"/g, '""')}"`
+                    ].join(',');
+                    csvContent += row + "\r\n";
+                });
+
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", `${filename}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        };
+
+        // Initialize the app when the page loads
+        window.onload = () => {
+            parseData();
+        };
+    </script>
+</body>
+</html>
