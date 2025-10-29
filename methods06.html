@@ -1,311 +1,424 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>研究方法：概念化 SPA</title>
+    <title>量化與質性研究的概念化</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Chosen Palette: Academic Blue and Warm Neutrals --><!-- Application Structure Plan: 本SPA採用與前一版本相同的固定側邊導覽列（行動裝置為漢堡選單）結構。使用者可點選新主題（概念化、操作化、各種變項），主內容區會動態顯示對應的<section>。此結構的優點是風格一致，且同樣支援非線性的學習路徑。 --><!-- Visualization & Content Choices: 1. 概念化流程 (圖解): 報告原文為文字定義。 -> 目標: 視覺化從抽象到具體的過程。 -> 視覺化: 使用HTML/Tailwind製作「抽象意念 → 概念 → 指標 → 測量」的垂直流程圖。 -> 互動: 靜態圖解。 -> 理由: 將抽象的哲學過程具象化，使其易於理解。 2. 量化 vs 質性操作化 (圖解): 報告原文為文字。 -> 目標: 比較兩種典範的操作化差異。 -> 視覺化: 雙欄卡片式佈局，左側(量化)強調「演繹法、事前定義」，右側(質性)強調「歸納法、事中浮現」。 -> 互動: 靜態圖解。 -> 理由: 並列比較能強化兩者在邏輯與時間點上的根本差異。 3. 變項關係 (圖解): 報告原文為文字定義。 -> 目標: 視覺化不同變項間的「關係」。 -> 視覺化: 對(IV/DV)、(中介)、(調節)、(虛假)四種關係，使用HTML/Tailwind和Unicode箭頭(→)製作簡單的路徑圖。 -> 互動: 靜態圖解。 -> 理由: 變項關係是研究的核心，路徑圖是理解其邏輯的最直觀方式。 4. 變項關係 (測驗): 報告原文為範例。 -> 目標: 測試並鞏固學習成效。 -> 視覺化: 互動式HTML/JS測驗，點擊按鈕顯示答案。 -> 互動: 點擊按鈕。 -> 理由: 透過情境判斷，提升學生區辨不同變項角色的能力。 --><!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. --><link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    
     <style>
-        /* --- 基礎樣式 --- */
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            line-height: 1.7;
-            background-color: #f4f7f6;
-            color: #333;
-            margin: 0;
-            padding: 0;
+            font-family: 'Noto Sans TC', sans-serif;
         }
-        .container {
-            max-width: 900px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: #ffffff;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
-        header {
-            text-align: center;
-            border-bottom: 2px solid #e0e0e0;
-            padding-bottom: 20px;
-            margin-bottom: 20px;
-        }
-        header h1 {
-            color: #0056b3;
-            margin: 0;
-        }
-
-        /* --- 導覽列 (Tabs) --- */
-        nav {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-bottom: 25px;
-        }
-        .nav-button {
-            padding: 12px 20px;
-            margin: 5px;
-            border: 1px solid #ccc;
-            background-color: #f9f9f9;
-            color: #555;
-            cursor: pointer;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-        .nav-button:hover {
-            background-color: #e9ecef;
-            border-color: #bbb;
-        }
-        .nav-button.active {
-            background-color: #007bff;
-            color: white;
-            border-color: #007bff;
-            box-shadow: 0 2px 5px rgba(0,123,255,0.3);
-        }
-
-        /* --- 內容區域 --- */
         .content-section {
-            display: none; /* 預設隱藏所有內容 */
-            animation: fadeIn 0.5s ease;
+            display: none;
         }
         .content-section.active {
-            display: block; /* 僅顯示 active 的內容 */
+            display: block;
+            animation: fadeIn 0.5s ease-in-out;
         }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-
-        h2 {
-            color: #007bff;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 5px;
+        .nav-link {
+            display: block;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            font-weight: 500;
         }
-        h3 {
-            color: #343a40;
-            margin-top: 25px;
+        .nav-link:hover {
+            background-color: #f0f4f8;
+            color: #005A9C;
         }
-        p {
-            margin-bottom: 15px;
+        .nav-link.nav-link-active {
+            background-color: #005A9C;
+            color: white;
+            font-weight: 700;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
-        ul {
-            padding-left: 20px;
+        .quiz-answer {
+            display: none;
         }
-        li {
-            margin-bottom: 10px;
+        .card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            transition: all 0.3s ease-in-out;
         }
-        code {
-            background-color: #e8f0fe;
-            color: #333;
-            padding: 3px 6px;
-            border-radius: 4px;
-            font-family: "Courier New", Courier, monospace;
+        .card:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transform: translateY(-2px);
         }
-        
-        /* 互動式圖表樣式 */
-        .variable-diagram {
-            background: #fdfdfd;
-            border: 1px solid #e0e0e0;
-            padding: 20px;
-            border-radius: 8px;
+        /* 概念化流程樣式 */
+        .step-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .step-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .step-icon {
+            flex-shrink: 0;
+            width: 3rem;
+            height: 3rem;
+            border-radius: 50%;
+            background-color: #005A9C;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+        .step-content {
+            background-color: white;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            flex-grow: 1;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .step-arrow {
             text-align: center;
-            font-family: "Courier New", Courier, monospace;
-            font-size: 1.1em;
-            margin-top: 15px;
-            overflow-x: auto;
-        }
-        .var-box {
-            display: inline-block;
-            padding: 10px 15px;
-            border: 2px solid #007bff;
-            background: #e8f0fe;
-            border-radius: 5px;
-            margin: 0 10px;
-        }
-        .var-arrow {
-            display: inline-block;
-            font-size: 1.5em;
-            color: #555;
-            position: relative;
-            top: 3px;
-        }
-        .var-box-mod {
-            border-color: #28a745;
-            background: #eaf6ec;
-        }
-        .var-box-med {
-            border-color: #ffc107;
-            background: #fff8e1;
+            font-size: 1.5rem;
+            color: #005A9C;
+            height: 2rem;
         }
     </style>
 </head>
-<body>
+<body class="bg-neutral-50 text-neutral-800">
 
-    <div class="container">
-        <header>
-            <h1>量化與質性研究的概念化</h1>
+    <div class="flex flex-col md:flex-row min-h-screen">
+        
+        <header class="md:hidden flex justify-between items-center p-4 bg-white shadow-md sticky top-0 z-20">
+            <h1 class="text-lg font-bold text-blue-900">研究的概念化</h1>
+            <button id="menu-toggle" class="text-3xl text-blue-800">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-7 h-7">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                </svg>
+            </button>
         </header>
 
-        <nav id="nav-tabs">
-            <button class="nav-button active" data-target="sec-1">概念化與操作化</button>
-            <button class="nav-button" data-target="sec-2">操作化：量化vs.質性</button>
-            <button class="nav-button" data-target="sec-3">假設、自變項、依變項</button>
-            <button class="nav-button" data-target="sec-4">中介、調節與虛假關係</button>
+        <nav id="sidebar-nav" class="hidden md:block md:w-64 bg-white shadow-lg p-5 space-y-2 fixed md:sticky top-0 h-screen md:h-auto z-10 md:z-0 overflow-y-auto">
+            <h2 class="text-xl font-bold text-blue-900 mb-6 hidden md:block">量化與質性研究的概念化</h2>
+            <a class="nav-link nav-link-active" data-target="content-intro">
+                <span class="mr-2">🏠</span> 導論：從抽象到具體
+            </a>
+            <a class="nav-link" data-target="content-concept">
+                <span class="mr-2">🧠</span> 概念化與操作化
+            </a>
+            <a class="nav-link" data-target="content-op-compare">
+                <span class="mr-2">⚖️</span> 操作化：量化 vs. 質性
+            </a>
+            <a class="nav-link" data-target="content-variables">
+                <span class="mr-2">🔬</span> 假設、自變項、依變項
+            </a>
+            <a class="nav-link" data-target="content-advanced">
+                <span class="mr-2">⚠️</span> 進階變項：中介、調節與虛假
+            </a>
         </nav>
 
-        <main id="content-area">
+        <main class="flex-1 p-6 md:p-10 overflow-y-auto">
 
-            <section id="sec-1" class="content-section active">
-                <h2>概念化與操作化 (Conceptualization & Operationalization)</h2>
-                <p>這是研究設計的基石，是將抽象的想法轉化為可測量變項的過程。</p>
-                
-                <h3>1. 概念化 (Conceptualization)</h3>
-                <p>將模糊、抽象的「概念」（Concept）賦予清晰、準確的理論定義的過程。</p>
-                <ul>
-                    <li><strong>目的：</strong>回答「我指的...是什麼意思？」</li>
-                    <li><strong>範例：</strong>
-                        <ul>
-                            <li><strong>抽象概念：</strong>「幸福感」</li>
-                            <li><strong>概念化定義：</strong>指個人對其生活品質的整體主觀評價，包含正面情緒、負面情緒的缺乏，以及對生活滿意度的評估。</li>
-                        </ul>
-                    </li>
-                </ul>
-
-                <h3>2. 操作化 (Operationalization)</h3>
-                <p>將「概念化」後的定義，轉化為一組具體、可觀察、可測量的「指標」（Indicators）或程序的過程。</p>
-                <ul>
-                    <li><strong>目的：</strong>回答「我要如何測量它？」</li>
-                    <li><strong>範例：</strong>
-                        <ul>
-                            <li><strong>概念：</strong>「幸福感」</li>
-                            <li><strong>操作化定義：</strong>使用「Diener的五題生活滿意度量表（SWLS）」測量，將五個題項（1-7分）的總分作為「幸福感」的測量分數。分數越高，代表幸福感越強。</li>
-                        </ul>
-                    </li>
-                </ul>
-            </section>
-
-            <section id="sec-2" class="content-section">
-                <h2>操作化：量化 vs. 質性 (Operationalization: Quant vs. Qual)</h2>
-                <p>量化研究與質性研究在操作化的邏輯和方法上有根本的差異。</p>
-                
-                <h3>量化研究的操作化 (Quantitative)</h3>
-                <p>強調<strong>演繹法 (Deductive)</strong>：從理論出發，將概念轉化為可計數的數字和變項。</p>
-                <ul>
-                    <li><strong>焦點：</strong>客觀性、可複製性、標準化。</li>
-                    <li><strong>方法：</strong>
-                        <ul>
-                            <li>使用量表（如李克特量表）</li>
-                            <li>計算次數（如：一週內運動的「次數」）</li>
-                            <li>測量分數（如：考試「成績」）</li>
-                        </ul>
-                    </li>
-                    <li><strong>範例（測量「社會支持」）：</strong>
-                        <p>操作化為「社會支持量表（PSS）的總分」。研究者在研究<strong>開始前</strong>就已決定好測量方式。</p>
-                    </li>
-                </ul>
-
-                <h3>質性研究的操作化 (Qualitative)</h3>
-                <p>強調<strong>歸納法 (Inductive)</strong>：從觀察和資料出發，在研究<strong>過程中</strong>逐步形成概念。</p>
-                <ul>
-                    <li><strong>焦點：</strong>深度理解、脈絡性、意義的探尋。</li>
-                    <li><strong>方法：</strong>
-                        <ul>
-                            <li>深度訪談（觀察受訪者如何「描述」支持）</li>
-                            <li>參與觀察（觀察支持「如何發生」）</li>
-                            <li>文本分析（分析日記中「表達支持的詞彙」）</li>
-                        </ul>
-                    </li>
-                    <li><strong>範例（測量「社會支持」）：</strong>
-                        <p>操作化為「從訪談逐字稿中浮現出的，關於『被支持感』的經驗主題與類型」。概念的定義是研究的「結果」，而非起點。</p>
-                    </li>
-                </ul>
-            </section>
-            
-            <section id="sec-3" class="content-section">
-                <h2>假設、自變項、依變項 (Hypothesis, IV, DV)</h2>
-                <p>這些是建立因果關係模型的基本元素，常見於量化研究中。</p>
-
-                <h3>假設 (Hypothesis)</h3>
-                <p>一個對兩個或多個變項之間關係的「可驗證的預測性陳述」。</p>
-                <ul>
-                    <li><strong>範例：</strong>「學生的『每週讀書時數』（IV）越高，其『期末考成績』（DV）也會越高。」</li>
-                </ul>
-                
-                <h3>自變項 (Independent Variable, IV)</h3>
-                <p>研究者認為的「原因」，被操縱或用來預測另一個變項變化的變項。</p>
-                <ul>
-                    <li><strong>代稱：</strong>預測變項、X變項、因。</li>
-                    <li><strong>範例：</strong><code>每週讀書時數</code>、<code>教學方法（A vs. B）</code>、<code>藥物劑量</code></li>
-                </ul>
-
-                <h3>依變項 (Dependent Variable, DV)</h3>
-                <p>研究者認為的「結果」，會隨著自變項變化而變化的變項。</p>
-                <ul>
-                    <li><strong>代稱：</strong>結果變項、Y變項、果。</li>
-                    <li><strong>範例：</strong><code>期末考成績</code>、<code>學習成效</code>、<code>症狀改善程度</code></li>
-                </ul>
-
-                <div class="variable-diagram">
-                    <span class="var-box">自變項 (IV)</span>
-                    <span class="var-arrow">➔</span>
-                    <span class="var-box">依變項 (DV)</span>
-                </div>
-                <div style="text-align: center; margin-top: 10px;">
-                    <p>範例：<code>讀書時數</code> ➔ <code>考試成績</code></p>
+            <section id="content-intro" class="content-section active">
+                <h1 class="text-3xl font-bold text-blue-900 mb-4">導論：從抽象到具體</h1>
+                <p class="text-lg text-neutral-600 mb-6">
+                    在社會工作研究中，我們處理的很多都是抽象的概念，例如「幸福感」、「家庭功能」、「社會支持」或「貧窮」。但是，研究必須是可觀察、可測量的。
+                </p>
+                <p class="text-lg text-neutral-600 mb-6">
+                    「概念化」與「操作化」就是這個將抽象意念（Mental Images）轉化為具體測量（Measurements）的關鍵過程。這個過程是所有實證研究的基石，無論是量化還是質性研究。
+                </p>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="card p-6">
+                        <h3 class="text-xl font-bold text-blue-800 mb-2">為何重要？</h3>
+                        <p>確保我們和讀者在談論「同一個東西」。如果沒有明確定義「貧窮」，每個人心中的標準都不同，研究就無法溝通。</p>
+                    </div>
+                    <div class="card p-6">
+                        <h3 class="text-xl font-bold text-blue-800 mb-2">研究的橋樑</h3>
+                        <p>這是連接「理論」（抽象）與「實證」（具體）的橋樑。沒有這個過程，理論永遠無法被驗證。</p>
+                    </div>
                 </div>
             </section>
 
-            <section id="sec-4" class="content-section">
-                <h2>中介變項、調節變項、虛假關係</h2>
-                <p>這些變項用於解釋更複雜的因果關係模型。</p>
+            <section id="content-concept" class="content-section">
+                <h1 class="text-3xl font-bold text-blue-900 mb-4">🧠 概念化與操作化：研究的翻譯過程</h1>
+                <p class="text-lg text-neutral-600 mb-6">
+                    這是一個由上而下、逐漸精鍊的過程，就像把一個模糊的想法變成一個可以精確測量的指標。
+                </p>
+                
+                <div class="max-w-2xl mx-auto p-4">
+                    <div class="step-container">
+                        
+                        <div class="step-item">
+                            <div class="step-icon">1</div>
+                            <div class="step-content">
+                                <h3 class="font-bold text-lg text-blue-800">抽象意念 (Mental Image)</h3>
+                                <p class="text-neutral-600">腦中最模糊的想法。 (例如："一個人過得好不好")</p>
+                            </div>
+                        </div>
+                        <div class="step-arrow">↓</div>
+                        
+                        <div class="step-item">
+                            <div class="step-icon">2</div>
+                            <div class="step-content">
+                                <h3 class="font-bold text-lg text-blue-800">概念化 (Conceptualization)</h3>
+                                <p class="text-neutral-600">將模糊意念精鍊為一個明確的「概念」(Concept)，並定義其內涵。</p>
+                                <p class="text-neutral-600 font-semibold mt-2">→ 概念： "幸福感 (Well-being)"</p>
+                            </div>
+                        </div>
+                        <div class="step-arrow">↓</div>
 
-                <h3>1. 中介變項 (Mediating Variable)</h3>
-                <p><strong>功能：</strong>解釋「為什麼」或「如何」IV 會影響 DV。中介變項是 IV 和 DV 之間的「橋樑」或「機制」。</p>
-                <p><strong>邏輯：</strong>IV 影響了「中介變項」，然後「中介變項」再去影響 DV。</p>
-                <div class="variable-diagram">
-                    <span class="var-box">自變項 (IV)</span>
-                    <span class="var-arrow">➔</span>
-                    <span class="var-box var-box-med">中介變項 (Med)</span>
-                    <span class="var-arrow">➔</span>
-                    <span class="var-box">依變項 (DV)</span>
+                        <div class="step-item">
+                            <div class="step-icon">3</div>
+                            <div class="step-content">
+                                <h3 class="font-bold text-lg text-blue-800">定義概念維度 (Dimensions)</h3>
+                                <p class="text-neutral-600">一個大概念可能包含多個「面向」或「維度」。</p>
+                                <p class="text-neutral-600 font-semibold mt-2">→ 維度： "幸福感" 可分為 "主觀快樂"、"生活滿意度"、"人際關係" ...</p>
+                            </div>
+                        </div>
+                        <div class="step-arrow">↓</div>
+
+                        <div class="step-item">
+                            <div class="step-icon">4</div>
+                            <div class="step-content">
+                                <h3 class="font-bold text-lg text-blue-800">操作化 (Operationalization)</h3>
+                                <p class="text-neutral-600">決定如何「測量」這些概念維度。發展具體的「指標」(Indicators)。</p>
+                                <p class="text-neutral-600 font-semibold mt-2">→ 指標： "主觀快樂" 維度，可用「過去一週，你感到快樂的頻率？」作為指標。</p>
+                            </div>
+                        </div>
+                        <div class="step-arrow">↓</div>
+
+                        <div class="step-item">
+                            <div class="step-icon">5</div>
+                            <div class="step-content">
+                                <h3 class="font-bold text-lg text-blue-800">測量 (Measurement)</h3>
+                                <p class="text-neutral-600">實際蒐集資料。</p>
+                                <p class="text-neutral-600 font-semibold mt-2">→ 測量： (1) 很少 (2) 有時 (3) 經常 (4) 總是</p>
+                            </div>
+                        </div>
+
+                    </div>
                 </div>
-                <div style="text-align: center; margin-top: 10px;">
-                    <p><strong>範例：</strong><code>讀書時數(IV)</code> ➔ <code>知識理解度(中介)</code> ➔ <code>考試成績(DV)</code></p>
-                    <p>（讀書時數是「如何」影響成績的？透過「增加知識理解度」）</p>
+            </section>
+
+            <section id="content-op-compare" class="content-section">
+                <h1 class="text-3xl font-bold text-blue-900 mb-4">⚖️ 操作化：量化研究 vs. 質性研究</h1>
+                <p class="text-lg text-neutral-600 mb-6">
+                    雖然所有研究都需要概念化，但「操作化」的過程在量化與質性研究中，無論在邏輯或時間點上都有根本的差異。
+                </p>
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="card p-6 border-t-4 border-blue-700">
+                        <h2 class="text-2xl font-bold text-blue-800 mb-3">量化研究 (Quantitative)</h2>
+                        <p class="mb-4 font-semibold">邏輯：演繹法 (Deductive)</p>
+                        <p class="mb-4">在「蒐集資料之前」就必須完成嚴謹的操作化。研究者必須先決定好要測量什麼、怎麼測量（例如設計問卷）。</p>
+                        <p class="font-semibold text-blue-700">關鍵字：</p>
+                        <ul class="list-disc list-inside text-neutral-700">
+                            <li>事前定義 (Pre-defined)</li>
+                            <li>標準化、一致性</li>
+                            <li>指標 (Indicator)</li>
+                            <li>量表 (Scale)、指數 (Index)</li>
+                        </ul>
+                        <p class="font-semibold mt-4">範例：</p>
+                        <p class="text-neutral-600">為了測量「憂鬱」，研究者「事先」選定了「貝克憂鬱量表(BDI-II)」，並使用量表上的21個題項作為標準化指標。</p>
+                    </div>
+                    <div class="card p-6 border-t-4 border-teal-700">
+                        <h2 class="text-2xl font-bold text-teal-800 mb-3">質性研究 (Qualitative)</h2>
+                        <p class="mb-4 font-semibold">邏輯：歸納法 (Inductive)</p>
+                        <p class="mb-4">操作化是一個「在蒐集資料過程中」持續進行的動態過程。研究者從訪談或觀察中，讓重要的概念和主題「自然浮現」。</p>
+                        <p class="font-semibold text-teal-700">關鍵字：</p>
+                        <ul class="list-disc list-inside text-neutral-700">
+                            <li>過程中浮現 (Emergent)</li>
+                            <li>彈性、脈絡化</li>
+                            <li>主題 (Theme)、類型 (Typology)</li>
+                            <li>編碼 (Coding)</li>
+                        </ul>
+                        <p class="font-semibold mt-4">範例：</p>
+                        <p class="text-neutral-600">為了理解「憂鬱」，研究者進行深度訪談，並「事後」從訪談逐字稿中歸納出受訪者描述其經驗的核心主題（例如："與世界隔絕"、"失去動力"）。</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="content-variables" class="content-section">
+                <h1 class="text-3xl font-bold text-blue-900 mb-4">🔬 假設、自變項、依變項</h1>
+                <p class="text-lg text-neutral-600 mb-6">
+                    在（主要是量化的）解釋性研究中，我們會將「概念」操作化為「變項」(Variable)，並提出關於它們之間關係的「假設」(Hypothesis)。
+                </p>
+                
+                <div class="card p-6 mb-6">
+                    <h2 class="text-2xl font-bold text-blue-800 mb-3">假設 (Hypothesis)</h2>
+                    <p class="mb-3">一個關於「兩個或多個變項」之間關係的「可被檢驗的陳述」。它預測了研究者期望發現的結果。</p>
+                    <p class="font-semibold">範例：</p>
+                    <p class="text-neutral-700">"「社會支持」（自變項）愈高的社工，其「職業倦怠」（依變項）的程度愈低。"</p>
                 </div>
 
-                <h3>2. 調節變項 (Moderating Variable)</h3>
-                <p><strong>功能：</strong>改變 IV 對 DV 關係的「強度」或「方向」。它回答了「在什麼情況下」IV 對 DV 的影響更強或更弱。</p>
-                <p><strong>邏輯：</strong>調節變項像一個「開關」或「音量旋鈕」，它不被 IV 影響，但它會決定 IV 的效果。</p>
-                <div class="variable-diagram">
-                    <span class="var-box">自變項 (IV)</span>
-                    <span class="var-arrow">➔</span>
-                    <span class="var-box">依變項 (DV)</span>
-                    <br>
-                    <span style="font-size: 2em; transform: rotate(90deg); display: inline-block; margin: 10px 0;">ↆ</span>
-                    <br>
-                    <span class="var-box var-box-mod">調節變項 (Mod)</span>
-                </div>
-                <div style="text-align: center; margin-top: 10px;">
-                    <p><strong>範例：</strong><code>讀書時數(IV)</code> 對 <code>考試成績(DV)</code> 的影響，會受到 <code>學習動機(調節)</code> 的影響。</p>
-                    <p>（對於「高動機」學生，讀書時數的效果更顯著；對於「低動機」學生，效果較差。）</p>
+                <h2 class="text-2xl font-bold text-blue-800 mb-4">變項的基本關係</h2>
+                
+                <div class="bg-blue-50 p-6 rounded-lg flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-8 text-lg font-semibold text-center">
+                    <div class="text-blue-900 p-4 bg-white rounded-lg shadow">
+                        <p>自變項 (IV)</p>
+                        <p class="text-sm font-normal text-neutral-600">(Independent Variable)</p>
+                        <p class="text-sm font-normal text-neutral-600">你認為的「原因」</p>
+                    </div>
+                    <span class="text-blue-700 text-4xl font-bold">→</span>
+                    <div class="text-blue-900 p-4 bg-white rounded-lg shadow">
+                        <p>依變項 (DV)</p>
+                        <p class="text-sm font-normal text-neutral-600">(Dependent Variable)</p>
+                        <p class="text-sm font-normal text-neutral-600">你觀察的「結果」</p>
+                    </div>
                 </div>
 
-                <h3>3. 虛假關係 (Spurious Relationship)</h3>
-                <p><strong>功能：</strong>指兩個變項（X 和 Y）看起來相關，但實際上它們的關係是由第三個「潛在變項」（Confounding Variable, Z）所引起的。</p>
-                <p><strong>邏輯：</strong>Z 同時導致了 X 和 Y，一旦控制了 Z，X 和 Y 的關係就會消失。</p>
-                <div class="variable-diagram">
-                    <span class="var-box">X (冰淇淋銷量)</span>
-                    <span style="color: #dc3545; font-weight: bold; font-size: 1.2em; margin: 0 10px;">看似相關</span>
-                    <span class="var-box">Y (溺水人數)</span>
-                    <br>
-                    <span style="font-size: 1.5em; margin: 0 50px;">⇙</span>
-                    <span style="font-size: 1.5em; margin: 0 50px;">⇘</span>
-                    <br>
-                    <span class="var-box" style="border-color: #6c757d; background: #f8f9fa;">Z (潛在變項：天氣炎熱)</span>
+                <div class="grid md:grid-cols-2 gap-8 mt-8">
+                    <div class="card p-6">
+                        <h3 class="text-xl font-bold text-blue-800 mb-2">自變項 (Independent Variable, IV)</h3>
+                        <p class="mb-3">研究者認為會「導致」或「影響」其他變項的變項。這是研究者操縱或觀察的「因」。</p>
+                        <p class="font-semibold">社工範例：</p>
+                        <ul class="list-disc list-inside text-neutral-700">
+                            <li>介入方案的類型（實驗組 vs. 對照組）</li>
+                            <li>家庭收入</li>
+                            <li>社會支持的程度</li>
+                        </ul>
+                    </div>
+                    <div class="card p-6">
+                        <h3 class="text-xl font-bold text-blue-800 mb-2">依變項 (Dependent Variable, DV)</h3>
+                        <p class="mb-3">研究者期望觀察其「變化」的變項。這是被自變項影響的「果」。</p>
+                        <p class="font-semibold">社工範例：</p>
+                        <ul class="list-disc list-inside text-neutral-700">
+                            <li>兒童的攻擊行為分數</li>
+                            <li>案主的就業狀態（是/否）</li>
+                            <li>職業倦怠的程度</li>
+                        </ul>
+                    </div>
                 </div>
-                 <div style="text-align: center; margin-top: 10px;">
-                    <p>（天氣熱導致冰淇淋銷量上升，同時也導致去游泳的人變多，進而使溺水人數上升。）</p>
+            </section>
+
+            <section id="content-advanced" class="content-section">
+                <h1 class="text-3xl font-bold text-blue-900 mb-4">⚠️ 進階變項：中介、調節與虛假關係</h1>
+                <p class="text-lg text-neutral-600 mb-6">
+                    現實世界的因果關係很少是「A → B」這麼簡單。社工研究必須處理更複雜的關係，釐清這些變項是理解「為何有效」與「對誰有效」的關鍵。
+                </p>
+                
+                <div class="space-y-8">
+                    <div class="card p-6">
+                        <h2 class="text-2xl font-bold text-blue-800 mb-3">中介變項 (Mediating Variable)</h2>
+                        <p class="mb-4">解釋了自變項「如何」或「透過什麼途徑」影響依變項。它是「因果鏈」的中間環節。</p>
+                        <div class="bg-blue-50 p-4 rounded-lg flex flex-col md:flex-row items-center justify-center space-y-2 md:space-y-0 md:space-x-4 text-lg font-semibold text-center">
+                            <span class="text-blue-900 p-3 bg-white rounded-lg shadow">IV (自變項)</span>
+                            <span class="text-blue-700 text-3xl font-bold">→</span>
+                            <span class="text-green-700 p-3 bg-white rounded-lg shadow border-2 border-green-500">中介變項</span>
+                            <span class="text-blue-700 text-3xl font-bold">→</span>
+                            <span class="text-blue-900 p-3 bg-white rounded-lg shadow">DV (依變項)</span>
+                        </div>
+                        <p class="font-semibold mt-4">範例：</p>
+                        <p class="text-neutral-700">研究發現「貧窮」(IV) 會透過提高「父母的管教壓力」(中介變項)，進而增加「兒童受虐」的風險 (DV)。</p>
+                        <p class="text-neutral-600 text-sm mt-1">（貧窮 → 父母壓力 → 兒虐）</p>
+                    </div>
+
+                    <div class="card p-6">
+                        <h2 class="text-2xl font-bold text-blue-800 mb-3">調節變項 (Moderating Variable)</h2>
+                        <p class="mb-4">影響了自變項與依變項之間關係的「強度」或「方向」。它回答了「對誰有效？」或「在什麼情況下有效？」。</p>
+                        <div class="bg-blue-50 p-4 rounded-lg flex flex-col items-center justify-center space-y-2 text-lg font-semibold text-center">
+                            <span class="text-orange-700 p-3 bg-white rounded-lg shadow border-2 border-orange-500">調節變項</span>
+                            <span class="text-orange-700 text-3xl font-bold">↓</span>
+                            <div class="flex items-center space-x-4">
+                                <span class="text-blue-900 p-3 bg-white rounded-lg shadow">IV (自變項)</span>
+                                <span class="text-blue-700 text-3xl font-bold">→</span>
+                                <span class="text-blue-900 p-3 bg-white rounded-lg shadow">DV (依變項)</span>
+                            </div>
+                        </div>
+                        <p class="font-semibold mt-4">範例：</p>
+                        <p class="text-neutral-700">「某項輔導方案」(IV) 對「案主情緒改善」(DV) 的效果，受到了「案主性別」(調節變項) 的影響——方案對女性的效果比對男性顯著。</p>
+                    </div>
+
+                    <div class="card p-6">
+                        <h2 class="text-2xl font-bold text-red-700 mb-3">虛假關係 (Spurious Relationship)</h2>
+                        <p class="mb-4">兩個變項看起來有相關 (IV...DV)，但實際上它們都是由「第三個潛在變項」(X) 所引起的。一旦控制了 X，IV 和 DV 之間的關係就會消失。</p>
+                        <div class="bg-red-50 p-4 rounded-lg flex flex-col items-center justify-center space-y-2 text-lg font-semibold text-center">
+                            <span class="text-red-700 p-3 bg-white rounded-lg shadow border-2 border-red-500">潛在變項 (X)</span>
+                            <div class="flex w-full justify-around">
+                                <span class="text-red-700 text-3xl font-bold">↘</span>
+                                <span class="text-red-700 text-3xl font-bold">↙</span>
+                            </div>
+                            <div class="flex w-full justify-around">
+                                <span class="text-blue-900 p-3 bg-white rounded-lg shadow">"IV"</span>
+                                <span class="text-neutral-400 text-3xl font-bold">...</span>
+                                <span class="text-blue-900 p-3 bg-white rounded-lg shadow">"DV"</span>
+                            </div>
+                        </div>
+                        <p class="font-semibold mt-4">經典範例：</p>
+                        <p class="text-neutral-700">「冰淇淋銷量」(IV) 和「溺水人數」(DV) 呈現正相關。但這是虛假關係，因為它們都是由「天氣炎熱」(潛在變項 X) 所引起的。</p>
+                    </div>
+                </div>
+
+                <h2 class="text-2xl font-bold text-blue-800 mb-4 mt-10">小測驗：測試你的理解</h2>
+                <div class="card p-6 space-y-6">
+                    <div>
+                        <p class="text-lg font-semibold mb-3">情境一：研究發現「家庭收入」(A) 會透過影響「父母的管教壓力」(B)，進而影響「兒童的學業表現」(C)。請問「父母的管教壓力」(B) 是什麼變項？</p>
+                        <div class="flex flex-wrap gap-2">
+                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q1-med">中介變項</button>
+                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q1-mod">調節變項</button>
+                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q1-spu">虛假關係</spsn>
+                        </div>
+                        <div id="q1-med" class="quiz-answer mt-3 p-3 bg-green-50 text-green-800 rounded-lg">
+                            <strong>答對了！</strong> 這是中介變項。它解釋了A「如何」影響C的因果路徑 (A → B → C)。
+                        </div>
+                        <div id="q1-mod" class="quiz-answer mt-3 p-3 bg-red-50 text-red-800 rounded-lg">
+                            <strong>不對喔。</strong> 調節變項是影響 A → C 關係的「強度」或「方向」，而不是作為中間的橋樑。
+                        </div>
+                        <div id="q1-spu" class="quiz-answer mt-3 p-3 bg-red-50 text-red-800 rounded-lg">
+                            <strong>不對喔。</strong> 虛假關係是指 A 和 C 之間沒有真實連結。但在這個例子中，連結是真實存在的，只是B是中間的機制。
+                        </div>
+                    </div>
+                    
+                    <hr>
+
+                    <div>
+                        <p class="text-lg font-semibold mb-3">情境二：研究發現「某項就業輔導方案」(A) 對「求職成功率」(C) 的影響，會因為「案主的教育程度」(D) 而有不同（對高學歷者效果較好）。請問「案主的教育程度」(D) 是什麼變項？</p>
+                        <div class="flex flex-wrap gap-2">
+                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q2-med">中介變項</button>
+                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q2-mod">調節變項</button>
+                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q2-spu">潛在變項</button>
+                        </div>
+                        <div id="q2-med" class="quiz-answer mt-3 p-3 bg-red-50 text-red-800 rounded-lg">
+                            <strong>不對喔。</strong> 中介變項是方案(A)影響的「結果」（例如：求職技巧提升），而不是一個「影響效果」的前提條件。
+                        </div>
+                        <div id="q2-mod" class="quiz-answer mt-3 p-3 bg-green-50 text-green-800 rounded-lg">
+                            <strong>答對了！</strong> 這是調節變項。它回答了「方案(A)對誰比較有效？」這個問題，它改變了 A → C 關係的強度。
+                        </div>
+                        <div id="q2-spu" class="quiz-answer mt-3 p-3 bg-red-50 text-red-800 rounded-lg">
+                            <strong>不對喔。</strong> 潛在變項會讓 A 和 C 的關係變成「假的」，但這裡的方案效果是「真的」，只是效果因人而異。
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div>
+                        <p class="text-lg font-semibold mb-3">情境三：研究發現，一個城市「消防隊的數量」(A) 與「火災的損失金額」(C) 呈現正相關（消防隊越多，損失越高）。但這其實是因為「城市的人口密度」(X) 同時導致了這兩者。請問 (A) 和 (C) 之間是什麼關係？</p>
+                        <div class="flex flex-wrap gap-2">
+                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q3-med">中介關係</button>
+                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q3-mod">調節關係</button>
+                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q3-spu">虛假關係</button>
+                        </div>
+                        <div id="q3-med" class="quiz-answer mt-3 p-3 bg-red-50 text-red-800 rounded-lg">
+                            <strong>不對喔。</strong> 中介關係代表 A → B → C 的真實因果鏈。
+                        </div>
+                        <div id="q3-mod" class="quiz-answer mt-3 p-3 bg-red-50 text-red-800 rounded-lg">
+                            <strong>不對喔。</strong> 調節關係是 A → C 的效果強度會改變。
+                        </div>
+                        <div id="q3-spu" class="quiz-answer mt-3 p-3 bg-green-50 text-green-800 rounded-lg">
+                            <strong>答對了！</strong> 這是虛假關係。A 和 C 之間沒有真實的因果連結，它們只是剛好都被 X 影響了。
+                        </div>
+                    </div>
+
                 </div>
             </section>
 
@@ -313,49 +426,70 @@
     </div>
 
     <script>
-        // --- JavaScript 互動邏輯 ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const navLinks = document.querySelectorAll('.nav-link');
+            const contentSections = document.querySelectorAll('.content-section');
+            const menuToggle = document.getElementById('menu-toggle');
+            const sidebar = document.getElementById('sidebar-nav');
 
-        // DOM 載入完成後執行
-        document.addEventListener('DOMContentLoaded', function() {
-            
-            // 獲取所有導覽按鈕和內容區塊
-            const navTabs = document.getElementById('nav-tabs');
-            const navButtons = navTabs.querySelectorAll('.nav-button');
-            const contentSections = document.getElementById('content-area').querySelectorAll('.content-section');
-
-            // 為導覽列（父元素）添加點擊事件監聽器（事件委派）
-            navTabs.addEventListener('click', function(event) {
-                
-                // 檢查點擊的是否是按鈕
-                const clickedButton = event.target.closest('.nav-button');
-                if (!clickedButton) {
-                    return; // 如果點擊的不是按鈕，則不執行任何操作
-                }
-                
-                // 1. 移除所有按鈕的 'active' class
-                navButtons.forEach(button => {
-                    button.classList.remove('active');
-                });
-
-                // 2. 隱藏所有內容區塊
+            const setActiveSection = (targetId) => {
                 contentSections.forEach(section => {
                     section.classList.remove('active');
                 });
-
-                // 3. 為被點擊的按鈕添加 'active' class
-                clickedButton.classList.add('active');
-
-                // 4. 顯示對應的內容區塊
-                // 獲取按鈕上 data-target 屬性的值 (例如 "sec-1")
-                const targetId = clickedButton.getAttribute('data-target');
-                const targetSection = document.getElementById(targetId);
                 
-                if (targetSection) {
-                    targetSection.classList.add('active');
+                navLinks.forEach(link => {
+                    link.classList.remove('nav-link-active');
+                    if (link.dataset.target === targetId) {
+                        link.classList.add('nav-link-active');
+                    }
+                });
+
+                const activeSection = document.getElementById(targetId);
+                if (activeSection) {
+                    activeSection.classList.add('active');
                 }
+            };
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetId = e.currentTarget.dataset.target;
+                    setActiveSection(targetId);
+                    
+                    if (!sidebar.classList.contains('hidden') && window.innerWidth < 768) {
+                        sidebar.classList.add('hidden');
+                    }
+                });
             });
+
+            menuToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('hidden');
+            });
+
+            setActiveSection('content-intro');
+
+            const quizBtns = document.querySelectorAll('.quiz-btn');
+            quizBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const answerId = btn.dataset.answer;
+                    const answerEl = document.getElementById(answerId);
+                    
+                    if (answerEl) {
+                        const parentCard = btn.closest('div.flex-wrap').parentElement;
+                        const allAnswers = parentCard.querySelectorAll('.quiz-answer');
+                        
+                        allAnswers.forEach(ans => {
+                            if (ans.id !== answerId) {
+                                ans.style.display = 'none';
+                            }
+                        });
+                        answerEl.style.display = 'block';
+                    }
+                });
+            });
+
+            // 本頁面不需要 Chart.js 圖表，故移除相關函式
         });
     </script>
-
 </body>
 </html>
