@@ -279,7 +279,7 @@
                 <p class="text-lg text-neutral-600 mb-6">
                     你的「研究目的」決定了你的研究策略。不同的目的適合不同的研究方法。我們主要可將其分為三種類型，有時也會加上第四種：評估性。
                 </p>
-                <div class="grid md:grid-cols-3 gap-6 mb-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                     <div class="card p-6">
                         <h3 class="text-xl font-bold text-blue-800 mb-2">1. 探索性 (Exploratory)</h3>
                         <p class="mb-3">當我們對一個主題所知甚少時，用來熟悉新現象、發掘新觀點。</p>
@@ -305,6 +305,15 @@
                         <ul class="list-disc list-inside text-sm text-neutral-700">
                             <li>家庭支持對藥物濫用者復發率的影響</li>
                             <li>比較不同介入方案對兒童攻擊行為的效果</li>
+                        </ul>
+                    </div>
+                    <div class="card p-6">
+                        <h3 class="text-xl font-bold text-blue-800 mb-2">4. 評估性 (Evaluative)</h3>
+                        <p class="mb-3">評估社會政策、服務方案或介入措施的「效果」與「效率」。</p>
+                        <p class="font-semibold">社工範例：</p>
+                        <ul class="list-disc list-inside text-sm text-neutral-700">
+                            <li>「某項」藥物濫用戒治方案的成效評估</li>
+                            <li>「長照2.0」服務的滿意度與成本效益分析</li>
                         </ul>
                     </div>
                 </div>
@@ -672,13 +681,13 @@
                             {
                                 label: '質性方法使用佔比',
                                 data: [85, 30, 20],
-                                backgroundColor: 'rgba(0, 90, 156, 0.7)',
+                                backgroundColor: 'rgba(54, 162, 235, 0.7)',
                                 stack: 'A',
                             },
                             {
                                 label: '量化方法使用佔比',
                                 data: [15, 70, 80],
-                                backgroundColor: 'rgba(0, 122, 135, 0.7)',
+                                backgroundColor: 'rgba(255, 99, 132, 0.7)',
                                 stack: 'A',
                             }
                         ]
@@ -776,4 +785,5 @@
     </script>
 </body>
 </html>
+
 
