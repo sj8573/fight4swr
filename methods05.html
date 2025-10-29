@@ -145,6 +145,9 @@
             <a class="nav-link" data-target="content-time">
                 <span class="mr-2">⏳</span> 研究的時間面向
             </a>
+            <a class="nav-link" data-target="content-longitudinal-types">
+                <span class="mr-2 pl-4">→</span> 縱貫性研究詳解
+            </a>
             <a class="nav-link" data-target="content-unit">
                 <span class="mr-2">🔬</span> 研究的分析單位
             </a>
@@ -351,6 +354,103 @@
                 <div class="card p-4">
                     <div class="chart-container">
                         <canvas id="timeChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <section id="content-longitudinal-types" class="content-section">
+                <h1 class="text-3xl font-bold text-blue-900 mb-4">深入探討：縱貫性研究的三種類型</h1>
+                <p class="text-lg text-neutral-600 mb-6">
+                    縱貫性研究（Longitudinal Research）是社工研究中用來理解「隨時間變化」的強大工具。以下我們將詳細比較三種主要的縱貫性研究設計。
+                </p>
+                
+                <div class="card p-6 mb-8">
+                    <h2 class="text-2xl font-bold text-blue-800 mb-4">三種類型比較圖解</h2>
+                    <div class="space-y-4">
+                        
+                        <div>
+                            <h3 class="font-bold text-lg text-blue-800">1. 趨勢研究 (Trend)</h3>
+                            <p class="text-sm text-neutral-600 mb-2">追蹤同一個「大群體」，但每次都抽取「不同樣本」。</p>
+                            <div class="flex flex-col md:flex-row md:items-center md:space-x-2 text-sm text-neutral-700 p-3 bg-blue-50 rounded-lg">
+                                <span class="font-semibold">[大群體 (如: 台灣民眾)]</span>
+                                <span class="text-blue-600 text-2xl hidden md:block">→</span>
+                                <span class="text-2xl text-center md:hidden">↓</span>
+                                <span class="bg-white p-2 rounded shadow">2015年 (樣本A)</span>
+                                <span class="text-blue-600 text-2xl hidden md:block">→</span>
+                                <span class="text-2xl text-center md:hidden">↓</span>
+                                <span class="bg-white p-2 rounded shadow">2020年 (樣本B)</span>
+                                <span class="text-blue-600 text-2xl hidden md:block">→</span>
+                                <span class="text-2xl text-center md:hidden">↓</span>
+                                <span class="bg-white p-2 rounded shadow">2025年 (樣本C)</span>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h3 class="font-bold text-lg text-blue-800">2. 世代研究 (Cohort)</h3>
+                            <p class="text-sm text-neutral-600 mb-2">追蹤同一個「特定世代」，樣本可不同但需屬同世代。</p>
+                            <div class="flex flex-col md:flex-row md:items-center md:space-x-2 text-sm text-neutral-700 p-3 bg-blue-50 rounded-lg">
+                                <span class="font-semibold">[特定世代 (如: 2020畢業生)]</span>
+                                <span class="text-blue-600 text-2xl hidden md:block">→</span>
+                                <span class="text-2xl text-center md:hidden">↓</span>
+                                <span class="bg-white p-2 rounded shadow">2021年 (樣本A)</span>
+                                <span class="text-blue-600 text-2xl hidden md:block">→</span>
+                                <span class="text-2xl text-center md:hidden">↓</span>
+                                <span class="bg-white p-2 rounded shadow">2023年 (樣本B)</span>
+                                <span class="text-blue-600 text-2xl hidden md:block">→</span>
+                                <span class="text-2xl text-center md:hidden">↓</span>
+                                <span class="bg-white p-2 rounded shadow">2025年 (樣本C)</span>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h3 class="font-bold text-lg text-blue-800">3. 固定樣本研究 (Panel)</h3>
+                            <p class="text-sm text-neutral-600 mb-2">重複追蹤「完全相同」的一群人。</p>
+                            <div class="flex flex-col md:flex-row md:items-center md:space-x-2 text-sm text-neutral-700 p-3 bg-blue-50 rounded-lg">
+                                <span class="font-semibold text-red-700">[固定樣本 (樣本 A)]</span>
+                                <span class="text-blue-600 text-2xl hidden md:block">→</span>
+                                <span class="text-2xl text-center md:hidden">↓</span>
+                                <span class="bg-white p-2 rounded shadow">2023年 (訪問 樣本A)</span>
+                                <span class="text-blue-600 text-2xl hidden md:block">→</span>
+                                <span class="text-2xl text-center md:hidden">↓</span>
+                                <span class="bg-white p-2 rounded shadow">2024年 (訪問 樣本A)</span>
+                                <span class="text-blue-600 text-2xl hidden md:block">→</span>
+                                <span class="text-2xl text-center md:hidden">↓</span>
+                                <span class="bg-white p-2 rounded shadow">2025年 (訪問 樣本A)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div class="card p-6">
+                        <h3 class="text-xl font-bold text-blue-800 mb-2">趨勢研究 (Trend Study)</h3>
+                        <p class="mb-3">在不同時間點，從「同一大群體」中抽取「不同樣本」。</p>
+                        <p class="font-semibold">重點：</p>
+                        <ul class="list-disc list-inside text-sm text-neutral-700">
+                            <li>追蹤的是「群體」的總體變化。</li>
+                            <li>範例：每四年調查台灣民眾的投票傾向。</li>
+                            <li>成本相對較低，但無法分析個體變化。</li>
+                        </ul>
+                    </div>
+                    <div class="card p-6">
+                        <h3 class="text-xl font-bold text-blue-800 mb-2">世代研究 (Cohort Study)</h3>
+                        <p class="mb-3">在不同時間點，追蹤具有「共同特徵」的「特定次群體」（世代）。</p>
+                        <p class="font-semibold">重點：</p>
+                        <ul class="list-disc list-inside text-sm text-neutral-700">
+                            <li>追蹤的是「特定世代」的變化。</li>
+                            <li>範例：追蹤千禧世代（Millennials）的購屋態度變化。</li>
+                            <li>樣本不需完全相同，但必須屬於同一世代。</li>
+                        </ul>
+                    </div>
+                    <div class="card p-6">
+                        <h3 class="text-xl font-bold text-blue-800 mb-2">固定樣本研究 (Panel Study)</h3>
+                        <p class="mb-3">在不同時間點，重複訪談「完全相同」的一群人。</p>
+                        <p class="font-semibold">重點：</p>
+                        <ul class="list-disc list-inside text-sm text-neutral-700">
+                            <li>追蹤的是「特定個人」的精確變化。</li>
+                            <li>範例：每半年訪談同一批(100位)家暴受害者。</li>
+                            <li>因果推論能力最強，但成本最高、最易發生樣本流失（attrition）。</li>
+                        </ul>
                     </div>
                 </div>
             </section>
