@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>測量的基本概念</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    
+    <!-- Chosen Palette: Academic Blue and Warm Neutrals --><!-- Application Structure Plan: 本SPA採用與前一版本相同的固定側邊導覽列（行動裝置為漢堡選單）結構。使用者可點選導覽列中的主題（導論、測量誤差、信度、效度、信效度關係），主內容區會動態顯示對應的<section>。此結構的優點是風格一致，且同樣支援非線性的學習路徑。 --><!-- Visualization & Content Choices: 1. 測量誤差 (圖解): 報告原文為文字。 -> 目標: 視覺化測量誤差的組成。 -> 視覺化: 使用HTML/Tailwind製作「觀察值 = 真實值 + 系統誤差 + 隨機誤差」的公式圖解。 -> 互動: 靜態圖解。 -> 理由: 將抽象公式具象化，並搭配卡片解釋兩種誤差。 2. 信效度關係 (圖解): 報告原文為經典概念。 -> 目標: 視覺化信度與效度的四種組合。 -> 視覺化: 使用HTML/Tailwind製作 2x2 的「射箭靶」圖解，顯示(高/低)信度與(高/低)效度的組合。 -> 互動: 靜態圖解。 -> 理由: 這是教學上最經典、最直觀的類比。 3. 互動測驗 (JS): 報告原文為知識點。 -> 目標: 在每個子題後鞏固學習成效。 -> 視覺化: 互動式HTML/JS測驗，點擊按鈕顯示答案與解釋。 -> 互動: 點擊按鈕。 -> 理由: 透過主動回憶與即時回饋，提升學習效果。 --><!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. --><link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .nav-link {
+            display: block;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .nav-link:hover {
+            background-color: #f0f4f8;
+            color: #005A9C;
+        }
+        .nav-link.nav-link-active {
+            background-color: #005A9C;
+            color: white;
+            font-weight: 700;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .quiz-answer {
+            display: none;
+        }
+        .card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            transition: all 0.3s ease-in-out;
+        }
+        .card:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transform: translateY(-2px);
+        }
+        
+        /* 射箭靶樣式 */
+        .target-container {
+            width: 150px;
+            height: 150px;
+            background-color: #f0f4f8;
+            border: 2px solid #005A9C;
+            border-radius: 50%;
+            position: relative;
+            margin-left: auto;
+            margin-right: auto;
+            overflow: hidden;
+        }
+        .target-ring-1 {
+            width: 100px;
+            height: 100px;
+            background-color: #a0d2eb;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .target-ring-2 {
+            width: 50px;
+            height: 50px;
+            background-color: #ffcc00;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .shot {
+            width: 10px;
+            height: 10px;
+            background-color: #dc2626; /* red-600 */
+            border: 1px solid white;
+            border-radius: 50%;
+            position: absolute;
+        }
+    </style>
+</head>
+<body class="bg-neutral-50 text-neutral-800">
+
+    <div class="flex flex-col md:flex-row min-h-screen">
+        
+        <header class="md:hidden flex justify-between items-center p-4 bg-white shadow-md sticky top-0 z-20">
+            <h1 class="text-lg font-bold text-blue-900">測量的基本概念</h1>
+            <button id="menu-toggle" class="text-3xl text-blue-800">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-7 h-7">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                </svg
+            </button>
+        </header>
+
+        <nav id="sidebar-nav" class="hidden md:block md:w-64 bg-white shadow-lg p-5 space-y-2 fixed md:sticky top-0 h-screen md:h-auto z-10 md:z-0 overflow-y-auto">
+            <h2 class="text-xl font-bold text-blue-900 mb-6 hidden md:block">測量的基本概念</h2>
+            <a class="nav-link nav-link-active" data-target="content-intro">
+                <span class="mr-2">🏠</span> 導論：為何測量重要？
+            </a>
+            <a class="nav-link" data-target="content-error">
+                <span class="mr-2">📏</span> 測量誤差
+            </a>
+            <a class="nav-link" data-target="content-reliability">
+                <span class="mr-2">🎯</span> 信度 (Reliability)
+            </a>
+            <a class="nav-link" data-target="content-validity">
+                <span class="mr-2">✅</span> 效度 (Validity)
+            </a>
+            <a class="nav-link" data-target="content-relationship">
+                <span class="mr-2">🤝</span> 信度與效度的關係
+            </a>
+        </nav>
+
+        <main class="flex-1 p-6 md:p-10 overflow-y-auto">
+
+            <section id="content-intro" class="content-section active">
+                <h1 class="text-3xl font-bold text-blue-900 mb-4">導論：為何測量對社工很重要？</h1>
+                <p class="text-lg text-neutral-600 mb-6">
+                    「測量」是連接「抽象概念」與「實證資料」的橋樑。在社會工作領域，我們關心的概念（如：復原力、家庭功能、憂鬱）都是抽象的，必須透過嚴謹的測量，才能將其轉化為可分析的資料。
+                </p>
+                <p class="text-lg text-neutral-600 mb-6">
+                    良好的測量是「實證本位實務」(EBP) 的基石。如果我們的測量工具不可靠或不準確，我們就無法知道我們的介入是否真的有效。
+                </p>
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div class="card p-6">
+                        <h3 class="text-xl font-bold text-blue-800 mb-2">為何重要？</h3>
+                        <p>確保我們能客觀、標準化地評估案主的問題與進展。</p>
+                    </div>
+                    <div class="card p-6">
+                        <h3 class="text-xl font-bold text-blue-800 mb-2">研究的基礎</h3>
+                        <p>沒有好的測量，就沒有可信的研究結果。測量的品質決定了研究的上限。</p>
+                    </div>
+                    <div class="card p-6">
+                        <h3 class="text-xl font-bold text-blue-800 mb-2">實務的評估</h3>
+                        <p>讓我們能科學地回答：「這個方案有效嗎？」、「案主真的進步了嗎？」</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="content-error" class="content-section">
+                <h1 class="text-3xl font-bold text-blue-900 mb-4">📏 測量誤差 (Measurement Error)</h1>
+                <p class="text-lg text-neutral-600 mb-6">
+                    在社會科學中，完美的測量是不存在的。我們的「觀察值」永遠會偏離案主的「真實值」，這個偏離就稱為「測量誤差」。
+                </p>
+
+                <div class="card p-6 mb-8">
+                    <h2 class="text-2xl font-bold text-blue-800 mb-4 text-center">測量的基本公式</h2>
+                    <div class="flex flex-col md:flex-row items-center justify-center space-y-2 md:space-y-0 md:space-x-4 text-lg font-semibold text-center">
+                        <span class="text-blue-900 p-3 bg-white rounded-lg shadow">觀察值 (Observed)</span>
+                        <span class="text-neutral-700 text-3xl font-bold">=</span>
+                        <span class="text-green-700 p-3 bg-white rounded-lg shadow">真實值 (True)</span>
+                        <span class="text-neutral-700 text-3xl font-bold">+</span>
+                        <span class="text-red-700 p-3 bg-white rounded-lg shadow">測量誤差 (Error)</span>
+                    </div>
+                    <p class="text-center text-neutral-600 mt-4">而測量誤差又可分為兩種：</p>
+                </div>
+                
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="card p-6 border-t-4 border-red-600">
+                        <h3 class="text-xl font-bold text-red-700 mb-2">1. 系統誤差 (Systematic Error)</h3>
+                        <p class="mb-3">一種「一致性」的偏誤，會系統性地高估或低估真實值。這主要影響的是「效度」。</p>
+                        <p class="font-semibold">社工範例：</p>
+                        <ul class="list-disc list-inside text-neutral-700 space-y-1">
+                            <li><strong>社會期許偏誤：</strong> 案主在填答「藥物濫用」或「家暴」問題時，系統性地低報使用頻率。</li>
+                            <li><strong>問卷設計不良：</strong> 題目用詞帶有誘導性（例如："你同意這個『有益的』方案嗎？"），導致答案一致偏向「同意」。</li>
+                            <li><strong>文化偏誤：</strong> 一份在美國發展的「家庭功能」量表，直接用在亞洲家庭，可能因文化差異而系統性地低估了其功能。</li>
+                        </ul>
+                        <p class="font-semibold mt-4">如何減少？</p>
+                        <p class="text-neutral-700">改善量表設計、使用中性詞彙、進行跨文化效度檢驗、使用匿名填答減少社會期許。</p>
+                    </div>
+                    <div class="card p-6 border-t-4 border-yellow-500">
+                        <h3 class="text-xl font-bold text-yellow-700 mb-2">2. 隨機誤差 (Random Error)</h3>
+                        <p class="mb-3">一種「不一致」的、隨機的波動，時而高估、時而低估。這主要影響的是「信度」。</p>
+                        <p class="font-semibold">社工範例：</p>
+                        <ul class="list-disc list-inside text-neutral-700 space-y-1">
+                            <li><strong>情境因素：</strong> 案主填答時，旁邊剛好很吵雜或電話響起，導致分心亂填。</li>
+                            <li><strong>個人因素：</strong> 案主當天心情或身體狀況不佳（例如：疲倦、焦慮），影響了作答的穩定性。</li>
+                            <li><strong>施測者因素：</strong> 訪員在唸某一題時不小心口誤，導致案主理解錯誤。</li>
+                        </ul>
+                        <p class="font-semibold mt-4">如何減少？</p>
+                        <p class="text-neutral-700">標準化施測流程、確保環境安靜舒適、增加題項數量（隨機誤差會互相抵銷）、清楚的指導語。</p>
+                    </div>
+                </div>
+
+                <h2 class="text-2xl font-bold text-blue-800 mb-4 mt-10">小測驗：測試你的理解</h2>
+                <div class="card p-6 space-y-6">
+                    <div>
+                        <p class="text-lg font-semibold mb-3">情境一：一個體重計因為沒有校準，所以「每一次」測量都比真實體重「多2公斤」。這屬於哪種誤差？</p>
+                        <div class="flex flex-wrap gap-2">
+                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-e1-cor">系統誤差</button>
+                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-e1-inc1">隨機誤差</button>
+                        </div>
+                        <div id="q-e1-cor" class="quiz-answer mt-3 p-3 bg-green-50 text-green-800 rounded-lg">
+                            <strong>答對了！</strong> 系統誤差具有一致性（總是多2公斤），它影響的是準確性（效度）。
+                        </div>
+                        <div id="q-e1-inc1" class="quiz-answer mt-3 p-3 bg-red-50 text-red-800 rounded-lg">
+                            <strong>不對喔。</strong> 隨機誤差是「不一致」的波動（例如有時多0.5公斤，有時少0.3公斤）。
+                        </div>
+                    </div>
+                    
+                    <hr>
+
+                    <div>
+                        <p class="text-lg font-semibold mb-3">情境二：案主在填答焦慮量表時，因為突然想起一件開心的事，導致某一題的回答比他平時的狀態更不焦慮。這屬於哪種誤差？</p>
+                        <div class="flex flex-wrap gap-2">
+                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-e2-inc1">系統誤差</button>
+                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-e2-cor">隨機誤差</button>
+                        </div>
+                        <div id="q-e2-inc1" class="quiz-answer mt-3 p-3 bg-red-50 text-red-800 rounded-lg">
+                            <strong>不對喔。</strong> 系統誤差是「一致性」的偏誤（例如「所有」題目都偏向不焦慮）。
+                        </div>
+                        <div id="q-e2-cor" class="quiz-answer mt-3 p-3 bg-green-50 text-green-800 rounded-lg">
+                            <strong>答對了！</strong> 隨機誤差是不可預測的、短暫的波動（例如心情、環境），它影響的是一致性（信度）。
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+
+            <section id="content-reliability" class="content-section">
+                <h1 class="text-3xl font-bold text-blue-900 mb-4">🎯 信度 (Reliability)：測量的一致性</h1>
+                <p class="text-lg text-neutral-600 mb-6">
+                    信度指的是測量工具的「一致性」或「穩定性」。一個有信度的工具，在重複測量相同對象時，應該會得到相近的結果。
+                </p>
+                <p class="text-lg text-neutral-600 mb-6">
+                    信度的目標是盡可能地「降低隨機誤差」。
+                </p>
+                
+                <h2 class="text-2xl font-bold text-blue-800 mb-4">常見的信度類型</h2>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="card p-6">
+                        <h3 class="text-xl font-bold text-blue-800 mb-2">1. 再測信度 (Test-Retest)</h3>
+                        <p class="mb-3">用「同一份」量表，在「不同時間點」對「同一群人」施測兩次，看兩次分數的相關性。考驗的是「時間的穩定性」。</p>
+                        <p class="text-sm text-neutral-600"><strong>考量：</strong> 時間間隔不能太短（會有記憶效應）也不能太長（案主真實情況可能已改變）。</p>
+                    </div>
+                    <div class="card p-6">
+                        <h3 class="text-xl font-bold text-blue-800 mb-2">2. 內部一致性 (Internal Consistency)</h3>
+                        <p class="mb-3">評估「同一份」量表中，所有題項是否都在測量「同一個概念」。最常用的是 Cronbach's $\alpha$ (阿法) 係數。</p>
+                        <p class="text-sm text-neutral-600"><strong>考量：</strong> 係數範圍 0~1，一般而言 $\alpha > .70$ 被認為可接受，$\alpha > .80$ 良好，$\alpha > .90$ 優秀。</p>
+                    </div>
+                    <div class="card p-6">
+                        <h3 class="text-xl font-bold text-blue-800 mb-2">3. 評分者間信度 (Inter-Rater)</h3>
+                        <p class="mb-3">用於「觀察法」或「內容分析」。指「兩位或以上」的評分者，在使用相同標準評估相同對象時，其評分結果的一致性。</p>
+                        <p class="text-sm text-neutral-600"><strong>範例：</strong> 兩位社工觀看同一段兒童遊戲治療影片，並對兒童的「依附行為」進行評分，看兩人分數是否一致。</p>
+                    </div>
+                    <div class="card p-6">
+                        <h3 class="text-xl font-bold text-blue-800 mb-2">4. 複本信度 (Alternate-Form)</h3>
+                        <p class="mb-3">設計「兩份」內容不同、但測量相同概念的量表（A/B卷），對同一群人施測，看兩份分數的相關性。較少見。</p>
+                        <p class="text-sm text-neutral-600"><strong>考量：</strong> 製作兩份高品質的複本非常困難且昂貴。</p>
+                    </div>
+                </div>
+
+                <div class="card p-6 mt-8 bg-blue-50 border-l-4 border-blue-700">
+                    <h3 class="text-xl font-bold text-blue-800 mb-2">如何提升信度？</h3>
+                    <ul class="list-disc list-inside text-neutral-700 space-y-1">
+                        <li>確保施測情境的標準化（例如：安靜的房間、一致的指導語）。</li>
+                        <li>對評分者（訪員、觀察員）進行嚴格且一致的訓練。</li>
+                        <li>增加量表的題項數量（但不能過長導致疲勞）。</li>
+                        <li>確保題目文字清晰、無歧義。</li>
+                    </ul>
+                </div>
+
+                <h2 class="text-2xl font-bold text-blue-800 mb-4 mt-10">小測驗：測試你的理解</h2>
+                <div class="card p-6 space-y-6">
+                    <div>
+                        <p class="text-lg font-semibold mb-3">情境一：研究者想知道他設計的「憂鬱量表」中，10個題目是否都在測量「憂鬱」這個單一概念，他應該計算什麼信度？</p>
+                        <div class="flex flex-wrap gap-2">
+                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-r1-inc1">再測信度</button>
+                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-r1-cor">內部一致性 (Cronbach's $\alpha$)</button>
+                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-r1-inc2">評分者間信度</button>
+                        </div>
+                        <div id="q-r1-inc1" class="quiz-answer mt-3 p-3 bg-red-50 text-red-800 rounded-lg">
+                            <strong>不對喔。</strong> 再測信度是看「不同時間」的穩定性，而不是看「不同題目」的一致性。
+                        </div>
+                        <div id="q-r1-cor" class="quiz-answer mt-3 p-3 bg-green-50 text-green-800 rounded-lg">
+                            <strong>答對了！</strong> 內部一致性（常用 Cronbach's $\alpha$）就是用來檢驗量表中所有題項是否測量同一個概念。
+                        </div>
+                        <div id="q-r1-inc2" class="quiz-answer mt-3 p-3 bg-red-50 text-red-800 rounded-lg">
+                            <strong>不對喔。</strong> 評分者間信度是用於「觀察法」，而不是「量表」。
+                        </div>
+                    </div>
+                    
+                    <hr>
+
+                    <div>
+                        <p class="text-lg font-semibold mb-3">情境二：為了確保兩位社工在評估「家庭功能」時的標準一致，研究者讓他們觀看同一個家庭訪談影片並評分。這是為了檢驗？</p>
+                        <div class="flex flex-wrap gap-2">
+                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-r2-cor">評分者間信度</button>
+                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-r2-inc1">再測信度</button>
+                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-r2-inc2">內部一致性</button>
+                        </div>
+                        <div id="q-r2-cor" class="quiz-answer mt-3 p-3 bg-green-50 text-green-800 rounded-lg">
+                            <strong>答對了！</strong> 評分者間信度就是用來檢驗「不同評分者」使用相同標準時的一致性。
+                        </div>
+                        <div id="q-r2-inc1" class="quiz-answer mt-3 p-3 bg-red-50 text-red-800 rounded-lg">
+                            <strong>不對喔。</strong> 再測信度是同一個人、不同時間。
+                        </div>
+                        <div id="q-r2-inc2" class="quiz-answer mt-3 p-3 bg-red-50 text-red-800 rounded-lg">
+                            <strong>不對喔。</strong> 內部一致性是用於量表題目。
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="content-validity" class="content-section">
+                <h1 class="text-3xl font-bold text-blue-900 mb-4">✅ 效度 (Validity)：測量的準確性</h1>
+                <p class="text-lg text-neutral-600 mb-6">
+                    效度是測量的「準確性」。它回答了一個最重要的問題：「我們是否真的測量到我們宣稱要測量的那個概念？」
+                </p>
+                <p class="text-lg text-neutral-600 mb-6">
+                    效度的目標是盡可能地「降低系統誤差」。一份量表可以非常有信度（一致），但卻沒有效度（不準確）。
+                </p>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="card p-6">
+                        <h3 class="text-xl font-bold text-blue-800 mb-2">1. 表面效度 (Face Validity)</h3>
+                        <p class="mb-3">從「表面上」看起來，這些題目是否在測量我們要的概念？這是最主觀、最弱的一種效度，通常由專家或一般人判斷。</p>
+                        <p class="text-sm text-neutral-600"><strong>範例：</strong> 一份詢問「你快樂嗎？」、「你滿意嗎？」的量表，表面上看起來就在測量「快樂」。</p>
+                    </div>
+                    <div class="card p-6">
+                        <h3 class="text-xl font-bold text-blue-800 mb-2">2. 內容效度 (Content Validity)</h3>
+                        <p class="mb-3">量表是否涵蓋了該概念的「所有重要面向」或「維度」？例如，一個「家庭功能」量表，如果只問了溝通，卻遺漏了情感、支持等面向，內容效度就很低。</p>
+                        <p class="text-sm text-neutral-600"><strong>如何檢驗：</strong> 通常透過「專家小組」(expert panel) 來審查題項的完整性與代表性。</p>
+                    </div>
+                    <div class="card p-6">
+                        <h3 class="text-xl font-bold text-blue-800 mb-2">3. 效標關聯效度 (Criterion-related)</h3>
+                        <p class="mb-3">量表分數是否與一個「外部黃金標準」（效標）有預期中的關聯？</p>
+                        <ul class="list-disc list-inside text-sm text-neutral-700">
+                            <li><strong>同時效度 (Concurrent)：</strong> 與「目前」的效標相關。（例：新開發的「簡易憂鬱量表」分數，是否與「專業醫師的臨床診斷」（黃金標準）「同時」相符）</li>
+                            <li><strong>預測效度 (Predictive)：</strong> 能否準確預測「未來」的效標。（例：入學測驗分數能否「預測」未來的學業表現）</li>
+                        </ul>
+                    </div>
+                    <div class="card p-6">
+                        <h3 class="text-xl font-bold text-blue-800 mb-2">4. 建構效度 (Construct Validity)</h3>
+                        <p class="mb-3">最重要、也最複雜的效度。指量表是否「真正」測量到了背後的「理論建構」？</p>
+                         <ul class="list-disc list-inside text-sm text-neutral-700">
+                            <li><strong>收斂效度 (Convergent)：</strong> 應與「相關」概念的測量呈高相關。（例：新設計的「復原力」量表，應與舊有的、已成熟的「復原力」量表分數呈高相關。）</li>
+                            <li><strong>區辨效度 (Discriminant)：</strong> 應與「無關」概念的測量呈低相關。（例：新設計的「復原力」量表，應與「智商(IQ)」測驗分數「沒有」相關。）</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h2 class="text-2xl font-bold text-blue-800 mb-4 mt-10">小測驗：測試你的理解</h2>
+                <div class="card p-6 space-y-6">
+                    <div>
+                        <p class="text-lg font-semibold mb-3">情境一：研究者想知道「入學測驗分數」是否能準確「預測」社工系學生「未來的實習表現」。這是哪種效度？</p>
+                        <div class="flex flex-wrap gap-2">
+                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-v1-inc1">內容效度</button>
+                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-v1-cor">預測效度 (效標關聯)</button>
+                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-v1-inc2">表面效度</button>
+                        </div>
+                        <div id="q-v1-inc1" class="quiz-answer mt-3 p-3 bg-red-50 text-red-800 rounded-lg">
+                            <strong>不對喔。</strong> 內容效度是檢核題目是否涵蓋所有面向，而不是看它與「未來」表現的關聯。
+                        </div>
+                        <div id="q-v1-cor" class="quiz-answer mt-3 p-3 bg-green-50 text-green-800 rounded-lg">
+                            <strong>答對了！</strong> 預測效度是效標關聯效度的一種，專門用來檢驗測量能否預測「未來」的結果。
+                        </div>
+                        <div id="q-v1-inc2" class="quiz-answer mt-3 p-3 bg-red-50 text-red-800 rounded-lg">
+                            <strong>不對喔。</strong> 表面效度只是「看起來像」，無法保證它真的能預測未來。
+                        </div>
+                    </div>
+                    
+                    <hr>
+
+                    <div>
+                        <p class="text-lg font-semibold mb-3">情境二：研究者設計一份「復原力」量表，他預期分數應與「幸福感」量表「正相關」，並與「憂鬱」量表「負相關」。這是在檢驗？</p>
+                        <div class="flex flex-wrap gap-2">
+                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-v2-cor">建構效度</button>
+                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-v2-inc1">內容效度</button>
+                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-v2-inc2">表面效度</button>
+                        </div>
+                        <div id="q-v2-cor" class="quiz-answer mt-3 p-3 bg-green-50 text-green-800 rounded-lg">
+                            <strong>答對了！</strong> 這是建構效度。我們透過檢驗該量表是否與「理論上相關」的概念（幸福感）和「理論上應區辨」的概念（憂鬱）有一致的表現。
+                        </div>
+                        <div id="q-v2-inc1" class="quiz-answer mt-3 p-3 bg-red-50 text-red-800 rounded-lg">
+                            <strong>不對喔。</strong> 內容效度是檢核「題目本身」是否全面，而不是檢核它與「其他量表」的關係。
+                        </div>
+                        <div id="q-v2-inc2" class="quiz-answer mt-3 p-3 bg-red-50 text-red-800 rounded-lg">
+                            <strong>不對喔。</strong> 表面效度只是主觀判斷，不涉及與其他量表的統計相關。
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+
+            <section id="content-relationship" class="content-section">
+                <h1 class="text-3xl font-bold text-blue-900 mb-4">🤝 信度與效度的關係</h1>
+                <p class="text-lg text-neutral-600 mb-6">
+                    信度（一致性）和效度（準確性）是評估測量品質的兩大基石。它們的關係可以用射箭靶來比喻：
+                </p>
+                
+                <blockquote class="border-l-4 border-blue-700 bg-blue-50 p-4 rounded-r-lg mb-8">
+                    <p class="text-xl font-semibold text-blue-900">核心概念：</p>
+                    <p class="text-lg text-neutral-700 mt-2">信度是效度的「必要條件」，但「非」充分條件。</p>
+                    <ul class="list-disc list-inside text-neutral-600 mt-2">
+                        <li>一個測量「必須」先有信度（一致），才「可能」有效度（準確）。</li>
+                        <li>一個測量可以「很有信度」（每次都射在同個地方），但「完全沒有效度」（根本沒射中紅心）。</li>
+                    </ul>
+                </blockquote>
+
+                <h2 class="text-2xl font-bold text-blue-800 mb-4 text-center">信度與效度的四種組合</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                    <div class="card p-6">
+                        <h3 class="text-lg font-bold text-center text-red-700 mb-3">1. 低信度 & 低效度</h3>
+                        <div class="target-container">
+                            <div class="target-ring-1"></div>
+                            <div class="target-ring-2"></div>
+                            <div class="shot" style="top: 20%; left: 30%;"></div>
+                            <div class="shot" style="top: 60%; left: 70%;"></div>
+                            <div class="shot" style="top: 80%; left: 25%;"></div>
+                            <div class="shot" style="top: 40%; left: 55%;"></div>
+                        </div>
+                        <p class="text-center text-neutral-600 mt-3">測量結果「既不一致、也不準確」（射得到處都是）。這是最糟的測量。</p>
+                    </div>
+
+                    <div class="card p-6">
+                        <h3 class="text-lg font-bold text-center text-blue-800 mb-3">2. 高信度 & 低效度</h3>
+                        <div class="target-container">
+                            <div class="target-ring-1"></div>
+                            <div class="target-ring-2"></div>
+                            <div class="shot" style="top: 15%; left: 18%;"></div>
+                            <div class="shot" style="top: 20%; left: 25%;"></div>
+                            <div class="shot" style="top: 25%; left: 20%;"></div>
+                            <div class="shot" style="top: 22%; left: 15%;"></div>
+                        </div>
+                        <p class="text-center text-neutral-600 mt-3">測量結果「非常一致」，但「不準確」（射得很集中，但完全偏離紅心）。這就是系統誤差的結果。</p>
+                    </div>
+
+                    <div class="card p-6">
+                        <h3 class="text-lg font-bold text-center text-red-700 mb-3">3. 低信度 & 高效度 (?)</h3>
+                        <div class="target-container">
+                            <div class="target-ring-1"></div>
+                            <div class="target-ring-2"></div>
+                            <div class="shot" style="top: 45%; left: 20%;"></div>
+                            <div class="shot" style="top: 25%; left: 60%;"></div>
+                            <div class="shot" style="top: 70%; left: 70%;"></div>
+                            <div class="shot" style="top: 60%; left: 30%;"></div>
+                        </div>
+                        <p class="text-center text-neutral-600 mt-3">（此狀態在邏輯上「不可能」存在）。如果測量結果不一致（低信度），它就不可能準確（高效度）。</p>
+                    </div>
+
+                    <div class="card p-6">
+                        <h3 class="text-lg font-bold text-center text-green-700 mb-3">4. 高信度 & 高效度</h3>
+                        <div class="target-container">
+                            <div class="target-ring-1"></div>
+                            <div class="target-ring-2"></div>
+                            <div class="shot" style="top: 45%; left: 48%;"></div>
+                            <div class="shot" style="top: 50%; left: 52%;"></div>
+                            <div class="shot" style="top: 52%; left: 45%;"></div>
+                            <div class="shot" style="top: 48%; left: 50%;"></div>
+                        </div>
+                        <p class="text-center text-neutral-600 mt-3">測量結果「既一致、又準確」（射得又集中、又在紅心）。這是我們追求的理想狀態。</p>
+                    </div>
+
+                </div>
+
+                <div class="card p-6 mt-8 bg-blue-50 border-l-4 border-blue-700">
+                    <h3 class="text-xl font-bold text-blue-800 mb-2">總結</h3>
+                    <p class="text-neutral-700">你可以「很一致地犯錯」（高信度、低效度），但你不能「很不一致地準確」（低信度、高效度）。在進行研究時，我們必須優先確保「信度」，並以此為基礎，盡力追求最高的「效度」。</p>
+                </div>
+
+
+                <h2 class="text-2xl font-bold text-blue-800 mb-4 mt-10">小測驗：測試你的理解</h2>
+                <div class="card p-6 space-y-6">
+                    <div>
+                        <p class="text-lg font-semibold mb-3">情境一：一個體重計每次測量都「非常穩定」（例如都是60.5公斤），但它其實「不準確」（真實體重是65公斤）。這個體重計的狀態是？</p>
+                        <div class="flex flex-wrap gap-2">
+                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-rel1-inc1">低信度、高效度</button>
+                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-rel1-cor">高信度、低效度</button>
+                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-rel1-inc2">高信度、高效度</button>
+                        </div>
+                        <div id="q-rel1-inc1" class="quiz-answer mt-3 p-3 bg-red-50 text-red-800 rounded-lg">
+                            <strong>不對喔。</strong> 它「非常穩定」，所以是「高信度」。
+                        </div>
+                        <div id="q-rel1-cor" class="quiz-answer mt-3 p-3 bg-green-50 text-green-800 rounded-lg">
+                            <strong>答對了！</strong> 「非常穩定」代表高信度，「不準確」代表低效度。這就像射箭靶的第二種情況。
+                        </div>
+                        <div id="q-rel1-inc2" class="quiz-answer mt-3 p-3 bg-red-50 text-red-800 rounded-lg">
+                            <strong>不對喔。</strong> 它「不準確」，所以是「低效度」。
+                        </div>
+                    </div>
+                    
+                    <hr>
+
+                    <div>
+                        <p class="text-lg font-semibold mb-3">情境二：以下關於信度和效度的陳述，何者「正確」？</p>
+                        <div class="flex flex-wrap gap-2">
+                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-rel2-inc1">有效度，就一定有信度</button>
+                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-rel2-inc2">有效度，不一定有信度</button>
+
+                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-rel2-inc3">有信度，就一定有效度</button>
+                        </div>
+                        <div id="q-rel2-inc1" class="quiz-answer mt-3 p-3 bg-green-50 text-green-800 rounded-lg">
+                            <strong>答對了！</strong> 效度（準確）是最高標準。如果一個測量是準確的，它必定也是一致的（有信度）。信度是效度的必要條件。
+                        </div>
+                        <div id="q-rel2-inc2" class="quiz-answer mt-3 p-3 bg-red-50 text-red-800 rounded-lg">
+                            <strong>不對喔。</strong> 一個不一致（低信度）的測量，是不可能準確（高效度）的。
+                        </div>
+                        <div id="q-rel2-inc3" class="quiz-answer mt-3 p-3 bg-red-50 text-red-800 rounded-lg">
+                            <strong>不對喔。</strong> 這就是「高信度、低效度」的情況（射得很集中，但射偏了）。
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const navLinks = document.querySelectorAll('.nav-link');
+            const contentSections = document.querySelectorAll('.content-section');
+            const menuToggle = document.getElementById('menu-toggle');
+            const sidebar = document.getElementById('sidebar-nav');
+
+            const setActiveSection = (targetId) => {
+                contentSections.forEach(section => {
+                    section.classList.remove('active');
+                });
+                
+                navLinks.forEach(link => {
+                    link.classList.remove('nav-link-active');
+                    if (link.dataset.target === targetId) {
+                        link.classList.add('nav-link-active');
+                    }
+                });
+
+                const activeSection = document.getElementById(targetId);
+                if (activeSection) {
+                    activeSection.classList.add('active');
+                }
+            };
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetId = e.currentTarget.dataset.target;
+                    setActiveSection(targetId);
+                    
+                    if (!sidebar.classList.contains('hidden') && window.innerWidth < 768) {
+                        sidebar.classList.add('hidden');
+                    }
+                });
+            });
+
+            menuToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('hidden');
+            });
+
+            setActiveSection('content-intro');
+
+            const quizBtns = document.querySelectorAll('.quiz-btn');
+            quizBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const answerId = btn.dataset.answer;
+                    const answerEl = document.getElementById(answerId);
+                    
+                    if (answerEl) {
+                        const parentCard = btn.closest('div.flex-wrap').parentElement;
+                        const allAnswers = parentCard.querySelectorAll('.quiz-answer');
+                        
+                        allAnswers.forEach(ans => {
+                            if (ans.id !== answerId) {
+                                ans.style.display = 'none';
+                            }
+                        });
+                        answerEl.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
+
