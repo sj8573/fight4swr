@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>建構測量工具：提問與量表設計</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Chosen Palette: Academic Blue and Warm Neutrals --><!-- Application Structure Plan: 採用與之前檔案一致的單頁應用程式(SPA)結構。左側為固定導覽列（行動裝置為漢堡選單），點擊後在右側主內容區動態顯示對應的<section>。此結構能讓學生在「提問原則」和「量表設計」之間自由切換，符合非線性學習。 --><!-- Visualization & Content Choices: 1. 提問原則 (比較表): 報告原文為指導方針。 -> 目標: 清楚對比「錯誤」與「正確」的提問方式。 -> 視覺化: 使用雙欄卡片，左欄顯示「錯誤範例」並標註紅色，右欄顯示「修正範例」並標註綠色。 -> 互動: 靜態比較。 -> 理由: 透過具體的社工情境範例對比，能最有效地傳達提問的細微差別。 2. 量表類型 (圖解): 報告原文為文字定義。 -> 目標: 視覺化展示不同量表的樣式。 -> 視覺化: 使用HTML/CSS模擬「李克特量表」的選項按鈕和「語意差異法」的7點光譜。 -> 互動: 靜態展示。 -> 理由: 實際看到量表的樣子，遠比閱讀文字定義更能加深印象。 3. 互動測驗 (測驗): 報告原文無此內容。 -> 目標: 鞏固學習成果。 -> 視覺化: 在每個子題末尾加入HTML/JS按鈕測驗。 -> 互動: 點擊按鈕檢查答案，並顯示回饋。 -> 理由: 即時回饋能有效強化學習記憶點。 --><!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. --><link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .nav-link {
+            display: block;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .nav-link:hover {
+            background-color: #f0f4f8;
+            color: #007bff;
+        }
+        .nav-link.active {
+            background-color: #e6f2ff;
+            color: #0056b3;
+            font-weight: 700;
+        }
+        .nav-link.sub-link {
+            padding-left: 2rem;
+            font-size: 0.9rem;
+        }
+        .nav-link.sub-link.active {
+            background-color: #e0eafc;
+        }
+        
+        .quiz-option {
+            display: block;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            text-align: left;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        .quiz-option:hover {
+            background-color: #f9fafb;
+            border-color: #6b7280;
+        }
+        .quiz-feedback {
+            margin-top: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            display: none;
+        }
+        .quiz-feedback.correct {
+            background-color: #d1fae5;
+            color: #065f46;
+            display: block;
+        }
+        .quiz-feedback.incorrect {
+            background-color: #fee2e2;
+            color: #991b1b;
+            display: block;
+        }
+        .scale-example {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            background-color: #f9fafb;
+        }
+        .scale-example-likert span {
+            margin: 0 0.5rem;
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 50%;
+            display: inline-block;
+            width: 2.5rem;
+            height: 2.5rem;
+            text-align: center;
+            line-height: 1.5rem;
+        }
+        .scale-example-semantic {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+        }
+        .scale-example-semantic span {
+            padding: 0.5rem;
+        }
+        .scale-example-semantic div {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .scale-example-semantic div span {
+            border: 1px solid #ccc;
+            border-radius: 0.25rem;
+            width: 2rem;
+            height: 2rem;
+            text-align: center;
+            line-height: 1rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- Header -->
+    <header class="bg-white shadow-md sticky top-0 z-40">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <h1 class="text-xl md:text-2xl font-bold text-blue-800">建構測量工具：提問與量表設計</h1>
+            <button id="mobile-menu-button" class="md:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-6 flex flex-col md:flex-row">
+
+        <!-- Navigation Sidebar -->
+        <nav id="sidebar" class="w-full md:w-1/4 lg:w-1/5 bg-white p-4 rounded-lg shadow-sm md:sticky md:top-24 md:self-start transition-transform duration-300 ease-in-out -translate-x-full md:translate-x-0 fixed md:relative h-full md:h-auto z-30 overflow-y-auto">
+            <button id="close-menu-button" class="md:hidden p-2 absolute top-2 right-2 text-gray-600 hover:text-gray-900">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            <h2 class="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">章節導覽</h2>
+            <ul>
+                <li><a href="#intro" class="nav-link active" data-section="intro">🏠 導論：測量的橋樑</a></li>
+                <li><a href="#principles" class="nav-link" data-section="principles">📝 提問的指導原則</a></li>
+                <li><a href="#design" class="nav-link" data-section="design">📊 設計問卷與量表</a></li>
+            </ul>
+        </nav>
+
+        <!-- Content Area -->
+        <main class="w-full md:w-3/4 lg:w-4/5 md:pl-8 mt-6 md:mt-0">
+
+            <!-- Section: 導論 -->
+            <section id="intro" class="content-section active bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-4">🏠 導論：測量的橋樑</h2>
+                <p class="mb-4 text-lg">在社會工作研究中，「測量」扮演著至關重要的橋樑角色。</p>
+                <p class="mb-4">我們的研究充滿了複雜且抽象的概念，例如「生活品質」、「家庭功能」、「復原力」或「案主滿意度」。這些都是無法直接看見或觸摸的。測量，就是一套系統化的過程，讓我們能將這些抽象的概念，轉化為可觀察、可分析的數據。</p>
+                
+                <div class="mt-6 bg-blue-50 border-l-4 border-blue-500 p-4 rounded-md">
+                    <h4 class="font-semibold text-blue-800">本章節學習重點：</h4>
+                    <p class="mt-2">「工欲善其事，必先利其器」。問卷和量表就是我們的「器」。本章節將帶領您學習如何打造出精確、有效的測量工具。我們將探討：</p>
+                    <ul class="list-disc list-inside mt-2 ml-4 space-y-1">
+                        <li><strong>提問的指導原則</strong>：如何問出「好問題」？避免哪些常見的陷阱？</li>
+                        <li><strong>設計問卷與量表</strong>：如何將好問題組織成一份專業的問卷？李克特量表(Likert Scale)和語意差異法(Semantic Differential)等工具如何使用？</li>
+                    </ul>
+                    <p class="mt-2">一個好的測量工具，是後續所有統計分析與實務推論的基石。</p>
+                </div>
+            </section>
+
+            <!-- Section: 提問的指導原則 -->
+            <section id="principles" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">📝 提問的指導原則</h2>
+                <p class="mb-6">問題的措辭會極大地影響答案。一個微小的用詞不當，都可能導致研究結果的偏差。以下是建構問題時的關鍵指導原則：</p>
+                
+                <div class="space-y-6">
+                    <!-- Principle 1: Clarity -->
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">1. 避免模糊不清 (Avoid Vagueness)</h3>
+                        <p class="mb-4">問題應該要具體、明確，讓每個受訪者對問題的理解都一致。</p>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div class="bg-red-50 p-3 rounded border border-red-200">
+                                <span class="font-bold text-red-700">❌ 錯誤範例：</span>
+                                <p class="mt-1">「您最近是否經常感到焦慮？」</p>
+                                <p class="text-sm text-red-600 mt-1">（「最近」是多久？「經常」是多常？「焦慮」的定義？）</p>
+                            </div>
+                            <div class="bg-green-50 p-3 rounded border border-green-200">
+                                <span class="font-bold text-green-700">✔️ 修正範例：</span>
+                                <p class="mt-1">「在過去一週內，您有幾天感到焦慮不安，無法停止或控制擔憂？」</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Principle 2: Double-barreled -->
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">2. 避免雙重問題 (Avoid Double-barreled Questions)</h3>
+                        <p class="mb-4">一個問題只能問一件事情。不要將兩個或多個概念綑綁在一起。</p>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div class="bg-red-50 p-3 rounded border border-red-200">
+                                <span class="font-bold text-red-700">❌ 錯誤範例：</span>
+                                <p class="mt-1">「您認為本機構提供的心理諮商和就業輔導服務有幫助嗎？」</p>
+                                <p class="text-sm text-red-600 mt-1">（如果案主覺得A有幫助，B沒幫助，該如何回答？）</p>
+                            </div>
+                            <div class="bg-green-50 p-3 rounded border border-green-200">
+                                <span class="font-bold text-green-700">✔️ 修正範例：</span>
+                                <p class="mt-1">1. 「您認為本機構提供的心理諮商有幫助嗎？」<br>2. 「您認為本機構提供的就業輔導有幫助嗎？」</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Principle 3: Leading Questions -->
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">3. 避免引導性問題 (Avoid Leading Questions)</h3>
+                        <p class="mb-4">問題不應暗示或引導受訪者朝特定方向回答，應保持中立。</p>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div class="bg-red-50 p-3 rounded border border-red-200">
+                                <span class="font-bold text-red-700">❌ 錯誤範例：</span>
+                                <p class="mt-1">「您是否也同意，政府應該投入更多資源來幫助那些不幸的無家者？」</p>
+                                <p class="text-sm text-red-600 mt-1">（「也同意」、「不幸的」都是強烈的引導詞。）</p>
+                            </div>
+                            <div class="bg-green-50 p-3 rounded border border-green-200">
+                                <span class="font-bold text-green-700">✔️ 修正範例：</span>
+                                <p class="mt-1">「您認為政府對於無家者議題的資源投入，應該增加、維持不變，還是減少？」</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Principle 4: Negative Items -->
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">4. 避免使用否定句（尤其是雙重否定）</h3>
+                        <p class="mb-4">否定句會增加受訪者的認知負擔，容易造成誤解或填答錯誤。</p>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div class="bg-red-50 p-3 rounded border border-red-200">
+                                <span class="font-bold text-red-700">❌ 錯誤範例：</span>
+                                <p class="mt-1">「您是否不同意本機構不應該停止夜間庇護所服務？」</p>
+                                <p class="text-sm text-red-600 mt-1">（雙重否定，大腦當機！）</p>
+                            </div>
+                            <div class="bg-green-50 p-3 rounded border border-green-200">
+                                <span class="font-bold text-green-700">✔️ 修正範例：</span>
+                                <p class="mt-1">「您認為本機構應該繼續提供夜間庇護所服務嗎？」</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Principle 5: Social Desirability -->
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">5. 避免社會期許偏誤 (Social Desirability Bias)</h3>
+                        <p class="mb-4">受訪者傾向於提供「社會可接受的」答案，而非真實想法，尤其在涉及敏感議題（如藥物濫用、家暴、歧視）時。</p>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div class="bg-red-50 p-3 rounded border border-red-200">
+                                <span class="font-bold text-red-700">❌ 錯誤範例：</span>
+                                <p class="mt-1">「您是否曾經對您的孩子進行不當的體罰？」</p>
+                                <p class="text-sm text-red-600 mt-1">（「不當」一詞帶有強烈批判性，多數人會否認。）</p>
+                            </div>
+                            <div class="bg-green-50 p-3 rounded border border-green-200">
+                                <span class="font-bold text-green-700">✔️ 修正範例：</span>
+                                <p class="mt-1">「當孩子行為不當時，許多家長會使用不同的管教方式。在過去一個月，您是否曾用『打手心或屁股』的方式管教孩子？」</p>
+                                <p class="text-sm text-green-600 mt-1">（使用中性詞彙、正常化陳述、明確定義行為。）</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quiz -->
+                <div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：提問原則</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：您在評估一項長者送餐服務。</p>
+                        <p class="mb-4">請問以下哪個問題犯了「雙重問題」的錯誤？</p>
+                        
+                        <div id="quiz-principles" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-principles', 0, 1)">A. 您是否也認為，社工的關懷是這項服務最棒的部分？</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-principles', 1, 1)">B. 您對送餐的準時性與餐點的美味程度是否滿意？</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-principles', 2, 1)">C. 您多久使用一次這項服務？</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-principles', 3, 1)">D. 您是否不同意這項服務不重要？</button>
+                        </div>
+                        <div id="quiz-principles-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- Section: 設計問卷與量表 -->
+            <section id="design" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">📊 設計問卷與量表</h2>
+                <p class="mb-4">設計好問題後，下一步是將它們組織成專業的測量工具。我們常聽到「問卷」和「量表」，它們略有不同：</p>
+                <ul class="list-disc list-inside mb-6 ml-4 space-y-1">
+                    <li><strong>問卷 (Questionnaire)</strong>：一個包含多個問題的文件。可能包含人口學資料、行為題、以及量表。</li>
+                    <li><strong>量表 (Scale)</strong>：專門用來測量某個特定「構念」(Construct) 的一組問題（題項）。例如，「焦慮量表」可能包含10個題項，加總後得到一個焦慮程度的分數。</li>
+                </ul>
+
+                <h3 class="text-xl font-semibold text-gray-900 mb-4">常見的量表類型</h3>
+                
+                <!-- Scale 1: Likert Scale -->
+                <div class="border rounded-lg p-4 shadow-sm mb-6">
+                    <h4 class="text-lg font-semibold text-gray-800 mb-3">1. 李克特量表 (Likert Scale)</h4>
+                    <p class="mb-4">最常見的量表之一，用於測量「同意程度」或「頻率」。通常是奇數點（如5點或7點），包含一個中立選項。</p>
+                    <p class="font-medium mb-2">範例：案主滿意度量表</p>
+                    <div class="scale-example">
+                        <p class="mb-3">「我對社工提供給我的協助感到滿意。」</p>
+                        <div class="flex flex-wrap gap-2 items-center justify-center text-center">
+                            <div><span class="scale-example-likert">1</span><br><small>非常不同意</small></div>
+                            <div><span class="scale-example-likert">2</span><br><small>不同意</small></div>
+                            <div><span class="scale-example-likert">3</span><br><small>普通</small></div>
+                            <div><span class="scale-example-likert">4T</span><br><small>同意</small></div>
+                            <div><span class="scale-example-likert">5</span><br><small>非常同意</small></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Scale 2: Semantic Differential -->
+                <div class="border rounded-lg p-4 shadow-sm mb-6">
+                    <h4 class="text-lg font-semibold text-gray-800 mb-3">2. 語意差異法 (Semantic Differential Scale)</h4>
+                    <p class="mb-4">用於測量受訪者對某一概念（如「我的社工」）的主觀感受。量表兩端是意義相反的形容詞。</p>
+                    <p class="font-medium mb-2">範例：請評價您的社工給您的感受</p>
+                    <div class="scale-example space-y-3">
+                        <div class="scale-example-semantic">
+                            <span class="font-semibold text-right w-1/3">冷淡的</span>
+                            <div class="w-1/3 justify-center">
+                                <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
+                            </div>
+                            <span class="font-semibold text-left w-1/3">溫暖的</span>
+                        </div>
+                        <div class="scale-example-semantic">
+                            <span class="font-semibold text-right w-1/3">不可靠的</span>
+                            <div class="w-1/3 justify-center">
+                                <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
+                            </div>
+                            <span class="font-semibold text-left w-1/3">可靠的</span>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 class="text-xl font-semibold text-gray-900 mb-4 mt-8">問卷排版的重要考量</h3>
+                <div class="space-y-4">
+                    <div class="bg-gray-50 p-4 rounded-lg border">
+                        <h4 class="font-semibold text-gray-800">1. 指導語清晰 (Clear Instructions)</h4>
+                        <p class="text-sm">必須清楚告知受訪者如何填答（例如：「請圈選最符合您感受的數字」、「此部分可複選」），並說明研究目的與保密原則。</p>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg border">
+                        <h4 class="font-semibold text-gray-800">2. 漏斗原則 (Funnel Principle)</h4>
+                        <p class="text-sm">問題排序應從「廣泛、中性、簡單」的問題開始（如人口學資料），逐漸深入到「具體、敏感、複雜」的核心問題。這有助於建立信任感並減少抗拒。</p>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg border">
+                        <h4 class="font-semibold text-gray-800">3. 過濾題與跳題邏輯 (Filter & Skip Logic)</h4>
+                        <p class="text-sm">使用過濾題來引導受訪者跳過不適用的問題。例如：「Q5: 您是否有使用過本機構的A服務？ (A)是 (B)否」。若答「否」，則應指示他們「請跳至Q10」。</p>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg border">
+                        <h4 class="font-semibold text-gray-800">4. 前測 (Pre-test)</h4>
+                        <p class="text-sm">在正式施測前，務必找一小群與目標群體相似的人進行「前測」。這能幫助您找出語意不清、流程不順或有引導性的問題，是確保問卷品質的關鍵步驟。</p>
+                    </div>
+                </div>
+
+                <!-- Quiz -->
+                <div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：問卷與量表</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：您想測量案主對於「團體輔導」的感受，一端是「無聊的」，另一端是「有趣的」。</p>
+                        <p class="mb-4">請問這種使用兩端相反形容詞的量表，稱為什麼？</p>
+                        
+                        <div id="quiz-design" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-design', 0, 1)">A. 李克特量表 (Likert Scale)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-design', 1, 1)">B. 語意差異法 (Semantic Differential Scale)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-design', 2, 1)">C. 雙重問題量表 (Double-barreled Scale)</button>
+                        </div>
+                        <div id="quiz-design-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Overlay for mobile menu -->
+    <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden" onclick="toggleMenu(false)"></div>
+
+
+    <script>
+        const sections = document.querySelectorAll('.content-section');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const closeMenuButton = document.getElementById('close-menu-button');
+
+        function showSection(sectionId) {
+            sections.forEach(section => {
+                if (section.id === sectionId) {
+                    section.classList.add('active');
+                } else {
+                    section.classList.remove('active');
+                }
+            });
+
+            navLinks.forEach(link => {
+                if (link.dataset.section === sectionId) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+
+            // Auto-scroll to top of content on section change
+            document.querySelector('.md\\:w-3\\/4')?.scrollTo(0, 0);
+            
+            // Close mobile menu on navigation
+            if (window.innerWidth < 768) {
+                toggleMenu(false);
+            }
+        }
+
+        function toggleMenu(show) {
+            if (show) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const sectionId = e.target.closest('a').dataset.section;
+                showSection(sectionId);
+                // Update URL hash for better history (optional)
+                window.location.hash = e.target.closest('a').getAttribute('href');
+            });
+        });
+
+        mobileMenuButton.addEventListener('click', () => toggleMenu(true));
+        closeMenuButton.addEventListener('click', () => toggleMenu(false));
+        overlay.addEventListener('click', () => toggleMenu(false));
+
+        // Handle page load with hash
+        document.addEventListener('DOMContentLoaded', () => {
+            const hash = window.location.hash;
+            if (hash) {
+                const sectionId = hash.substring(1);
+                const sectionElement = document.getElementById(sectionId);
+                if (sectionElement) {
+                    showSection(sectionId);
+                } else {
+                    showSection('intro');
+                }
+            } else {
+                showSection('intro');
+            }
+        });
+
+        // --- Quiz Logic ---
+        const quizAnswers = {
+            'quiz-principles': {
+                correctIndex: 1,
+                responses: [
+                    "不正確。這是「引導性問題」的範例。",
+                    "答對了！這個問題一次詢問了「準時性」和「美味程度」兩件事，是標準的雙重問題。",
+                    "不正確。這是一個單純的行為頻率問題。",
+                    "不正確。這是「雙重否定」的範例。"
+                ]
+            },
+            'quiz-design': {
+                correctIndex: 1,
+                responses: [
+                    "不正確。李克特量表(Likert Scale)是測量「同意程度」或「頻率」（如：非常同意到非常不同意）。",
+                    "答對了！語意差異法(Semantic Differential Scale)專門用於測量兩端相反形容詞之間的感受。",
+                    "不正確。雙重問題是一種提問錯誤，不是一種量表類型。"
+                ]
+            }
+        };
+
+        function checkQuiz(quizId, selectedIndex, correctIndex) {
+            // If quizAnswers object is defined, use it.
+            if (quizAnswers[quizId]) {
+                correctIndex = quizAnswers[quizId].correctIndex;
+            }
+
+            const feedbackEl = document.getElementById(`${quizId}-feedback`);
+            const options = document.getElementById(quizId).getElementsByClassName('quiz-option');
+            
+            // Reset styles
+            for (let i = 0; i < options.length; i++) {
+                options[i].classList.remove('bg-green-200', 'border-green-400', 'bg-red-200', 'border-red-400');
+                options[i].disabled = true;
+            }
+
+            if (selectedIndex === correctIndex) {
+                feedbackEl.textContent = quizAnswers[quizId].responses[selectedIndex];
+                feedbackEl.className = 'quiz-feedback correct';
+                options[selectedIndex].classList.add('bg-green-200', 'border-green-400');
+            } else {
+                feedbackEl.textContent = quizAnswers[quizId].responses[selectedIndex];
+                feedbackEl.className = 'quiz-feedback incorrect';
+                options[selectedIndex].classList.add('bg-red-200', 'border-red-400');
+                // Highlight correct answer
+                options[correctIndex].classList.add('bg-green-200', 'border-green-400');
+            }
+        }
+
+    </script>
+</body>
+</html>
+
