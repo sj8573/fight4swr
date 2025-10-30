@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>質性研究法</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Chosen Palette: Academic Blue and Warm Neutrals --><!-- Application Structure Plan: 本SPA採用固定側邊導覽列（行動裝置為漢堡選單）結構。使用者可點選任一主題（如質性訪談、紥根理論），主內容區會動態顯示對應的<section>。此結構的優點是讓使用者能以非線性的方式自由探索、複習特定概念。 --><!-- Visualization & Content Choices: 1. 觀察者光譜 (圖解): 簡報原文為文字。 -> 目標: 視覺化研究者參與的四種程度。 -> 視覺化: 使用HTML/Tailwind製作水平的流程圖，顯示從「完全觀察者」到「完全參與者」的光譜。 -> 互動: 靜態圖解。 -> 理由: 將抽象的「光譜」概念轉為具體的視覺呈現。 2. 行動研究循環 (圖解): 簡報原文為文字。 -> 目標: 視覺化行動研究的循環步驟。 -> 視覺化: 使用HTML/Tailwind製作「計畫 -> 行動 -> 觀察 -> 反思」的循環圖。 -> 互動: 靜態圖解。 -> 理由: 循環圖最能體現此方法的動態與反覆特性。 3. 紥根理論編碼 (圖解): 簡報原文為文字。 -> 目標: 視覺化紥根理論的編碼過程。 -> 視覺化: 使用HTML/Tailwind製作「開放 -> 主軸 -> 選擇」的三階段流程圖。 -> 互動: 靜態圖解。 -> 理由: 將複雜的編碼過程簡化為清晰的步驟。 --><!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. --><link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .nav-link {
+            display: block;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .nav-link:hover {
+            background-color: #f0f4f8;
+            color: #007bff;
+        }
+        .nav-link.active {
+            background-color: #e6f2ff;
+            color: #0056b3;
+            font-weight: 700;
+        }
+        .nav-link.sub-link {
+            padding-left: 2rem;
+            font-size: 0.9rem;
+        }
+        .nav-link.sub-link.active {
+            background-color: #e0eafc;
+        }
+        
+        .quiz-option {
+            display: block;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            text-align: left;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        .quiz-option:hover {
+            background-color: #f9fafb;
+            border-color: #6b7280;
+        }
+        .quiz-feedback {
+            margin-top: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            display: none;
+        }
+        .quiz-feedback.correct {
+            background-color: #d1fae5;
+            color: #065f46;
+            display: block;
+        }
+        .quiz-feedback.incorrect {
+            background-color: #fee2e2;
+            color: #991b1b;
+            display: block;
+        }
+        
+        /* Flow Diagram */
+        .flow-diagram {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        .flow-step {
+            background-color: #e0f2fe; /* Light blue */
+            border: 1px solid #7dd3fc; /* Sky-300 */
+            border-radius: 0.5rem;
+            padding: 1rem;
+            text-align: center;
+            font-weight: 600;
+            color: #0c4a6e; /* Sky-900 */
+            flex: 1 1 150px; /* Flex layout */
+            min-width: 120px;
+        }
+        .flow-arrow {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #60a5fa; /* Blue-400 */
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- Header --><header class="bg-white shadow-md sticky top-0 z-40">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <h1 class="text-xl md:text-2xl font-bold text-blue-800">質性研究法</h1>
+            <button id="mobile-menu-button" class="md:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content --><div class="container mx-auto px-4 py-6 flex flex-col md:flex-row">
+
+        <!-- Navigation Sidebar --><nav id="sidebar" class="w-full md:w-1/4 lg:w-1/5 bg-white p-4 rounded-lg shadow-sm md:sticky md:top-24 md:self-start transition-transform duration-300 ease-in-out -translate-x-full md:translate-x-0 fixed md:relative h-full md:h-auto z-30 overflow-y-auto">
+            <button id="close-menu-button" class="md:hidden p-2 absolute top-2 right-2 text-gray-600 hover:text-gray-900">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            <h2 class="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">章節導覽</h2>
+            <ul>
+                <li><a href="#intro" class="nav-link active" data-section="intro">🏠 導論：質性研究的世界</a></li>
+                <li><a href="#characteristics" class="nav-link" data-section="characteristics">✨ 質性研究的特性</a></li>
+                <li><a href="#observer" class="nav-link" data-section="observer">🎭 觀察者 vs. 參與者</a></li>
+                <li><a href="#interview" class="nav-link" data-section="interview">🗣️ 質性訪談</a></li>
+                <li><a href="#ethnography" class="nav-link" data-section="ethnography">🌍 田野研究與民族誌</a></li>
+                <li><a href="#case-study" class="nav-link" data-section="case-study">📦 個案研究</a></li>
+                <li><a href="#narrative" class="nav-link" data-section="narrative">📖 敘事/言談分析</a></li>
+                <li><a href="#focus-group" class="nav-link" data-section="focus-group">💬 焦點團體法</a></li>
+                <li><a href="#action" class="nav-link" data-section="action">🤝 行動研究</a></li>
+                <li><a href="#grounded" class="nav-link" data-section="grounded">🌱 紥根理論</a></li>
+                <li><a href="#delphi" class="nav-link" data-section="delphi">🎯 德爾菲法</a></li>
+            </ul>
+        </nav>
+
+        <!-- Content Area --><main class="w-full md:w-3/4 lg:w-4/5 md:pl-8 mt-6 md:mt-0">
+
+            <!-- Section: 導論 --><section id="intro" class="content-section active bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-4">🏠 導論：質性研究的世界</h2>
+                <p class="mb-4 text-lg">如果量化研究是「拍一張清晰的廣角照片」，告訴我們「有多少」(How many) 人、「是什麼」(What)；那麼質性研究就是「拍一部深入的紀錄片」，告訴我們「為什麼」(Why) 和「如何」(How)。</p>
+                <p class="mb-4">在社會工作中，我們不只關心「問題的比例」（如：有多少比例的青少年憂鬱），我們更關心「問題的脈絡」與「人的經驗」（如：青少年「如何」經驗憂鬱？他們「如何」詮釋自己的處境？）。</p>
+                <p class="mb-4">質性研究的核心，就是進入參與者的「主觀世界」，去理解他們「如何」看待事物、賦予「意義」，以及他們所處的「社會文化脈絡」。</p>
+                
+                <div class="mt-6 bg-blue-50 border-l-4 border-blue-500 p-4 rounded-md">
+                    <h4 class="font-semibold text-blue-800">本章節學習重點：</h4>
+                    <p class="mt-2">本章節將介紹質性研究的核心特性，以及十種在社會工作實務與研究中，最常被用來探索「深度」、「脈絡」與「意義」的具體方法。
+                    </p>
+                </div>
+            </section>
+
+            <!-- Section: 質性研究的特性 --><section id="characteristics" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">✨ 質性研究的特性</h2>
+                <p class="mb-6">質性研究不只是一種方法，更是一種哲學觀點。它與量化研究在根本上就有不同的假設：</p>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">1. 歸納法 (Inductive)</h3>
+                        <p class="mb-4">從「具體的」資料（如：訪談逐字稿）出發，一步步「往上」建構出「抽象的」主題(Themes)或理論。強調「由下而上」，而非像量化研究那樣「由上而下」去驗證既有理論。</p>
+                        <p class="font-medium">範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">訪談 10 位單親媽媽後，才「發現」她們共同提到了「托育系統的不友善」。研究者「之後」才去對照相關理論，而不是一開始就假設托育是問題。</p>
+                    </div>
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">2. 整體性脈絡 (Holistic Context)</h3>
+                        <p class="mb-4">質性研究不相信可以把人的行為「切割」成獨立的變項。它強調必須在「整體的」社會、文化、歷史脈絡中去「理解」行為的意義。</p>
+                        <p class="font-medium">範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">你不能只問一個中輟生「你為什麼不愛上學？」（切割變項），你必須去理解他的「家庭脈絡」、「同儕關係」、「學校文化」如何「共同」形塑了他的決定。</p>
+                    </div>
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">3. 主位觀點 (Emic Perspective)</h3>
+                        <p class="mb-4">重視「參與者本人」的觀點、「局內人」(Insider)的詮釋，而非「研究者」（局外人）的詮釋。</p>
+                        <p class="font-medium">範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">「精神疾病」可能是研究者（局外人）的詞彙；但「卡到陰」或「壓力大到崩潰」可能是參與者（局內人）「真正」用來理解自己經驗的詞彙。</p>
+                    </div>
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">4. 研究者即工具 (Researcher as Instrument)</h3>
+                        <p class="mb-4">在質性研究中，「研究者本人」就是最重要的「測量工具」。你的「同理心」、「傾聽能力」、「互動技巧」會直接決定資料的品質。因此，「反思性」(Reflexivity) 變得至關重要。</p>
+                        <p class="font-medium">範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">研究者必須在報告中「反思」：我作為一個「男性」研究者去訪談「受暴婦女」，我的性別是否影響了她們的回答？</p>
+                    </div>
+                </div>
+
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：質性研究的特性</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一位研究者在訪談遊民時，不使用「無家可歸者」或「街友」等學術詞彙，而是專注於聆聽他們「自己」如何稱呼自己，以及他們「自己」如何詮釋「流浪」的意義。</p>
+                        <p class="mb-4">這最符合質性研究的哪一項特性？</p>
+                        
+                        <div id="quiz-characteristics" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-characteristics', 0, 1)">A. 歸納法 (Inductive)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-characteristics', 1, 1)">B. 主位觀點 (Emic Perspective)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-characteristics', 2, 1)">C. 整體性脈絡 (Holistic Context)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-characteristics', 3, 1)">D. 研究者即工具 (Researcher as Instrument)</button>
+                        </div>
+                        <div id="quiz-characteristics-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Section: 觀察者 vs. 參與者 --><section id="observer" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">🎭 觀察者 vs. 參與者</h2>
+                <p class="mb-6">在進入田野（現場）時，研究者必須決定自己的「角色」：你要「融入」多少？你要「隱藏」還是「揭露」你的研究者身份？這是一個「光譜」，而非二分法：</p>
+                
+                <div class="flow-diagram p-4 bg-gray-50 rounded-lg">
+                    <div class="flow-step bg-red-100 border-red-300"><strong>完全觀察者</strong><br>(Complete Observer)</div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step bg-yellow-100 border-yellow-300"><strong>觀察者<br>作為參與者</strong></div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step bg-green-100 border-green-300"><strong>參與者<br>作為觀察者</strong></div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step bg-blue-100 border-blue-300"><strong>完全參與者</strong><br>(Complete Participant)</div>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-6 mt-6">
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">1. 完全觀察者 (Complete Observer)</h3>
+                        <p class="mb-4">研究者「不」與參與者互動，「純粹」在旁觀察，且通常「不」揭露身份。例如：在公園長椅上觀察兒童的遊戲行為。</p>
+                        <p class="font-medium">優點：反應性最低。 缺點：無法理解「內在動機」；有倫理爭議（偷窺）。</p>
+                    </div>
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">2. 觀察者作為參與者 (Observer as Participant)</h3>
+                        <p class="mb-4">研究者「揭露」身份，主要進行觀察，但會進行「有限的」互動（如：短暫訪談）。這是最常見的「民族誌」角色。</p>
+                        <p class="font-medium">優點：兼顧觀察與提問。 缺點：仍可能被視為「局外人」。</p>
+                    </div>
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">3. 參與者作為觀察者 (Participant as Observer)</h3>
+                        <p class="mb-4">研究者「揭露」身份，並「完全參與」該群體的活動，同時進行觀察與紀錄。例如：社工「加入」某個支持團體，與成員一起活動，同時研究該團體。</p>
+                        <p class="font-medium">優點：能深入理解「局內人」感受。 缺點：可能「過度涉入」，失去客觀性。</p>
+                    </div>
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">4. 完全參與者 (Complete Participant)</h3>
+                        <p class="mb-4">研究者「完全融入」群體，成為「真正的成員」，並且「不揭露」研究者身份（臥底）。</p>
+                        <p class="font-medium">優點：能看到最真實的樣貌。 缺點：倫理爭議最大（欺騙）；有「角色混淆」的風險。</p>
+                    </div>
+                </div>
+
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：觀察者 vs. 參與者</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一位研究者為了研究「急診室社工」的工作壓力，他「隱藏」自己的研究者身份，應徵成為該醫院的「全職急診室社工」，與大家一起工作，並私下做紀錄。</p>
+                        <p class="mb-4">這最接近光譜上的哪一個角色？</p>
+                        
+                        <div id="quiz-observer" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-observer', 0, 3)">A. 完全觀察者</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-observer', 1, 3)">B. 觀察者作為參與者</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-observer', 2, 3)">C. 參與者作為觀察者</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-observer', 3, 3)">D. 完全參與者</button>
+                        </div>
+                        <div id="quiz-observer-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Section: 質性訪談 --><section id="interview" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">🗣️ 質性訪談 (Qualitative Interviewing)</h2>
+                <p class="mb-6">質性訪談「不是」一場「問答」，而是一場「有目的的對話」。它不是要「驗證」假設，而是要「探索」參與者的經驗、觀點與故事。</p>
+                
+                <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">訪談的類型</h3>
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">1. 非結構式訪談</h3>
+                        <p class="mb-4">最為開放。研究者心中只有一個「大主題」，沒有固定的「訪談大綱」，問題完全隨著對話「自然流動」。</p>
+                        <p class="font-medium">範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">「我想了解你作為一個『照顧者』的生活，請你聊聊你的故事...」</p>
+                    </div>
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">2. 半結構式訪談</h3>
+                        <p class="mb-4">最常用。研究者備有「訪談大綱」(Interview Guide)，列出了「必須涵蓋」的幾個核心主題與問題，但「問題的順序」與「追問」的方式保持彈性。</p>
+                        <p class="font-medium">範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">大綱：(1)成為照顧者的契機？ (2)主要的照顧挑戰？ (3)使用的支持系統？ (4)對未來的看法？ （順序可調動）</p>
+                    </div>
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">3. 結構式訪談</h3>
+                        <p class="mb-4">問題與順序「完全固定」，像是在「口頭」念一份問卷。這在質性研究中「非常少用」，主要用於量化研究。</p>
+                        <p class="font-medium">範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">「請問你上週『總共』焦慮了幾次？」（量化問題）</p>
+                    </div>
+                </div>
+
+                <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">關鍵技巧：「追問」(Probing)</h3>
+                <p class="mb-4">質性訪談的精髓在於「追問」。當參與者給出一個簡短的答案時，研究者需要用「中立」的方式鼓勵對方深入：</p>
+                <ul class="list-disc list-inside ml-4 space-y-2">
+                    <li><strong>靜默</strong>：保持安靜，等待對方補充。</li>
+                    <li><strong>澄清</strong>：「你剛剛提到『壓力很大』，可以多說一點那是什麼感覺嗎？」</li>
+                    <li><strong>舉例</strong>：「可以舉一個『不被尊重』的例子嗎？」</li>
+                    <li><strong>重複</strong>：「所以你覺得...（重複對方的話）...是嗎？」</li>
+                </ul>
+
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：質性訪談</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一位研究者準備了一份「訪談大綱」，上面列有 5 個他「必須問到」的核心主題。但在訪談過程中，他會根據參與者的回答「彈性調整」提問的「順序」，並加入許多「追問」。</p>
+                        <p class="mb-4">這屬於哪一種訪談類型？</p>
+                        
+                        <div id="quiz-interview" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-interview', 0, 1)">A. 非結構式訪談</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-interview', 1, 1)">B. 半結構式訪談</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-interview', 2, 1)">C. 結構式訪談</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-interview', 3, 1)">D. 焦點團體</button>
+                        </div>
+                        <div id="quiz-interview-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Section: 田野研究與民族誌 --><section id="ethnography" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">🌍 田野研究與民族誌 (Field Research & Ethnography)</h2>
+                <p class="mb-6">這是質性研究中最深入、最耗時的方法之一。它不是「去」訪談，而是「住」進去。</p>
+                <ul class="list-disc list-inside ml-4 space-y-2 mb-6">
+                    <li><strong>田野研究 (Field Research)</strong>：指的是「過程」與「方法」。研究者進入一個「自然發生的場域」（田野），進行「長期」的「參與式觀察」與互動。</li>
+                    <li><strong>民族誌 (Ethnography)</strong>：指的是「結果」與「報告」。田野研究的最終產物，是一份「深入」且「整體」的「文化描述」，旨在呈現該群體的「世界觀」。</li>
+                </ul>
+
+                <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">田野研究的關鍵要素</h3>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">1. 進入田野 (Gaining Access)</h3>
+                        <p class="mb-4">如何進入一個場域？關鍵是找到「守門人」(Gatekeeper)——那些能決定你「是否可以進來」的關鍵人物（如：機構主管、部落領袖）。</p>
+                        <p class="font-medium">範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">你想研究一個「中輟生幫派」，你不能直接走進去。你可能需要透過「青少年外展社工」來引薦，這位社工就是你的「守門人」。</g>
+                    </div>
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">2. 建立關係 (Building Rapport)</h3>
+                        <p class="mb-4">進入之後，必須與參與者建立「信任關係」。如果大家都不信任你，你觀察到的都只是「表面工夫」。這需要「長期」的經營與「真誠」的互動。</p>
+                        <p class="font-medium">範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">在社區研究中，研究者不應只是「問問題」，也應該「參與」社區的清潔日、慶典等活動，展現自己是「夥伴」而非「調查者」。</p>
+                    </div>
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">3. 關鍵報導人 (Key Informant)</h3>
+                        <p class="mb-4">在田野中，你會發現有幾位「特別健談」、「特別了解狀況」或「在群體中地位特殊」的人，他們能提供你深入的觀點。他們被稱為「關鍵報導人」。</p>
+                        <p class="font-medium">範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">在機構研究中，一位「最資深的社工」或「最愛抱怨的案主」，可能就是你的關鍵報導人。</p>
+                    </div>
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">4. 撰寫田野筆記 (Field Notes)</h3>
+                        <p class="mb-4">這是田野研究的「命脈」。研究者必須「每天」詳細記錄所見所聞。筆記通常包含：<br>
+                            1. <strong>描述性紀錄</strong>：客觀發生了什麼事？<br>
+                            2. <strong>分析性紀錄</strong>：你對此的「初步分析」或「理論猜想」。<br>
+                            3. <strong>反思性紀錄</strong>：你自己的「情緒」與「偏見」。</p>
+                    </div>
+                </div>
+
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：田野研究與民族誌</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一位研究者想研究某個「原住民部落」的長照模式。他必須先去拜訪該部落的「頭目」與「長老」，向他們說明來意並取得同意，才能開始在部落中進行觀察。</p>
+                        <p class="mb-4">在田野研究中，這位「頭目」或「長老」扮演了什麼角色？</p>
+                        
+                        <div id="quiz-ethnography" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-ethnography', 0, 0)">A. 守門人 (Gatekeeper)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-ethnography', 1, 0)">B. 關鍵報導人 (Key Informant)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-ethnography', 2, 0)">C. 完全參與者</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-ethnography', 3, 0)">D. 分析單位</button>
+                        </div>
+                        <div id="quiz-ethnography-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Section: 個案研究 --><section id="case-study" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">📦 個案研究 (Case Study)</h2>
+                <p class="mb-6">個案研究是針對一個「特定」且「有邊界」的「單一個案」(a bounded system)，進行「深入」、「多方」的資料蒐集與分析。它試圖回答「如何」(How) 與「為何」(Why) 的問題。</p>
+                <p class="mb-4">「個案」可以很小，也可以很大：</p>
+                <ul class="list-disc list-inside ml-4 space-y-2 mb-6">
+                    <li><strong>一個人</strong>：一位特定的「成功戒癮者」。</li>
+                    <li><strong>一個家庭</strong>：一個特定的「寄養家庭」。</li>
+                    <li><strong>一個組織</strong>：一間特定的「社福機構」。</li>
+                    <li><strong>一個事件</strong>：一次特定的「社區抗爭運動」。</li>
+                    <li><strong>一個方案</strong>：一個特定的「創新服務方案」。</li>
+                </ul>
+
+                <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">個案研究的特性</h3>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">1. 深入 (In-depth)</h3>
+                        <p class="mb-4">個案研究的重點「不是」廣度（樣本數），而是「深度」。它犧牲了「代表性」，以換取對單一個案「脈絡」的「透徹理解」。</p>
+                    </div>
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">2. 多元資料來源 (Multiple Sources)</h3>
+                        <p class="mb-4">這是個案研究的關鍵。為了確保研究的「嚴謹性」（效度），研究者不能只靠「單一」資料，必須使用「多元」資料來進行「三角驗證」(Triangulation)。</p>
+                    </div>
+                </div>
+
+                <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">社工範例：研究 A 機構的「高留任率」</h3>
+                <p class="mb-4"><strong>研究問題</strong>：「為什麼」A 社福機構的「社工留任率」特別高？</p>
+                <p class="mb-4"><strong>「個案」</strong>：A 社福機構 (一個組織)</p>
+                <p class="mb-4"><strong>多元資料來源</strong>：</p>
+                <ul class="list-disc list-inside ml-4 space-y-2">
+                    <li><strong>(1) 深度訪談</strong>：訪談 A 機構的執行長、督導、資深社工、新進社工。</li>
+                    <li><strong>(2) 文件分析</strong>：分析 A 機構的「薪資結構」、「福利制度」、「督導手冊」。</li>
+                    <li><strong>(3) 參與式觀察</strong>：實際參與 A 機構的「團體督導」或「內部會議」。</li>
+                </ul>
+                <p class="mt-4">研究者將這三種資料「交叉比對」（三角驗證），以歸納出 A 機構高留任率的「關鍵因素」。</p>
+
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：個案研究</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一位研究者為了深入了解一個「成功」的社區照顧方案，他同時使用了「訪談」（訪談工作人員）、「文件分析」（分析方案報告）和「參與觀察」（觀察方案運作）三種方法來蒐集資料。</p>
+                        <p class="mb-4">這種使用「多元資料來源」來交叉驗證發現的過程，稱為什麼？</p>
+                        
+                        <div id="quiz-case-study" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-case-study', 0, 2)">A. 守門人 (Gatekeeper)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-case-study', 1, 2)">B. 主位觀點 (Emic Perspective)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-case-study', 2, 2)">C. 三角驗證 (Triangulation)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-case-study', 3, 2)">D. 紥根理論 (Grounded Theory)</button>
+                        </div>
+                        <div id="quiz-case-study-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Section: 敘事/言談 --><section id="narrative" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">📖 敘事研究 / 言談分析</h2>
+                <p class="mb-6">這兩種方法都聚焦於「語言」，但層次不同。「敘事」關注「故事」，「言談」關注「語言的使用」。</p>
+                
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">1. 敘事研究 (Narrative Research)</h3>
+                        <p class="mb-4"><strong>核心</strong>：分析「故事」(Stories)。人類是透過「說故事」來賦予經驗意義的。敘事研究就是去蒐集並分析這些「故事」，以理解參與者的「認同」與「生命歷程」。</p>
+                        <p class="mb-4"><strong>分析什麼</strong>：故事的「結構」（開頭、轉折、結局）、故事中的「關鍵事件」、「重複出現的主題」。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">
+                            (1) 訪談 10 位「藥物戒癮成功者」，請他們「說出」自己的「生命故事」，並分析他們「如何」敘述自己的「轉捩點」。<br>
+                            (2) 分析「失獨父母」的敘事，看他們「如何」建構失去孩子的「意義」，以及他們「如何」在故事中重新找到「自我認同」。
+                        </g>
+                    </div>
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">2. 言談分析 (Discourse Analysis)</h3>
+                        <p class="mb-4"><strong>核心</strong>：分析「語言的使用」(Language-in-use)。言談分析不只關心「說了什麼」，更關心「如何說」、「為何這樣說」。它探討「語言」如何被用來「建構」社會真實、權力關係與意識形態。</p>
+                        <p class="mb-4"><strong>分析什麼</strong>：詞彙的選擇、隱喻、修辭、對話中的權力互動。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">
+                            (1) 分析「社工」與「案主」在會談中的「逐字稿」。看社工是否常使用「專業術語」（一種權力展現）？案主在什麼時候會「沉默」？<br>
+                            (2) 分析「新聞報導」如何「描述」遊民（是稱他們為「街友」、「流浪漢」還是「潛在的危險份子」？），並探討這些「詞彙」如何「建構」大眾對遊民的「刻板印象」。
+                        </g>
+                    </div>
+                </div>
+
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：敘事/言談分析</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一位研究者想了解「新住民女性」如何建構她們在台灣的「自我認同」。他邀請 10 位女性「說出」她們從家鄉到台灣的「生命故事」，並分析這些「故事」的結構與轉折點。</p>
+                        <p class="mb-4">這最接近哪一種研究方法？</p>
+                        
+                        <div id="quiz-narrative" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-narrative', 0, 0)">A. 敘事研究</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-narrative', 1, 0)">B. 言談分析</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-narrative', 2, 0)">C. 個案研究</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-narrative', 3, 0)">D. 焦點團體</button>
+                        </div>
+                        <div id="quiz-narrative-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section: 焦點團體 --><section id="focus-group" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">💬 焦點團體法 (Focus Group)</h2>
+                <p class="mb-6">焦點團體是一種「團體訪談」。研究者邀請 6 到 10 位背景相似的參與者，針對一個「特定的、聚焦的」主題，在一位「引導者」(Moderator) 的帶領下，進行「開放性的討論」。</p>
+                
+                <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">焦點團體的關鍵</h3>
+                <p class="mb-4">焦點團體的「資料」來源，「不」只是每個人說了什麼，更是「參與者之間的互動」。</p>
+                <ul class="list-disc list-inside ml-4 space-y-2 mb-6">
+                    <li><strong>優點</strong>：高效（一次訪談多人）、能觀察到「群體動力」、參與者會「互相激盪」出個人訪談中想不到的觀點。</li>
+                    <li><strong>缺點</strong>：可能出現「群體壓力」或「從眾效應」、健談者「主導」全場、涉及「敏感」或「隱私」的主題不適合。</li>
+                    <li><strong>引導者角色</strong>：關鍵人物。必須「中立」、能「控制」場面、確保「每個人」都有發言機會、並在偏離主題時「拉回」焦點。</li>
+                </ul>
+
+                <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">社工範例</h3>
+                <div class="space-y-4">
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">範例一：方案發展（最常用）</h3>
+                        <p class="mb-4">
+                            <strong>研究問題</strong>：機構想為「青少年照顧者」設計一個新方案，想知道他們「最需要」什麼服務？<br>
+                            <strong>研究方法</strong>：舉辦 2-3 場「焦點團體」，邀請 8 位青少年照顧者「一起討論」他們的需求與偏好。看他們在討論中「最優先」重視的是什麼（是喘息？還是技巧？）。
+                        </g>
+                    </div>
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">範例二：方案評估</h3>
+                        <p class="mb-4">
+                            <strong>研究問題</strong>：機構剛辦完一個「親職教育團體」，想知道「參與者」的「共同感受」是什麼？<br>
+                            <strong>研究方法</strong>：舉辦一場「焦點團體」，讓 6 位參與過的家長「互相討論」他們認為「最有幫助」和「最該改進」的部分是什麼。
+                        </g>
+                    </div>
+                </div>
+
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：焦點團體法</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一位研究者想了解大學生對「同儕壓力」的看法。他認為如果「一對一」訪談，學生可能會隱藏想法，但如果讓他們「一群人」一起聊，可能會「互相激盪」出更真實的觀點。</p>
+                        <p class="mb-4">這種依賴「參與者之間互動」來產生資料的方法，稱為什麼？</p>
+                        
+                        <div id="quiz-focus-group" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-focus-group', 0, 2)">A. 半結構式訪談</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-focus-group', 1, 2)">B. 參與式觀察</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-focus-group', 2, 2)">C. 焦點團體法</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-focus-group', 3, 2)">D. 德爾菲法</button>
+                        </div>
+                        <div id="quiz-focus-group-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Section: 行動研究 --><section id="action" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">🤝 行動研究 (Action Research)</h2>
+                <p class="mb-6">行動研究是一種「實踐導向」的研究，它的主要目的「不是」為了發表論文，而是為了「解決」實務現場「迫切的問題」，並帶來「立即的改變」。</p>
+                <p class="mb-4">它最大的特色是「研究者」與「實務工作者」（甚至案主）「共同合作」，一起找出問題、一起行動、一起評估。它是一種「賦權」(Empowerment) 的過程。</p>
+
+                <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">行動研究的循環</h3>
+                <p class="mb-4">行動研究是一個「反覆循環」的過程，直到問題被滿意地解決為止：</p>
+                <div class="flow-diagram p-4 bg-gray-50 rounded-lg">
+                    <div class="flow-step bg-blue-100 border-blue-300"><strong>1. 計畫 (Plan)</strong><br><small>（我們遇到了什麼問題？）</small></div>
+                    <div class="flow-arrow">➔</div>
+                    <div class="flow-step bg-green-100 border-green-300"><strong>2. 行動 (Act)</strong><br><small>（我們來試試這個新方法！）</small></div>
+                    <div class="flow-arrow">➔</div>
+                    <div class="flow-step bg-yellow-100 border-yellow-300"><strong>3. 觀察 (Observe)</strong><br><small>（新方法有用嗎？發生什麼事？）</small></div>
+                    <div class="flow-arrow">➔</div>
+                    <div class="flow-step bg-red-100 border-red-300"><strong>4. 反思 (Reflect)</strong><br><small>（為什麼有用/沒用？下一步？）</small></div>
+                    <div class="flow-arrow text-blue-500 text-3xl">↺</div>
+                </div>
+
+                <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">社工範例：改善機構的服務流程</h3>
+                <p class="bg-gray-50 p-3 rounded border">
+                    <strong>(計畫)</strong>：機構社工們（研究者+實務者）發現，案主普遍抱怨「等待服務的時間太長」。<br>
+                    <strong>(行動)</strong>：團隊「共同」決定，試行一個「新的預約分流系統」一個月。<br>
+                    <strong>(觀察)</strong>：在試行期間，「系統性」地蒐集案主的「等待時間」數據與「滿意度」回饋。<br>
+                    <strong>(反思)</strong>：團隊開會檢討數據，發現新系統「有效」縮短了 A 類案主的等待時間，但「無助於」B 類案主。因此，他們「修正」計畫，進入「第二個循環」。
+                </g>
+
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：行動研究</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一群社區工作者與「在地居民」「共同合作」，一起發現了社區的治安死角，並「一起」設計與執行了一個「社區巡守隊」方案，最後「一起」評估成效。</p>
+                        <p class="mb-4">這種「研究者」與「實務者/案主」共同合作、強調「立即改變」與「賦權」的研究方法，稱為什麼？</p>
+                        
+                        <div id="quiz-action" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-action', 0, 3)">A. 民族誌 (Ethnography)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-action', 1, 3)">B. 個案研究 (Case Study)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-action', 2, 3)">C. 紥根理論 (Grounded Theory)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-action', 3, 3)">D. 行動研究 (Action Research)</button>
+                        </div>
+                        <div id="quiz-action-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Section: 紥根理論 --><section id="grounded" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">🌱 紥根理論 (Grounded Theory)</h2>
+                <p class="mb-6">紥根理論「不」只是一種分析方法，它是一套「完整的、系統性的」研究「方法論」(Methodology)，其主要目的，就是「從資料中建立理論」(to generate theory from data)。</p>
+                <p class="mb-4">它的核心精神是「歸納法」的極致：研究者在開始時，應盡可能「拋棄」所有「先入為主」的理論假設，讓「理論」從「資料」中「自然浮現」(grounded in data)。</p>
+
+                <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">關鍵技術：持續比較法 & 編碼</h3>
+                <p class="mb-4">紥根理論的分析過程，是一種「資料蒐集」與「資料分析」同步進行的「持續比較法」(Constant Comparative Method)：</p>
+                <div class="flow-diagram p-4 bg-gray-50 rounded-lg">
+                    <div class="flow-step bg-blue-100 border-blue-300"><strong>1. 開放編碼 (Open Coding)</strong><br><small>（將資料打碎，貼上標籤/概念）</small></div>
+                    <div class="flow-arrow">➔</div>
+                    <div class="flow-step bg-green-100 border-green-300"><strong>2. 主軸編碼 (Axial Coding)</strong><br><small>（將相關的概念，組合成「類別」）</small></div>
+                    <div class="flow-arrow">➔</div>
+                    <div class="flow-step bg-yellow-100 border-yellow-300"><strong>3. 選擇性編碼 (Selective Coding)</strong><br><small>（找出「核心類別」，並建構理論）</small></div>
+                </div>
+
+                <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">社工範例：建構「社工職業倦怠」的理論</h3>
+                <p class="bg-gray-50 p-3 rounded border">
+                    <strong>研究問題</strong>：「社工的職業倦怠『過程』是如何發生的？」<br>
+                    <strong>(1) 蒐集+開放編碼</strong>：訪談第 1 位社工，將逐字稿中「所有」談到壓力的句子，都貼上「標籤」（如：案主壓力、督導壓力、低薪...）。<br>
+                    <strong>(2) 比較+主軸編碼</strong>：訪談第 2、3 位...，並「持續比較」新的標籤與舊的標籤，慢慢將標籤組合成「類別」（如：「組織因素」、「個人因素」）。<br>
+                    <strong>(3) 理論飽和</strong>：當訪談到第 15 位時，發現「再也」沒有「新的」類別出現了，稱為「理論飽和」(Theoretical Saturation)。<br>
+                    <strong>(4) 選擇性編碼</strong>：研究者發現，「組織因素」中的「行政壓力」似乎是「最核心」的類別，它能串連起所有其他類別。最後，研究者提出一個「社工倦怠的階段理論模型」。
+                </g>
+
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：紥根理論</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一位研究者在訪談了 10 位參與者後，發現第 11、12 位的訪談內容，已經「再也」沒有新的主題或概念出現了，他所建構的類別已經「飽滿」。</p>
+                        <p class="mb-4">在紥根理論中，這種「不再有新資料出現」的狀態，稱為什麼？</p>
+                        
+                        <div id="quiz-grounded" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-grounded', 0, 3)">A. 主軸編碼 (Axial Coding)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-grounded', 1, 3)">B. 反思性 (Reflexivity)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-grounded', 2, 3)">C. 三角驗證 (Triangulation)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-grounded', 3, 3)">D. 理論飽和 (Theoretical Saturation)</button>
+                        </div>
+                        <div id="quiz-grounded-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section: 德爾菲法 --><section id="delphi" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">🎯 德爾菲法 (Delphi Method)</h2>
+                <p class="mb-6">德爾菲法是一種「專家共識」的達成技術。當我們需要對「未來趨勢」、「政策優先性」或「關鍵指標」達成一致意見時，可以使用此方法。</p>
+                <p class="mb-4">它最大的特色是「匿名」與「多回合」的問卷調查，目的是為了「避免」傳統專家會議中，因為「權威效應」（大老說了算）或「從眾效應」而導致的偏誤。</p>
+
+                <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">德爾菲法的執行步驟</h3>
+                <div class="space-y-4">
+                    <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                        <h3 class="font-bold text-lg text-blue-800">第 1 回合 (Round 1)：探索</h3>
+                        <p>研究者向一群「匿名」的專家，提出一個「開放式」問題。（如：「請問您認為未來十年，台灣社工界『最迫切』的挑戰是什麼？」）</g>
+                    </div>
+                    <div class="text-center text-gray-500 font-bold">↓</div>
+                    <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                        <h3 class="font-bold text-lg text-blue-800">第 2 回合 (Round 2)：收斂</h3>
+                        <p>研究者將第 1 回合的所有答案，歸納成一份「結構式問卷」（如：50 個挑戰）。再寄給「同一群」專家，請他們對「每一個」挑戰的重要性進行「評分」（如 1-5 分）。</p>
+                    </div>
+                    <div class="text-center text-gray-500 font-bold">↓</div>
+                    <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                        <h3 class="font-bold text-lg text-blue-800">第 3 回合 (Round 3)：共識</h3>
+                        <p>研究者「統計」第 2 回合的「平均分數」與「四分位距」。然後將這份「統計報告」連同「你上次的答案」寄回給專家，並問：「在看了『大家的平均分數』後，你是否願意『修改』你上次的評分？」</g>
+                    </div>
+                    <div class="text-center text-gray-500 font-bold">↓</div>
+                    <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                        <h3 class="font-bold text-lg text-blue-800">第 4 回合 (Round 4...)：穩定</h3>
+                        <p>重複第 3 步驟，直到專家的意見「不再有太大變動」，達成「高度共識」為止。</p>
+                    </div>
+                </div>
+                
+                <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">社工範例</h3>
+                <p class="bg-gray-50 p-3 rounded border">
+                    <strong>研究問題</strong>：建構一套「居家服務督導」的「專業能力指標」。<br>
+                    <strong>研究方法</strong>：<br>
+                    1. 找 30 位資深的居服督導、學者、主管（專家）。<br>
+                    2. (R1) 開放式提問：「一個好的居服督導應具備哪些能力？」<br>
+                    3. (R2) 將 R1 答案編成 60 個指標，請專家評 1-5 分重要性。<br>
+                    4. (R3) 將 R2 的「全體平均分數」回饋給 30 位專家，請他們「重新」評分。<br>
+                    5. 最後選出「共識最高」（如：平均 > 4.5 且變異數很低）的 20 個指標，作為最終的能力指標。
+                </g>
+
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：德爾菲法</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一群研究者想預測「AI 對社工實務的衝擊」。他們不想開會（怕權威學者主導），於是採用了「多回合」、「匿名」問卷的方式，讓專家們在看到「群體統計結果」後，反覆修正自己的預測，直到達成共識。</p>
+                        <p class="mb-4">這種「匿名」且「多回合」的「專家共識」方法，稱為什麼？</p>
+                        
+                        <div id="quiz-delphi" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-delphi', 0, 3)">A. 焦點團體法</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-delphi', 1, 3)">B. 行動研究</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-delphi', 2, 3)">C. 紥根理論</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-delphi', 3, 3)">D. 德爾菲法</button>
+                        </div>
+                        <div id="quiz-delphi-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Overlay for mobile menu --><div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden" onclick="toggleMenu(false)"></div>
+
+
+    <script>
+        const sections = document.querySelectorAll('.content-section');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const closeMenuButton = document.getElementById('close-menu-button');
+
+        function showSection(sectionId) {
+            sections.forEach(section => {
+                if (section.id === sectionId) {
+                    section.classList.add('active');
+                } else {
+                    section.classList.remove('active');
+                }
+            });
+
+            navLinks.forEach(link => {
+                if (link.dataset.section === sectionId) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+
+            // Auto-scroll to top of content on section change
+            document.querySelector('.md\\:w-3\\/4')?.scrollTo(0, 0);
+            
+            // Close mobile menu on navigation
+            if (window.innerWidth < 768) {
+                toggleMenu(false);
+            }
+        }
+
+        function toggleMenu(show) {
+            if (show) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const sectionId = e.target.closest('a').dataset.section;
+                showSection(sectionId);
+                // Update URL hash for better history (optional)
+                window.location.hash = e.target.closest('a').getAttribute('href');
+            });
+        });
+
+        mobileMenuButton.addEventListener('click', () => toggleMenu(true));
+        closeMenuButton.addEventListener('click', () => toggleMenu(false));
+        overlay.addEventListener('click', () => toggleMenu(false));
+
+        // Handle page load with hash
+        document.addEventListener('DOMContentLoaded', () => {
+            const hash = window.location.hash;
+            if (hash) {
+                const sectionId = hash.substring(1);
+                const sectionElement = document.getElementById(sectionId);
+                if (sectionElement) {
+                    showSection(sectionId);
+                } else {
+                    showSection('intro');
+                }
+            } else {
+                showSection('intro');
+            }
+        });
+
+        // --- Quiz Logic ---
+        const quizAnswers = {
+            'quiz-characteristics': {
+                correctIndex: 1,
+                responses: [
+                    "不正確。歸納法是從資料「建構」主題。",
+                    "答對了！主位觀點 (Emic) 就是重視「局內人」如何「自己」詮釋與命名他們的經驗。",
+                    "不正確。整體性是強調「脈絡」的重要。",
+                    "不正確。研究者即工具是強調「反思性」。"
+                ]
+            },
+            'quiz-observer': {
+                correctIndex: 3,
+                responses: [
+                    "不正確。完全觀察者是「不」互動、在旁邊看。",
+                    "不正確。觀察者作為參與者會「揭露」身份。",
+                    "不正確。參與者作為觀察者也會「揭露」身份。",
+                    "答對了！完全參與者（臥底）就是「隱藏」身份，並「完全融入」該場域成為一份子。"
+                ]
+            },
+            'quiz-interview': {
+                correctIndex: 1,
+                responses: [
+                    "不正確。非結構式訪談「沒有」固定的訪談大綱。",
+                    "答對了！半結構式訪談的定義就是同時具備「訪談大綱」（核心主題）與「彈性」（順序與追問）。",
+                    "不正確。結構式訪談的「順序」與「問題」都是「完全固定」的。",
+                    "不正確。焦點團體是「團體」訪談。"
+                ]
+            },
+            'quiz-ethnography': {
+                correctIndex: 0,
+                responses: [
+                    "答對了！守門人 (Gatekeeper) 就是能「決定」你是否能「進入田野」的關鍵人物。",
+                    "不正確。關鍵報導人是「進入田野後」，能提供「深入資訊」的參與者。",
+                    "不正確。完全參與者是研究者的「角色」之一。",
+                    "不正確。分析單位是研究的「主角」（如：部落）。"
+                ]
+            },
+            'quiz-case-study': {
+                correctIndex: 2,
+                responses: [
+                    "不正確。守門人是幫你「進入」田野的人。",
+                    "不正確。主位觀點是質性研究的「特性」之一。",
+                    "答對了！三角驗證 (Triangulation) 的定義就是使用「多元」的資料來源（如：訪談+文件+觀察）來「交叉比對」，以提高研究的嚴謹性。",
+                    "不正確。紥根理論是一種「建構理論」的方法論。"
+                ]
+            },
+            'quiz-narrative': {
+                correctIndex: 0,
+                responses: [
+                    "答對了！敘事研究 (Narrative Research) 的核心就是分析人們如何「說故事」，以及故事如何建構「認同」。",
+                    "不正確。言談分析更關注「語言本身」的使用（如：詞彙、權力），而非「故事」的結構。",
+                    "不正確。個案研究是分析一個「個案」，但此處重點是分析「故事」。",
+                    "不正確。焦點團體是「團體」訪談。"
+                ]
+            },
+            'quiz-focus-group': {
+                correctIndex: 2,
+                responses: [
+                    "不正確。半結構式訪談是「一對一」的。",
+                    "不正確。參與式觀察是「長期」在田野中觀察。",
+                    "答對了！焦點團體法（Focus Group）的核心價值，就是透過「群體討論」與「參與者互動」來激盪出觀點。",
+                    "不正確。德爾菲法是「匿名」且「書面」的。"
+                ]
+            },
+            'quiz-action': {
+                correctIndex: 3,
+                responses: [
+                    "不正確。民族誌是「長期觀察」以描述文化。",
+                    "不正確。個案研究是「深入分析」一個個案。",
+                    "不正確。紥根理論是「建構理論」。",
+                    "答對了！行動研究 (Action Research) 的核心就是「實務者」與「研究者」共同合作，以「解決問題」並帶來「改變」。"
+                ]
+            },
+            'quiz-grounded': {
+                correctIndex: 3,
+                responses: [
+                    "不正確。主軸編碼是編碼的「過程」之一。",
+                    "不正確。反思性是研究者的「態度」。",
+                    "不正確。三角驗證是「交叉比對」資料來源。",
+                    "答對了！理論飽和 (Theoretical Saturation) 的定義就是指「蒐集不到新資料」了，此時研究者可以停止抽樣，因為理論類別已經「飽滿」。"
+                ]
+            },
+            'quiz-delphi': {
+                correctIndex: 3,
+                responses: [
+                    "不正確。焦點團體是「面對面」討論，會受權威影響。",
+                    "不正確。行動研究是為了「解決」當下問題。",
+                    "不正確。紥根理論是「建構」理論。",
+                    "答對了！德爾菲法 (Delphi Method) 的核心特徵就是「匿名」、「多回合」問卷，以及「統計回饋」，目的是達成「專家共識」。"
+                ]
+            }
+        };
+
+        function checkQuiz(quizId, selectedIndex, correctIndex) {
+            // If quizAnswers object is defined, use it.
+            if (quizAnswers[quizId]) {
+                correctIndex = quizAnswers[quizId].correctIndex;
+            }
+
+            const feedbackEl = document.getElementById(`${quizId}-feedback`);
+            const options = document.getElementById(quizId).getElementsByClassName('quiz-option');
+            
+            // Reset styles
+            for (let i = 0; i < options.length; i++) {
+                options[i].classList.remove('bg-green-200', 'border-green-400', 'bg-red-200', 'border-red-400');
+                options[i].disabled = true;
+            }
+
+            if (selectedIndex === correctIndex) {
+                feedbackEl.textContent = quizAnswers[quizId].responses[selectedIndex];
+                feedbackEl.className = 'quiz-feedback correct';
+                options[selectedIndex].classList.add('bg-green-200', 'border-green-400');
+            } else {
+                feedbackEl.textContent = quizAnswers[quizId].responses[selectedIndex];
+                feedbackEl.className = 'quiz-feedback incorrect';
+                options[selectedIndex].classList.add('bg-red-200', 'border-red-400');
+                // Highlight correct answer
+                options[correctIndex].classList.add('bg-green-200', 'border-green-400');
+            }
+        }
+
+    </script>
+</body>
+</html>
