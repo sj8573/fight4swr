@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>分析既存資料：量化與質性方法</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Chosen Palette: Academic Blue and Warm Neutrals --><!-- Application Structure Plan: 本SPA採用固定側邊導覽列（行動裝置為漢堡選單）結構。使用者可點選任一主題（如次級分析、內容分析），主內容區會動態顯示對應的<section>。此結構的優點是讓使用者能以非線性的方式自由探索、複習特定概念。 --><!-- Visualization & Content Choices: 1. 各種方法比較 (表格): 簡報原文為文字。 -> 目標: 視覺化比較次級分析、內容分析、歷史分析的異同。 -> 視覺化: 使用HTML/Tailwind製作結構化表格，從「資料類型」、「主要目的」、「分析範例」等維度進行比較。 -> 互動: 靜態表格。 -> 理由: 表格是呈現多維度比較的最佳方式，清晰易讀。 2. 內容分析流程 (圖解): 簡報原文為文字。 -> 目標: 視覺化內容分析的步驟。 -> 視覺化: 使用HTML/Tailwind製作「研究問題 -> 抽樣 -> 編碼 -> 分析」的水平流程圖。 -> 互動: 靜態圖解。 -> 理由: 將抽象的研究步驟轉化為具體的視覺流程。 --><!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. --><link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .nav-link {
+            display: block;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .nav-link:hover {
+            background-color: #f0f4f8;
+            color: #007bff;
+        }
+        .nav-link.active {
+            background-color: #e6f2ff;
+            color: #0056b3;
+            font-weight: 700;
+        }
+        .nav-link.sub-link {
+            padding-left: 2rem;
+            font-size: 0.9rem;
+        }
+        .nav-link.sub-link.active {
+            background-color: #e0eafc;
+        }
+        
+        .quiz-option {
+            display: block;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            text-align: left;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        .quiz-option:hover {
+            background-color: #f9fafb;
+            border-color: #6b7280;
+        }
+        .quiz-feedback {
+            margin-top: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            display: none;
+        }
+        .quiz-feedback.correct {
+            background-color: #d1fae5;
+            color: #065f46;
+            display: block;
+        }
+        .quiz-feedback.incorrect {
+            background-color: #fee2e2;
+            color: #991b1b;
+            display: block;
+        }
+        
+        /* Comparison Table */
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.5rem;
+        }
+        .comparison-table th, .comparison-table td {
+            border: 1px solid #d1d5db;
+            padding: 0.75rem 1rem;
+            text-align: left;
+        }
+        .comparison-table thead th {
+            background-color: #f3f4f6;
+            font-weight: 700;
+            color: #111827;
+        }
+        .comparison-table tbody tr:nth-child(odd) {
+            background-color: #ffffff;
+        }
+        .comparison-table tbody tr:nth-child(even) {
+            background-color: #f9fafb;
+        }
+        .comparison-table td:first-child {
+            font-weight: 600;
+            background-color: #f9fafb;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- Header --><header class="bg-white shadow-md sticky top-0 z-40">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <h1 class="text-xl md:text-2xl font-bold text-blue-800">分析既存資料：量化與質性方法</h1>
+            <button id="mobile-menu-button" class="md:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0; 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content --><div class="container mx-auto px-4 py-6 flex flex-col md:flex-row">
+
+        <!-- Navigation Sidebar --><nav id="sidebar" class="w-full md:w-1/4 lg:w-1/5 bg-white p-4 rounded-lg shadow-sm md:sticky md:top-24 md:self-start transition-transform duration-300 ease-in-out -translate-x-full md:translate-x-0 fixed md:relative h-full md:h-auto z-30 overflow-y-auto">
+            <button id="close-menu-button" class="md:hidden p-2 absolute top-2 right-2 text-gray-600 hover:text-gray-900">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            <h2 class="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">章節導覽</h2>
+            <ul>
+                <li><a href="#intro" class="nav-link active" data-section="intro">🏠 導論：分析既存資料</a></li>
+                <li><a href="#unobtrusive" class="nav-link" data-section="unobtrusive">🔍 非干擾性研究</a></li>
+                <li><a href="#secondary" class="nav-link" data-section="secondary">📊 次級分析</a></li>
+                <li><a href="#content" class="nav-link" data-section="content">📝 內容分析</a></li>
+                <li><a href="#historical" class="nav-link" data-section="historical">🏛️ 歷史分析</a></li>
+                <li><a href="#compare" class="nav-link" data-section="compare">⚖️ 各種方法的比較</a></li>
+            </ul>
+        </nav>
+
+        <!-- Content Area --><main class="w-full md:w-3/4 lg:w-4/5 md:pl-8 mt-6 md:mt-0">
+
+            <!-- Section: 導論 --><section id="intro" class="content-section active bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-4">🏠 導論：分析既存資料</h2>
+                <p class="mb-4 text-lg">並非所有的研究都需要「自己」去蒐集全新的資料（如：發問卷、做訪談）。事實上，我們身邊充滿了豐富的「既存資料」(Existing Data)，它們是由他人（如：政府、其他研究者、媒體、歷史人物）所創造的。</p>
+                <p class="mb-4">分析這些既存資料，是一種強大且高效的研究方式。它最大的優勢之一是「非干擾性」（或稱「非反應性」），因為資料已經存在，你的「研究行為」不會反過來影響或污染你的研究對象。</p>
+                <p class="mb-4">例如，當你訪問一個人時，他可能會因為「社會期許」而隱藏真實想法；但當你分析他十年前寫的日記時，你看到的是更真實的紀錄。</p>
+                
+                <div class="mt-6 bg-blue-50 border-l-4 border-blue-500 p-4 rounded-md">
+                    <h4 class="font-semibold text-blue-800">本章節學習重點：</h4>
+                    <p class="mt-2">本章節將介紹三種最主要的既存資料分析方法：<br>
+                        1. <strong>次級分析</strong> (Secondary Analysis)：分析「別人蒐集好的量化數據」。<br>
+                        2. <strong>內容分析</strong> (Content Analysis)：分析「人類的溝通產物」（如：媒體、文本）。<br>
+                        3. <strong>歷史分析</strong> (Historical Analysis)：分析「歷史文獻」。<br>
+                        我們將探討這些方法的優缺點、範例，以及它們之間的關鍵差異。
+                    </p>
+                </div>
+            </section>
+
+            <!-- Section: 非干擾性研究 --><section id="unobtrusive" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">🔍 非干擾性研究 (Unobtrusive Research)</h2>
+                <p class="mb-6">非干擾性研究（或稱「非反應性研究」，Non-reactive Research）是一種研究典範，強調研究者在蒐集資料時，應盡可能「不」干擾、影響或改變研究對象的自然行為。分析既存資料是實踐此典範最主要的方式。</p>
+                
+                <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">核心概念：避免「反應性」</h3>
+                <p class="mb-4">「反應性」(Reactivity) 指的是當人們「知道」自己正在被研究時，他們的行為會變得「不自然」。</p>
+                <ul class="list-disc list-inside ml-4 space-y-2">
+                    <li><strong>範例（反應性）</strong>：當社工督導來「觀摩」你的會談時，你（和案主）的表現可能會和平常不太一樣。</li>
+                    <li><strong>範例（非干擾性）</strong>：督導「不」觀摩，而是事後去分析你寫的「會談紀錄」（既存資料），這時你的會談行為就是自然的。</li>
+                </ul>
+
+                <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">非干擾性的資料類型</h3>
+                <p class="mb-4">除了本章節後續會提的次級分析、內容分析和歷史分析外，還包括一些創意的「物理痕跡」觀察：</p>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">1. 侵蝕性痕跡 (Erosion Measures)</h3>
+                        <p class="mb-4">觀察「磨損」的程度。</p>
+                        <p class="font-medium">範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">
+                            (1) 博物館想知道哪個展區最受歡迎，與其問訪客（可能有反應性），不如去檢查「不同展區的地板磨損程度」。<br>
+                            (2) 社工系想知道學生最常讀哪些書，可以去圖書館觀察「哪些核心教科書」被翻閱得最破舊。
+                        </p>
+                    </div>
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">2. 堆積性痕跡 (Accretion Measures)</h3>
+                        <p class="mb-4">觀察「累積」的程度。</p>
+                        <p class="font-medium">範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">
+                            (1) 社會學家想研究一個社區的「飲酒文化」，可能會去分析該社區「回收垃圾」中「酒瓶的數量與類型」。<br>
+                            (2) 觀察不同辦公室「塗鴉」的多寡，作為員工「壓力或創意」的間接指標。
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：非干擾性研究</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一位研究者想知道大學生最常使用圖書館的哪些區域。他不去「訪問」學生（學生可能會說謊或忘記），而是去觀察「不同區域桌椅的磨損程度」和「垃圾桶中的垃圾量」。</p>
+                        <p class="mb-4">這種研究方式的主要優點是什麼？</p>
+                        
+                        <div id="quiz-unobtrusive" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-unobtrusive', 0, 0)">A. 避免了「反應性」，學生的行為更自然。</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-unobtrusive', 1, 0)">B. 樣本數最大，最具代表性。</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-unobtrusive', 2, 0)">C. 最能建立因果關係。</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-unobtrusive', 3, 0)">D. 最符合研究倫理的知情同意。</button>
+                        </div>
+                        <div id="quiz-unobtrusive-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Section: 次級分析 --><section id="secondary" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">📊 次級分析 (Secondary Analysis)</h2>
+                <p class="mb-6">次級分析是指研究者「不」自己蒐集資料，而是使用「由他人」（通常是政府或大型研究團隊）所蒐集好的「量化資料庫」(Database)，來進行「第二次」的分析，以回答「新的」研究問題。</p>
+                
+                <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">常見的次級資料來源</h3>
+                <ul class="list-disc list-inside ml-4 space-y-2">
+                    <li><strong>政府開放資料</strong>：衛福部的「死因統計」、「健保資料庫」、「兒少保通報數據」；內政部的「戶籍人口統計」；主計處的「家庭收支調查」。</li>
+                    <li><strong>學術調查資料庫</strong>：中央研究院的「台灣社會變遷基本調查」(TSCS)、「台灣青少年成長歷程研究」(TYP)。</li>
+                    <li><strong>跨國調查資料庫</strong>：「世界價值觀調查」(WVS)。</li>
+                </ul>
+
+                <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">優點 vs. 缺點</h3>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="border-4 border-green-200 rounded-lg p-4 bg-green-50">
+                        <h3 class="text-lg font-semibold text-green-800 mb-3">優點 (Pros)</h3>
+                        <ul class="list-disc list-inside ml-4 space-y-2">
+                            <li><strong>省時省錢</strong>：最顯著的優點。免去了自己抽樣、發問卷、key-in 資料的漫長過程。</li>
+                            <li><strong>高品質與大樣本</strong>：政府或大型研究的抽樣通常非常嚴謹，且樣本數（動輒數千甚至數萬）遠非個人研究者所能及。</li>
+                            <li><strong>可及性高</strong>：許多資料庫（如 TSCS）都免費對學術界開放。</li>
+                            <li><strong>適合縱貫研究</strong>：許多資料庫是長期追蹤（如 Panel data），適合分析變遷。</li>
+                        </ul>
+                    </div>
+                    <div class="border-4 border-red-200 rounded-lg p-4 bg-red-50">
+                        <h3 class="text-lg font-semibold text-red-800 mb-3">缺點 (Cons)</h3>
+                        <ul class="list-disc list-inside ml-4 space-y-2">
+                            <li><strong>變項的限制</strong>：這是最大的缺點。你「只能」使用資料庫中「既有的」變項，它「不一定」完全符合你的研究概念。</li>
+                            <li><strong>測量的妥協</strong>：原始問卷測量「憂鬱」的方式，可能不是你最想要的方式，但你只能被迫接受。</li>
+                            <li><strong>資料的有效性</strong>：你無法知道原始資料蒐集的過程是否嚴謹、是否有錯誤。</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">社工範例</h3>
+                <p class="bg-gray-50 p-3 rounded border">
+                    <strong>研究問題</strong>：台灣民眾的「家庭價值觀」（如：是否同意三代同堂）是否會影響其「心理健康」（如：憂鬱程度）？<br>
+                    <strong>研究方法</strong>：不自己發問卷，而是去下載中研院「台灣社會變遷基本調查」的公開資料庫，從中挑出「家庭價值觀」和「心理健康（如 CES-D 量表）」這兩個「既有」的變項，然後用統計軟體跑迴歸分析。
+                </p>
+
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：次級分析</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一位社工系學生想研究「台灣社工的薪資與工時」，但他沒有經費自己發 1000 份問卷。於是，他去下載了「台灣社會工作人員協會」發布的「社工勞動狀況調查」的「原始數據資料庫」來進行分析。</p>
+                        <p class="mb-4">這種研究方法稱為什麼？</p>
+                        
+                        <div id="quiz-secondary" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-secondary', 0, 1)">A. 內容分析</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-secondary', 1, 1)">B. 次級分析</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-secondary', 2, 1)">C. 歷史分析</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-secondary', 3, 1)">D. 實驗研究</button>
+                        </div>
+                        <div id="quiz-secondary-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section: 內容分析 --><section id="content" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">📝 內容分析 (Content Analysis)</h2>
+                <p class="mb-6">內容分析是一種系統性地研究「人類溝通產物」的方法。它將「文本」或「圖像」等非結構化資料，透過「客觀的編碼系統」，轉換為可分析的數據或主題。</p>
+
+                <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">分析的對象（溝通產物）</h3>
+                <ul class="list-disc list-inside ml-4 space-y-2">
+                    <li><strong>書面資料</strong>：報紙、雜誌、期刊論文、教科書、社工個案紀錄、法院判決書、歷史檔案。</li>
+                    <li><strong>影音資料</strong>：電視新聞、電影、廣告、YouTube 影片、Podcast。</li>
+                    <li><strong>網路資料</strong>：社群媒體貼文（Facebook, Instagram）、部落格、論壇留言。</li>
+                </ul>
+
+                <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">量化 vs. 質性內容分析</h3>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">1. 量化內容分析 (Quantitative)</h3>
+                        <p class="mb-4"><strong>目的</strong>：計算「顯性內容」(Manifest Content) 出現的「頻率」與「次數」。</p>
+                        <p class="mb-4"><strong>特點</strong>：客觀、易於編碼、信度高，但可能流於表面。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">
+                            (1) 分析 100 篇關於「精神疾病」的「報紙報導」，並「計算」其中有多少「百分比」使用了「污名化詞彙」（如：瘋子、不定時炸彈）。<br>
+                            (2) 分析 50 本「兒童繪本」，並「計算」其中「男性」與「女性」角色從事「專業工作」（如：醫生、科學家）的「次數」比例。
+                        </p>
+                    </div>
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">2. 質性內容分析 (Qualitative)</h3>
+                        <p class="mb-4"><strong>目的</strong>：詮釋「隱性內容」(Latent Content) 背後的「深層意義」、「脈絡」與「主題」。</p>
+                        <p class="mb-4"><strong>特點</strong>：深入、豐富，但較為主觀，信度較難掌握。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">
+                            (1) 同樣分析 100 篇「精神疾病報導」，但不只是「計算」詞彙，而是去「詮釋」報導「如何建構」精神疾病的「形象」？（是將其視為「醫療問題」還是「社會問題」？）。<br>
+                            (2) 分析 20 位社工撰寫的「個案紀錄」，以「歸納」出社工在紀錄中「如何描述」非自願案主？（是將其描述為「抗拒的」還是「有苦衷的」？）。
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：內容分析</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一位研究者想了解「台灣主流電影」如何呈現「社工」的形象。他蒐集了近 20 年來所有出現過社工角色的電影，並分析這些角色在片中的「台詞」與「行為」。</p>
+                        <p class="mb-4">這種針對「溝通產物」（電影）進行系統性分析的研究方法，稱為什麼？</p>
+                        
+                        <div id="quiz-content" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-content', 0, 2)">A. 次級分析</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-content', 1, 2)">B. 實驗研究</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-content', 2, 2)">C. 內容分析</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-content', 3, 2)">D. 歷史分析</button>
+                        </div>
+                        <div id="quiz-content-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Section: 歷史分析 --><section id="historical" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">🏛️ 歷史分析 (Historical Analysis)</h2>
+                <p class="mb-6">歷史分析（或稱「歷史比較研究」）是一種使用「歷史文獻」與「檔案資料」作為證據，來系統性地探討「過去事件」的成因、過程與影響的研究方法。</p>
+                <p class="mb-4">它「不」等於傳統的歷史學（著重獨特事件的敘事），而是「社會科學」的一環，它試圖從歷史中找出「模式」(Patterns)，並用「理論」來解釋這些模式。</p>
+
+                <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">分析的對象（一手與二手史料）</h3>
+                <ul class="list-disc list-inside ml-4 space-y-2">
+                    <li><strong>一手史料（原始文獻）</strong>：政府檔案、法律文件、機構的會議紀錄、個人的日記或書信、當時的報紙。</li>
+                    <li><strong>二手史料（他人詮釋）</strong>：其他歷史學家撰寫的專書、傳記。</li>
+                </ul>
+
+                <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">社工範例</h3>
+                <div class="space-y-4">
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">範例一：台灣兒少福利政策的變遷</h3>
+                        <p class="mb-4">
+                            <strong>研究問題</strong>：「為什麼」台灣的兒少福利政策，會從 1970 年代的「殘補式」救助，轉變為 2000 年代後的「普及式」服務？<br>
+                            <strong>分析資料</strong>：分析歷年的「立法院公報」、「政府檔案」、「兒福聯盟的倡議文件」以及「當時的報紙社論」。<br>
+                            <strong>分析目的</strong>：找出是「哪些」社會力量（如：經濟發展、政治民主化、NPO 倡議）促成了這個轉變。
+                        </p>
+                    </div>
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">範例二：比較不同國家的社會住宅政策</h3>
+                        <p class="mb-4">
+                            <strong>研究問題</strong>：「為什麼」瑞典發展出「普及式」的社會住宅，而美國卻發展出「污名化」的公共住宅？<br>
+                            <strong>分析資料</strong>：比較兩國在 20 世紀初的「歷史檔案」、「工會紀錄」與「關鍵的法律條文」。<br>
+                            <strong>分析目的</strong>：找出造成兩國「不同政策路徑」的「歷史關鍵點」為何。
+                        </p>
+                    </div>
+                </div>
+                
+
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：歷史分析</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一位研究者想了解「台灣的社區工作」是如何從 1960 年代的「政府主導」，演變至今。他去國史館調閱了大量的「政府檔案」與「社區發展協會的早期會議紀錄」。</p>
+                        <p class="mb-4">這種分析「過去文獻」以探討「變遷過程」的研究方法，稱為什麼？</p>
+                        
+                        <div id="quiz-historical" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-historical', 0, 3)">A. 次級分析</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-historical', 1, 3)">B. 內容分析</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-historical', 2, 3)">C. 趨勢研究</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-historical', 3, 3)">D. 歷史分析</button>
+                        </div>
+                        <div id="quiz-historical-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Section: 比較 --><section id="compare" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">⚖️ 各種方法的比較</h2>
+                <p class="mb-6">次級分析、內容分析和歷史分析都是強大的「非干擾性研究」，但它們的「資料類型」與「分析核心」截然不同。以下是三者的關鍵比較：</p>
+                
+                <div class="overflow-x-auto">
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>比較面向</th>
+                                <th>📊 次級分析</th>
+                                <th>📝 內容分析</th>
+                                <th>🏛️ 歷史分析</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>主要目的</td>
+                                <td>分析「現成」的量化數據庫，以驗證新的假設。</td>
+                                <td>系統性分析「溝通產物」的顯性/隱性內容。</td>
+                                <td>詮釋「過去」的文獻檔案，以理解歷史變遷的脈絡。</td>
+                            </tr>
+                            <tr>
+                                <td>資料類型</td>
+                                <td><strong>量化 (Quantitative)</strong></td>
+                                <td><strong>質性 / 文本 (Qual/Text)</strong><br>（可轉為量化）</td>
+                                <td><strong>質性 / 文本 (Qual/Text)</strong></td>
+                            </tr>
+                            <tr>
+                                <td>分析核心</td>
+                                <td>變項之間的「統計關係」。</td>
+                                <td>文本中的「頻率、主題、意義」。</td>
+                                <td>事件之間的「時序、脈絡、因果」。</td>
+                            </tr>
+                            <tr>
+                                <td>主要來源</td>
+                                <td>政府統計、學術調查資料庫 (如 TSCS)。</td>
+                                <td>媒體（報紙、電視）、社群貼文、教科書。</td>
+                                <td>國家檔案、圖書館、個人日記、會議紀錄。</td>
+                            </tr>
+                            <tr>
+                                <td>社工範例</td>
+                                <td>用「健保資料庫」分析社工的就醫行為。</td>
+                                <td>用「社群貼文」分析青少年如何談論憂鬱。</td>
+                                <td>用「早期法律」分析精神衛生政策的演變。</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：各種方法的比較</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一位研究者想分析「近十年 PTT 社工版(SocialWork)」的貼文，以了解「社工討論度最高的『主題』是什麼」，以及「『抱怨』一詞出現的『頻率』變化」。</p>
+                        <p class="mb-4">這種針對「網路貼文」（一種溝通產物）進行主題與頻率分析的方法，最接近下列何者？</p>
+                        
+                        <div id="quiz-compare" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-compare', 0, 2)">A. 次級分析</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-compare', 1, 2)">B. 固定樣本研究</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-compare', 2, 2)">C. 內容分析</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-compare', 3, 2)">D. 歷史分析</button>
+                        </div>
+                        <div id="quiz-compare-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Overlay for mobile menu --><div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden" onclick="toggleMenu(false)"></div>
+
+
+    <script>
+        const sections = document.querySelectorAll('.content-section');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const closeMenuButton = document.getElementById('close-menu-button');
+
+        function showSection(sectionId) {
+            sections.forEach(section => {
+                if (section.id === sectionId) {
+                    section.classList.add('active');
+                } else {
+                    section.classList.remove('active');
+                }
+            });
+
+            navLinks.forEach(link => {
+                if (link.dataset.section === sectionId) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+
+            // Auto-scroll to top of content on section change
+            document.querySelector('.md\\:w-3\\/4')?.scrollTo(0, 0);
+            
+            // Close mobile menu on navigation
+            if (window.innerWidth < 768) {
+                toggleMenu(false);
+            }
+        }
+
+        function toggleMenu(show) {
+            if (show) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const sectionId = e.target.closest('a').dataset.section;
+                showSection(sectionId);
+                // Update URL hash for better history (optional)
+                window.location.hash = e.target.closest('a').getAttribute('href');
+            });
+        });
+
+        mobileMenuButton.addEventListener('click', () => toggleMenu(true));
+        closeMenuButton.addEventListener('click', () => toggleMenu(false));
+        overlay.addEventListener('click', () => toggleMenu(false));
+
+        // Handle page load with hash
+        document.addEventListener('DOMContentLoaded', () => {
+            const hash = window.location.hash;
+            if (hash) {
+                const sectionId = hash.substring(1);
+                const sectionElement = document.getElementById(sectionId);
+                if (sectionElement) {
+                    showSection(sectionId);
+                } else {
+                    showSection('intro');
+                }
+            } else {
+                showSection('intro');
+            }
+        });
+
+        // --- Quiz Logic ---
+        const quizAnswers = {
+            'quiz-unobtrusive': {
+                correctIndex: 0,
+                responses: [
+                    "答對了！非干擾性研究最大的優點，就是研究對象「不知道」自己被研究（或資料已存在），因此行為不會受到研究者影響，避免了「反應性」。",
+                    "不正確。樣本數不一定最大，例如分析垃圾可能只分析一個社區。",
+                    "不正確。這種觀察（如地板磨損）很難建立因果關係。",
+                    "不正確。相反地，這種研究常有「倫理爭議」，因為它通常「沒有」取得知情同意（例如：你不會告知學生你要檢查垃圾桶）。"
+                ]
+            },
+            'quiz-secondary': {
+                correctIndex: 1,
+                responses: [
+                    "不正確。內容分析是分析「文本」或「圖像」，而非「量化資料庫」。",
+                    "答對了！次級分析（Secondary Analysis）的定義就是使用「他人」已蒐集好的「量化資料庫」來進行新的分析。",
+                    "不正確。歷史分析是分析「歷史文獻」，而非「當代」的量化資料庫。",
+                    "不正確。實驗研究需要研究者「自己」進行介入與控制。"
+                ]
+            },
+            'quiz-content': {
+                correctIndex: 2,
+                responses: [
+                    "不正確。次級分析是分析「量化」資料庫，而非「電影」（溝通產物）。",
+                    "不正確。實驗研究需要有介入和控制組。",
+                    "答對了！內容分析（Content Analysis）的定義就是系統性地分析「溝通產物」（如電影、報紙、台詞）的內容。",
+                    "不正確。雖然電影會變成歷史，但這個研究的核心是分析「溝通內容」，而非「歷史脈絡」。"
+                ]
+            },
+            'quiz-historical': {
+                correctIndex: 3,
+                responses: [
+                    "不正確。次級分析是分析「量化」資料庫。",
+                    "不正確。雖然使用了「文獻」（一種內容），但其目的是探討「歷史變遷」，因此歷史分析是更精確的答案。",
+                    "不正確。趨勢研究是縱貫式研究的一種，通常是量化的。",
+                    "答對了！歷史分析（Historical Analysis）的定義就是使用「歷史文獻」（如檔案、會議紀錄）來探討「過去事件的演變」。"
+                ]
+            },
+            'quiz-compare': {
+                correctIndex: 2,
+                responses: [
+                    "不正確。次級分析是分析「量化資料庫」（如：政府調查數據），而非 PTT「貼文」。",
+                    "不正確。固定樣本研究是「長期追蹤」同一群「人」。",
+                    "答對了！PTT 貼文是一種「溝通產物」，系統性地分析其「主題」與「頻率」，是「內容分析」的典型範例。",
+                    "不正確。歷史分析是分析「過去」的檔案，而非「近十年」的網路貼文。"
+                ]
+            }
+        };
+
+        function checkQuiz(quizId, selectedIndex, correctIndex) {
+            // If quizAnswers object is defined, use it.
+            if (quizAnswers[quizId]) {
+                correctIndex = quizAnswers[quizId].correctIndex;
+            }
+
+            const feedbackEl = document.getElementById(`${quizId}-feedback`);
+            const options = document.getElementById(quizId).getElementsByClassName('quiz-option');
+            
+            // Reset styles
+            for (let i = 0; i < options.length; i++) {
+                options[i].classList.remove('bg-green-200', 'border-green-400', 'bg-red-200', 'border-red-400');
+                options[i].disabled = true;
+            }
+
+            if (selectedIndex === correctIndex) {
+                feedbackEl.textContent = quizAnswers[quizId].responses[selectedIndex];
+                feedbackEl.className = 'quiz-feedback correct';
+                options[selectedIndex].classList.add('bg-green-200', 'border-green-400');
+            } else {
+                feedbackEl.textContent = quizAnswers[quizId].responses[selectedIndex];
+                feedbackEl.className = 'quiz-feedback incorrect';
+                options[selectedIndex].classList.add('bg-red-200', 'border-red-400');
+                // Highlight correct answer
+                options[correctIndex].classList.add('bg-green-200', 'border-green-400');
+            }
+        }
+
+    </script>
+</body>
+</html>
