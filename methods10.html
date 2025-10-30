@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>調查研究：設計與實務</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Chosen Palette: Academic Blue and Warm Neutrals --><!-- Application Structure Plan: 採用與之前檔案一致的單頁應用程式(SPA)結構。左側為固定導覽列（行動裝置為漢堡選單），點擊後在右側主內容區動態顯示對應的<section>。此結構能讓學生在「調查特性」與「各種方法」之間自由切換，符合非線性學習。 --><!-- Visualization & Content Choices: 1. 調查方法比較 (表格): 報告原文為文字。 -> 目標: 系統性比較四種調查方法的優劣。 -> 視覺化: 使用HTML <table> 進行多維度比較 (成本、回收率、偏誤類型、問卷複雜度等)。 -> 互動: 靜態表格。 -> 理由: 表格是進行多點比較的最佳工具。 2. 優缺點列表 (卡片): 報告原文為文字。 -> 目標: 清晰展示每種方法的優點與缺點。 -> 視覺化: 使用雙欄卡片佈局，左(優點)/右(缺點)。 -> 互動: 靜態內容。 -> 理由: 並列比較易於記憶。 3. 互動測驗 (測驗): 報告原文無此內容。 -> 目標: 鞏固學習成果。 -> 視覺化: 在每個子題末尾加入HTML/JS按鈕測驗。 -> 互動: 點擊按鈕檢查答案，並顯示回饋。 -> 理由: 即時回饋能有效強化學習記憶點。 --><!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. --><link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .nav-link {
+            display: block;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .nav-link:hover {
+            background-color: #f0f4f8;
+            color: #007bff;
+        }
+        .nav-link.active {
+            background-color: #e6f2ff;
+            color: #0056b3;
+            font-weight: 700;
+        }
+        .nav-link.sub-link {
+            padding-left: 2rem;
+            font-size: 0.9rem;
+        }
+        .nav-link.sub-link.active {
+            background-color: #e0eafc;
+        }
+        
+        .quiz-option {
+            display: block;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            text-align: left;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        .quiz-option:hover {
+            background-color: #f9fafb;
+            border-color: #6b7280;
+        }
+        .quiz-feedback {
+            margin-top: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            display: none;
+        }
+        .quiz-feedback.correct {
+            background-color: #d1fae5;
+            color: #065f46;
+            display: block;
+        }
+        .quiz-feedback.incorrect {
+            background-color: #fee2e2;
+            color: #991b1b;
+            display: block;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        .comparison-table th, .comparison-table td {
+            border: 1px solid #d1d5db;
+            padding: 0.75rem;
+            text-align: left;
+        }
+        .comparison-table th {
+            background-color: #f3f4f6;
+            font-weight: 600;
+        }
+        .comparison-table tr:nth-child(even) {
+            background-color: #f9fafb;
+        }
+        .pro-con-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+        @media (min-width: 768px) {
+            .pro-con-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        .pro-card {
+            background-color: #f0fdf4; /* Green-50 */
+            border: 1px solid #a7f3d0; /* Green-200 */
+            border-radius: 0.5rem;
+            padding: 1rem;
+        }
+        .con-card {
+            background-color: #fef2f2; /* Red-50 */
+            border: 1px solid #fee2e2; /* Red-200 */
+            border-radius: 0.5rem;
+            padding: 1rem;
+        }
+        .pro-card h4 { color: #065f46; /* Green-800 */ }
+        .con-card h4 { color: #991b1b; /* Red-800 */ }
+
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- Header -->
+    <header class="bg-white shadow-md sticky top-0 z-40">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <h1 class="text-xl md:text-2xl font-bold text-blue-800">調查研究：設計與實務</h1>
+            <button id="mobile-menu-button" class="md:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-6 flex flex-col md:flex-row">
+
+        <!-- Navigation Sidebar -->
+        <nav id="sidebar" class="w-full md:w-1/4 lg:w-1/5 bg-white p-4 rounded-lg shadow-sm md:sticky md:top-24 md:self-start transition-transform duration-300 ease-in-out -translate-x-full md:translate-x-0 fixed md:relative h-full md:h-auto z-30 overflow-y-auto">
+            <button id="close-menu-button" class="md:hidden p-2 absolute top-2 right-2 text-gray-600 hover:text-gray-900">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            <h2 class="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">章節導覽</h2>
+            <ul>
+                <li><a href="#intro" class="nav-link active" data-section="intro">🏠 導論：什麼是調查研究？</a></li>
+                <li><a href="#characteristics" class="nav-link" data-section="characteristics">📜 調查研究的特性</a></li>
+                <li><a href="#mail" class="nav-link" data-section="mail">📬 郵寄問卷</a></li>
+                <li><a href="#online" class="nav-link" data-section="online">💻 網路線上調查</a></li>
+                <li><a href="#interview" class="nav-link" data-section="interview">👥 面訪調查</a></li>
+                <li><a href="#phone" class="nav-link" data-section="phone">📞 電話調查</a></li>
+                <li><a href="#comparison" class="nav-link" data-section="comparison">⚖️ 不同調查方法之比較</a></li>
+            </ul>
+        </nav>
+
+        <!-- Content Area -->
+        <main class="w-full md:w-3/4 lg:w-4/5 md:pl-8 mt-6 md:mt-0">
+
+            <!-- Section: 導論 -->
+            <section id="intro" class="content-section active bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-4">🏠 導論：什麼是調查研究？</h2>
+                <p class="mb-4 text-lg"><strong>調查研究 (Survey Research)</strong> 是一種系統性的資料蒐集方法。研究者透過對一個「樣本」提問，並使用「標準化的問卷」，來蒐集關於特定母體的態度、信念、行為或特徵的資料。</p>
+                <p class="mb-4">它的核心精神在於「從一個小樣本的結果，來推論一個大母體的樣貌」。</p>
+                
+                <div class="mt-6 bg-blue-50 border-l-4 border-blue-500 p-4 rounded-md">
+                    <h4 class="font-semibold text-blue-800">在社會工作中的應用：</h4>
+                    <p class="mt-2">調查研究是社工實務與研究中最常被使用的方法之一，因為它非常適合作為「實證本位實務」(EBP) 的基礎：</p>
+                    <ul class="list-disc list-inside mt-2 ml-4 space-y-1">
+                        <li><strong>需求評估</strong>：調查社區居民對「長照服務」的需求程度。</li>
+                        <li><strong>方案評估</strong>：調查參與「青少年培力方案」的成員，在方案前後的自我效能變化。</li>
+                        <li><strong>政策分析</strong>：調查民眾對「社會救助法修正案」的看法與支持度。</li>
+                        <li><strong>描述群體特徵</strong>：調查「街友」的人口統計特徵與服務使用經驗。</li>
+                    </ul>
+                    <p class="mt-2">本章節將聚焦於蒐集資料的「執行模式」，探討不同調查方法的優、缺點與適用情境。</p>
+                </div>
+            </section>
+
+            <!-- Section: 特性 -->
+            <section id="characteristics" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">📜 調查研究的特性</h2>
+                <p class="mb-6">調查研究之所以能成為一種科學方法，依賴以下幾個關鍵特性：</p>
+
+                <div class="space-y-6">
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">1. 依賴標準化問卷 (Standardized Questionnaire)</h3>
+                        <p class="mb-4">這是調查研究的核心。所有受訪者都會被詢問「相同」的問題，並使用「相同」的答案選項。這確保了資料的一致性，使得結果可以被彙整與統計比較。</p>
+                        <p class="font-medium">範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">詢問滿意度時，不能問 A「你覺得還OK嗎？」，問 B「你是否非常滿意？」。必須統一問：「您對本服務的整體滿意度為？ (1)非常不滿意 (2)不滿意...」</p>
+                    </div>
+
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">2. 依賴樣本推論 (Sample to Population)</h3>
+                        <p class="mb-4">調查研究很少（幾乎從不）進行普查。其價值在於使用科學的「抽樣」方法（如前一章所述），選出一個具代表性的樣本。研究者分析樣本資料，然後將結果「推論」回母體。</p>
+                        <p class="font-medium">範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">從全市 5,000 名獨居長者中，隨機抽出 300 位進行訪問。若這 300 位樣本中有 40% 表示需要送餐服務，我們便可推論「全市獨居長者中，大約有 40% 需要送餐服務」。</p>
+                    </div>
+                    
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">3. 適用的主題 (Suitable Topics)</h3>
+                        <p class="mb-4">調查研究特別擅長蒐集那些「無法被直接觀察」的個人內在狀態或外在行為：</p>
+                        <ul class="list-disc list-inside ml-4 space-y-2">
+                            <li><strong>態度、信念、價值觀</strong>：(例如：民眾對同性婚姻的接受度)</li>
+                            <li><strong>行為</strong>：(例如：過去一個月，您使用了幾次社區據點的服務？)</li>
+                            <li><strong>特徵與屬性</strong>：(例如：受訪者的人口統計資料、健康狀況)</li>
+                            <li><strong>期望與滿意度</strong>：(例如：案主對社工服務的滿意度)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Quiz -->
+                <div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：調查研究的特性</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：為了確保研究結果的「一致性」與「可比較性」，調查研究依賴哪一個核心元素？</p>
+                        
+                        <div id="quiz-char" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-char', 0, 1)">A. 質性訪談大綱</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-char', 1, 1)">B. 標準化問卷</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-char', 2, 1)">C. 實驗設計</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-char', 3, 1)">D. 普查</button>
+                        </div>
+                        <div id="quiz-char-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section: 郵寄問卷 -->
+            <section id="mail" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">📬 郵寄問卷 (Mail Surveys)</h2>
+                <p class="mb-6">研究者將紙本問卷、說明信、回郵信封，透過郵寄方式寄給抽樣選中的受訪者，受訪者自行填答後再寄回。</p>
+
+                <div class="pro-con-grid">
+                    <div class="pro-card">
+                        <h4 class="text-lg font-semibold mb-3">✅ 優點</h4>
+                        <ul class="list-disc list-inside space-y-2">
+                            <li><strong>成本相對低</strong>：比面訪或電話便宜（但比網路貴）。</li>
+                            <li><strong>匿名性高</strong>：受訪者不需面對訪員，對於敏感主題（如家暴、精神健康、性行為）的回答可能更誠實。</li>
+                            <li><strong>無訪員偏誤</strong>：不會有訪員的口氣、外表或引導，造成受訪者回答的偏誤。</li>
+                            <li><strong>作答時間彈性</strong>：受訪者可以在自己方便的時間、用自己的步調仔細填答。</li>
+                            <li><strong>可接觸廣泛</strong>：只要有地址（抽樣架構），幾乎可以寄到任何地方。</li>
+                        </ul>
+                    </div>
+                    <div class="con-card">
+                        <h4 class="text-lg font-semibold mb-3">❌ 缺點</h4>
+                        <ul class="list-disc list-inside space-y-2">
+                            <li><strong>回收率低</strong>：這是最大的問題。人們常忽略信件，回收率可能低於20%，導致嚴重的樣本代表性問題。</li>
+                            <li><strong>資料蒐集慢</strong>：從寄出到收回，可能需要數週甚至數月。</li>
+                            <li><strong>無法澄清問題</strong>：受訪者若看不懂題目，只能猜測或放棄作答。</li>
+                            <li><strong>不知填答者是誰</strong>：無法確定是否為樣本本人填答（可能是配偶或小孩代填）。</li>
+                            <li><strong>依賴識字率</strong>：不適用於識字能力有限或視力不佳的群體。</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">社工範例與策略</h3>
+                <p class="mb-4"><strong>應用情境</strong>：研究「全國社工師的職業倦怠與離職意願」。因為這主題具敏感性，「匿名」是關鍵優勢。研究者可從衛福部的社工師名冊（抽樣架構）寄發問卷。</p>
+                <p class="font-medium"><strong>提升回收率策略 (Dillman's TDM)</strong>：</p>
+                <ul class="list-disc list-inside ml-4">
+                    <li>寄送前先寄「預告信」。</li>
+                    <li>附上小禮物或抽獎機會。</li>
+                    <li>1-2週後寄送「提醒明信片」。</li>
+                    <li>3-4週後再次「補寄整份問卷」給未回覆者。</li>
+                </ul>
+
+                <!-- Quiz -->
+                <div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：郵寄問卷</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一位研究者想調查「高收入族群對高額遺產稅的真實看法」，這是一個敏感的提問。</p>
+                        <p class="mb-4">考量到主題的敏感性，若不考慮成本，郵寄問卷提供的哪項優勢最為關鍵？</p>
+                        
+                        <div id="quiz-mail" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-mail', 0, 1)">A. 回收率很高</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-mail', 1, 1)">B. 匿名性高，可降低社會期許偏誤</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-mail', 2, 1)">C. 資料蒐集速度快</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-mail', 3, 1)">D. 可以澄清複雜的問題</button>
+                        </div>
+                        <div id="quiz-mail-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section: 網路線上調查 -->
+            <section id="online" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">💻 網路線上調查 (Online Surveys)</h2>
+                <p class="mb-6">研究者透過電子郵件、社群媒體、APP或網頁彈窗，邀請受訪者點選連結，至線上平台（如 Google Forms, SurveyMonkey, Qualtrics）填寫問卷。</p>
+
+                <div class="pro-con-grid">
+                    <div class="pro-card">
+                        <h4 class="text-lg font-semibold mb-3">✅ 優點</h4>
+                        <ul class="list-disc list-inside space-y-2">
+                            <li><strong>成本最低</strong>：無須印刷、郵資、訪員費用。</li>
+                            <li><strong>速度極快</strong>：問卷發布後可立即收到回覆。</li>
+                            <li><strong>資料自動化</strong>：資料直接匯入資料庫，無須人工登打，錯誤率低。</li>
+                            <li><strong>可處理複雜邏輯</strong>：能輕易設定「跳題」或「過濾題」（例如：若回答未婚，則跳過婚姻滿意度題目）。</li>
+                            <li><strong>可嵌入多媒體</strong>：可加入圖片、聲音、影像作為提問素材。</li>
+                        </ul>
+                    </div>
+                    <div class="con-card">
+                        <h4 class="text-lg font-semibold mb-3">❌ 缺點</h4>
+                        <ul class="list-disc list-inside space-y-2">
+                            <li><strong>抽樣偏誤 / 數位落差</strong>：最嚴重的問題。樣本會高度集中於年輕、教育程度高、都市地區的使用者，嚴重「低估」長者、低收入者、偏鄉居民的意見。</li>
+                            <li><strong>涵蓋率問題</strong>：缺乏一個像電話簿或地址一樣的「全民Email抽樣架構」。</li>
+                            <li><strong>重複填答</strong>：同一個人可能惡意或不小心重複填答。</li>
+                            <li><strong>注意力分散</strong>：受訪者可能邊看影片邊填答，導致答案品質低下。</li>
+                            <li><strong>自願樣本偏誤</strong>：在社群媒體上發放的問卷，會來填答的通常是「剛好有空」或「對此議題特別關心/憤怒」的人，不具代表性。</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">社工範例</h3>
+                <p class="mb-4"><strong>應用情境1 (佳)</strong>：機構在「親子工作坊」結束後，立即Email問卷連結給所有報名的家長，蒐集「立即性」的滿意度回饋。此時母體明確（所有學員），且Email是主要聯繫方式。</p>
+                <p class="mb-4"><strong>應用情境2 (差)</strong>：研究者想了解「全國民眾對社工的觀感」，於是將問卷貼在自己的 Facebook 和 PTT 上。這屬於「方便抽樣」，其結果「絕對不能」推論為全國民眾的看法。</p>
+                
+
+                <!-- Quiz -->
+                <div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：網路線上調查</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：研究者想調查「偏鄉獨居長者」的醫療需求，他決定使用網路問卷，因為成本最低且速度最快。</p>
+                        <p class="mb-4">這個研究設計最嚴重的「缺陷」是什麼？</p>
+                        
+                        <div id="quiz-online" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-online', 0, 3)">A. 問卷無法使用多媒體</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-online', 1, 3)">B. 資料需要人工登打，很耗時</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-online', 2, 3)">C. 匿名性太高，無法追蹤</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-online', 3, 3)">D. 數位落差導致的嚴重抽樣偏誤</button>
+                        </div>
+                        <div id="quiz-online-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section: 面訪調查 -->
+            <section id="interview" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">👥 面訪調查 (Face-to-Face Surveys)</h2>
+                <p class="mb-6">由「經過訓練」的訪員，親自到受訪者所在地（如家中或機構），面對面提問並記錄答案。注意：這仍是「標準化」調查，訪員必須「照稿唸」，不能像質性訪談一樣隨意追問。</p>
+
+                <div class="pro-con-grid">
+                    <div class="pro-card">
+                        <h4 class="text-lg font-semibold mb-3">✅ 優點</h4>
+                        <ul class="list-disc list-inside space-y-2">
+                            <li><strong>回收率最高</strong>：人們很難當面拒絕訪員，回收率通常遠高於其他方法。</li>
+                            <li><strong>適用所有群體</strong>：可訪問不識字者、長者、視障者，是「包容性」最強的方法。</li>
+                            <li><strong>可澄清問題</strong>：訪員可以即時解釋受訪者不懂的詞彙。</li>
+                            <li><strong>可使用視覺輔助</strong>：可出示「圖卡」或「量表卡」，幫助受訪者理解複雜選項。</li>
+                            <li><strong>可觀察非語言線索</strong>：可記錄受訪者的態度（如猶豫、不耐煩）或居住環境。</li>
+                        </ul>
+                    </div>
+                    <div class="con-card">
+                        <h4 class="text-lg font-semibold mb-3">❌ 缺點</h4>
+                        <ul class="list-disc list-inside space-y-2">
+                            <li><strong>成本最高</strong>：需要支付訪員的薪資、訓練費、交通費。</li>
+                            <li><strong>最耗時</strong>：訪員需要交通時間，且訪談本身很花時間。</li>
+                            <li><strong>訪員偏誤 (Interviewer Bias)</strong>：訪員的性別、年齡、口音、甚至穿著，都可能「不自覺地」影響受訪者的回答。</li>
+                            <li><strong>社會期許偏誤 (Social Desirability Bias)</strong>：最嚴重！當面詢問敏感問題（如：您是否會打小孩？），受訪者極可能為了面子而回答「符合社會期待」的答案。</li>
+                            <li><strong>訪員的人身安全</strong>：訪問陌生家戶或特定區域時，需考量訪員安全。</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">社工範例</h3>
+                <p class="mb-4"><strong>應用情境</strong>：執行大型、政府資助的「全國身心障礙者生活狀況調查」。此研究必須涵蓋所有障別（包含不識字、視障者），且需要極高的代表性（高回收率）以便推論全國，因此面訪是唯一可行的方法。</p>
+
+                <!-- Quiz -->
+                <div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：面訪調查</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：當研究者擔心受訪者會因為「不好意思」或「愛面子」，而不願誠實回答有關「收入」或「心理健康」等敏感問題時，</p>
+                        <p class="mb-4">他最該擔心面訪調查的哪一項缺點？</p>
+                        
+                        <div id="quiz-interview" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-interview', 0, 2)">A. 成本過高</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-interview', 1, 2)">B. 回收率太低</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-interview', 2, 2)">C. 社會期許偏誤</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-interview', 3, 2)">D. 問卷無法使用圖卡</button>
+                        </div>
+                        <div id="quiz-interview-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section: 電話調查 -->
+            <section id="phone" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">📞 電話調查 (Telephone Surveys)</h2>
+                <p class="mb-6">訪員透過電話（市話或手機）聯繫受訪者，唸出問卷題目並記錄其回答。現代多使用「電腦輔助電話訪問」(CATI) 系統，題目顯示在電腦上，訪員直接輸入答案。</p>
+
+                <div class="pro-con-grid">
+                    <div class="pro-card">
+                        <h4 class="text-lg font-semibold mb-3">✅ 優點</h4>
+                        <ul class="list-disc list-inside space-y-2">
+                            <li><strong>速度快、效率高</strong>：訪員無需交通，可快速聯繫大量樣本。</li>
+                            <li><strong>成本中等</strong>：比面訪便宜，比網路貴。</li>
+                            <li><strong>訪員可受督導</strong>：在電訪中心，督導可即時監聽訪問品質，確保訪員照稿唸，減少訪員偏誤。</li>
+                            <li><strong>可澄清問題</strong>：同面訪，可即時解釋題目。</li>
+                            <li><strong>RDD抽樣</strong>：「隨機撥號」(Random-Digit-Dialing) 是一種機率抽樣方法，可接觸到未登錄電話的家戶。</li>
+                        </ul>
+                    </div>
+                    <div class="con-card">
+                        <h4 class="text-lg font-semibold mb-3">❌ 缺點</h4>
+                        <ul class="list-disc list-inside space-y-2">
+                            <li><strong>涵蓋率嚴重下降</strong>：最大挑戰！傳統 RDD 依賴「市話」，但「唯手機族」(cell-phone-only) 比例暴增，導致樣本嚴重偏向「仍保有市話的長者或家庭」。</li>
+                            <li><strong>拒訪率極高</strong>：詐騙電話與廣告電話氾濫，導致民眾極不願接聽陌生來電（或直接被APP封鎖）。</li>
+                            <li><strong>問卷必須簡短</strong>：人們在電話上的耐心極低，問卷通常不能超過10-15分鐘。</li>
+                            <li><strong>無視覺輔助</strong>：無法使用圖卡或量表卡，複雜的選項（如李克特五點量表）很難在電話中說明清楚。</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">社工範例</h3>
+                <p class="mb-4"><strong>應用情境</strong>：機構針對「剛結案一個月」的案主，進行「服務滿意度與結案狀況」追蹤電訪。此時機構有案主的電話號碼（明確的抽樣架構），且訪問內容簡短（約5-10分鐘），非常適合使用電話調查。</p>
+
+                <!-- Quiz -->
+                <div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：電話調查</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：研究者想使用「隨機撥號」(RDD) 進行全國民調，但他發現研究結果嚴重偏向「長者」，而「年輕租屋族」的比例極低。</p>
+                        <p class="mb-4">這最可能是因為電話調查面臨了什麼困境？</p>
+                        
+                        <div id="quiz-phone" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-phone', 0, 0)">A. 「唯手機族」興起，市話涵蓋率下降</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-phone', 1, 0)">B. 電話調查成本過高</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-phone', 2, 0)">C. 訪員偏誤太嚴重</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-phone', 3, 0)">D. 問卷無法匿名</button>
+                        </div>
+                        <div id="quiz-phone-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section: 比較 -->
+            <section id="comparison" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">⚖️ 不同調查方法之比較</h2>
+                <p class="mb-4">沒有任何一種方法是完美的。研究者必須依據「研究目的」、「經費」、「時間」與「母體特性」來做出取捨。</p>
+                
+                <div class="overflow-x-auto">
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>比較面向</th>
+                                <th class="text-blue-600">👥 面訪調查</th>
+                                <th class="text-blue-600">📞 電話調查</th>
+                                <th class="text-blue-600">📬 郵寄問卷</th>
+                                <th class="text-blue-600">💻 網路調查</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>總體成本</strong></td>
+                                <td>最高 (訪員、交通)</td>
+                                <td>中等 (訪員、電話費)</td>
+                                <td>偏低 (郵資、印刷)</td>
+                                <td>最低 (無)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>資料蒐集速度</strong></td>
+                                <td>最慢</td>
+                                <td>最快</td>
+                                <td>偏慢</td>
+                                <td>最快</td>
+                            </tr>
+                            <tr>
+                                <td><strong>回收率 (潛力)</strong></td>
+                                <td>最高</td>
+                                <td>中等 (拒訪率高)</td>
+                                <td>最低 (需多次提醒)</td>
+                                <td>低 (自願樣本)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>適用低識字率</strong></td>
+                                <td><span class="font-bold text-green-600">是</span></td>
+                                <td><span class="font-bold text-green-600">是</span></td>
+                                <td><span class="font-bold text-red-600">否</span></td>
+                                <td><span class="font-bold text-red-600">否</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>問卷複雜度</strong></td>
+                                <td>高 (可澄清、用圖卡)</td>
+                                <td>低 (必須簡短、口語)</td>
+                                <td>中等 (可看說明)</td>
+                                <td>高 (可自動跳題)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>訪員偏誤</strong></td>
+                                <td>高 (受外表口氣影響)</td>
+                                <td>中等 (僅受口氣影響)</td>
+                                <td>無</td>
+                                <td>無</td>
+                            </tr>
+                            <tr>
+                                <td><strong>社會期許偏誤</strong></td>
+                                <td><span class="font-bold text-red-600">高</span> (面對面壓力)</td>
+                                <td>中</td>
+                                <td><span class="font-bold text-green-600">低</span> (匿名性高)</td>
+                                <td><span class="font-bold text-green-600">低</span> (匿名性高)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>抽樣架構問題</strong></td>
+                                <td>地址 (清楚)</td>
+                                <td>市話/手機 (困難)</td>
+                                <td>地址 (清楚)</td>
+                                <td>Email/網路 (最難)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Quiz -->
+                <div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：綜合比較</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一位社工想針對「機構內不識字的長者」進行服務滿意度調查。他手上有完整的案主名冊與地址。</p>
+                        <p class="mb-4">考量到母體的特性（不識字），哪一種調查方法最為合適？</p>
+                        
+                        <div id="quiz-comparison" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-comparison', 0, 2)">A. 網路線上調查 (最省錢)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-comparison', 1, 2)">B. 郵寄問卷 (有地址)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-comparison', 2, 2)">C. 面訪調查 (訪員可代唸)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-comparison', 3, 2)">D. 電話調查 (最快速)</button>
+                        </div>
+                        <div id="quiz-comparison-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Overlay for mobile menu -->
+    <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden" onclick="toggleMenu(false)"></div>
+
+
+    <script>
+        const sections = document.querySelectorAll('.content-section');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const closeMenuButton = document.getElementById('close-menu-button');
+
+        function showSection(sectionId) {
+            sections.forEach(section => {
+                if (section.id === sectionId) {
+                    section.classList.add('active');
+                } else {
+                    section.classList.remove('active');
+                }
+            });
+
+            navLinks.forEach(link => {
+                if (link.dataset.section === sectionId) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+
+            // Auto-scroll to top of content on section change
+            document.querySelector('.md\\:w-3\\/4')?.scrollTo(0, 0);
+            
+            // Close mobile menu on navigation
+            if (window.innerWidth < 768) {
+                toggleMenu(false);
+            }
+        }
+
+        function toggleMenu(show) {
+            if (show) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const sectionId = e.target.closest('a').dataset.section;
+                showSection(sectionId);
+                // Update URL hash for better history (optional)
+                window.location.hash = e.target.closest('a').getAttribute('href');
+            });
+        });
+
+        mobileMenuButton.addEventListener('click', () => toggleMenu(true));
+        closeMenuButton.addEventListener('click', () => toggleMenu(false));
+        overlay.addEventListener('click', () => toggleMenu(false));
+
+        // Handle page load with hash
+        document.addEventListener('DOMContentLoaded', () => {
+            const hash = window.location.hash;
+            if (hash) {
+                const sectionId = hash.substring(1);
+                const sectionElement = document.getElementById(sectionId);
+                if (sectionElement) {
+                    showSection(sectionId);
+                } else {
+                    showSection('intro');
+                }
+            } else {
+                showSection('intro');
+            }
+        });
+
+        // --- Quiz Logic ---
+        const quizAnswers = {
+            'quiz-char': {
+                correctIndex: 1,
+                responses: [
+                    "不正確。質性訪談大綱是彈性的，而非標準化的。",
+                    "答對了！標準化問卷確保每位受訪者都回答相同的問題，使結果可被統計與比較。",
+                    "不正確。實驗設計是另一種研究方法，強調操縱變項。",
+                    "不正確。普查是調查「母體」，調查研究通常只調查「樣本」。"
+                ]
+            },
+            'quiz-mail': {
+                correctIndex: 1,
+                responses: [
+                    "不正確。郵寄問卷的回收率通常是「最低」的。",
+                    "答對了！由於不需面對訪員，受訪者在填答敏感問題時壓力較小，較可能誠實回答。",
+                    "不正確。郵寄問卷的資料蒐集速度通常很慢。",
+                    "不正確。郵寄問卷的缺點之一是受訪者看不懂題目時「無法澄清」。"
+                ]
+            },
+            'quiz-online': {
+                correctIndex: 3,
+                responses: [
+                    "不正確。網路問卷的「優點」之一是可以使用多媒體。",
+                    "不正確。網路問卷的資料會「自動」匯入資料庫，不需人工登打。",
+                    "不正確。網路問卷的匿名性通常很高。",
+                    "答對了！「偏鄉獨居長者」是網路使用率極低的群體，使用網路問卷會導致嚴重的涵蓋誤差與抽樣偏誤。"
+                ]
+            },
+            'quiz-interview': {
+                correctIndex: 2,
+                responses: [
+                    "成本高是缺點，但與「不好意思回答」無直接關係。",
+                    "不正確。面訪的回收率通常是「最高」的。",
+                    "答對了！社會期許偏誤是指受訪者為了維持良好形象，而回答不誠實但「符合社會期待」的答案。",
+                    "不正確。面訪的「優點」是可以使用圖卡。"
+                ]
+            },
+            'quiz-phone': {
+                correctIndex: 0,
+                responses: [
+                    "答對了！市話抽樣會遺漏掉只使用手機的年輕族群，導致樣本偏向高齡化。",
+                    "不正確。電話調查的成本是「中等」，並非最高，且這無法解釋樣本偏誤。",
+                    "不正確。電話調查的訪員偏誤（僅口音）通常比面訪（外表、口音）要低。",
+                    "不正確。電話調查仍可做到匿名（不問姓名）。"
+                ]
+            },
+            'quiz-comparison': {
+                correctIndex: 2,
+                responses: [
+                    "不正確。網路調查要求受訪者必須能自行上網並閱讀螢幕。",
+                    "不正確。郵寄問卷要求受訪者必須能自行閱讀問卷。",
+                    "答對了！面訪調查由訪員親自提問與說明，最適合不識字或視力不佳的群體。",
+                    "不正確。雖然電話調查也由訪員提問，但對長者而言，面訪（可出示圖卡、建立信任）通常是更佳的選擇，且回收率更高。"
+                ]
+            }
+        };
+
+        function checkQuiz(quizId, selectedIndex, correctIndex) {
+            // If quizAnswers object is defined, use it.
+            if (quizAnswers[quizId]) {
+                correctIndex = quizAnswers[quizId].correctIndex;
+            }
+
+            const feedbackEl = document.getElementById(`${quizId}-feedback`);
+            const options = document.getElementById(quizId).getElementsByClassName('quiz-option');
+            
+            // Reset styles
+            for (let i = 0; i < options.length; i++) {
+                options[i].classList.remove('bg-green-200', 'border-green-400', 'bg-red-200', 'border-red-400');
+                options[i].disabled = true;
+            }
+
+            if (selectedIndex === correctIndex) {
+                feedbackEl.textContent = quizAnswers[quizId].responses[selectedIndex];
+                feedbackEl.className = 'quiz-feedback correct';
+                options[selectedIndex].classList.add('bg-green-200', 'border-green-400');
+            } else {
+                feedbackEl.textContent = quizAnswers[quizId].responses[selectedIndex];
+                feedbackEl.className = 'quiz-feedback incorrect';
+                options[selectedIndex].classList.add('bg-red-200', 'border-red-400');
+                // Highlight correct answer
+                options[correctIndex].classList.add('bg-green-200', 'border-green-400');
+            }
+        }
+
+    </script>
+</body>
+</html>
