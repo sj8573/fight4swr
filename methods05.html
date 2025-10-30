@@ -7,27 +7,13 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
-    <!-- Chosen Palette: Academic Blue and Warm Neutrals --><!-- Application Structure Plan: 本SPA採用固定側邊導覽列（行動裝置為漢堡選單）的結構。使用者可點選導覽列中的主題（導論、研究目的、時間面向、分析單位、推論謬誤），主內容區會動態顯示對應的<section>。此結構取代了簡報的線性流程，允許使用者依據學習需求自由跳轉、非線性地探索內容。此設計更符合網頁應用的使用習慣，便於快速查閱或複習特定章節。 --><!-- Visualization & Content Choices: 1. 研究目的 (圖表): 報告原文為文字。-> 目標: 比較不同目的的研究方法傾向。 -> 視覺化: 堆疊長條圖 (Chart.js/Canvas) 呈現探索/描述/解釋性研究中，質性與量化方法的預估使用比例。 -> 互動: 滑鼠懸停提示。 -> 理由: 將文字概念視覺化，強化「探索=偏質性，解釋=偏量化」的連結。 2. 時間面向 (圖表): 報告原文為文字。 -> 目標: 比較橫斷與縱貫研究建立因果關係的能力。 -> 視覺化: 水平長條圖 (Chart.js/Canvas)。 -> 互動: 滑鼠懸停提示。 -> 理由: 簡潔有力地凸顯橫斷式研究在因果推論上的限制。 3. 推論謬誤 (圖解): 報告原文為文字定義。 -> 目標: 視覺化錯誤推論的「方向」。 -> 視覺化: 使用HTML/Tailwind和Unicode箭頭(→)製作圖解，(例如：區位謬誤：團體 → 個人)。 -> 互動: 靜態圖解。 -> 理由: 使抽象定義具象化，幫助記憶。 4. 推論謬誤 (測驗): 報告原文為範例。 -> 目標: 測試並鞏固學習成效。 -> 視覺化: 互動式HTML/JS測驗，點擊按鈕顯示答案。 -> 互動: 點擊按鈕。 -> 理由: 透過主動回憶與即時回饋，提升學習效果。 --><!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. --><link rel="preconnect" href="https://fonts.googleapis.com">
+    <!-- Chosen Palette: Academic Blue and Warm Neutrals --><!-- Application Structure Plan: 本SPA採用固定側邊導覽列（行動裝置為漢堡選單）結構。使用者可點選任一主題（如研究目的、時間面向、分析單位），主內容區會動態顯示對應的<section>。此結構的優點是讓使用者能以非線性的方式自由探索、複習特定概念，而非被傳統簡報的線性頁面所限制。 --><!-- Visualization & Content Choices: 1. 研究目的與方法 (長條圖): 簡報原文為文字列表。 -> 目標: 視覺化四種目的與兩種方法間的傾向關係。 -> 視覺化: 使用Chart.js長條圖，顯示不同目的（探索、描述、解釋、評估）在量化/質性方法上的不同權重。 -> 互動: 滑鼠懸停顯示工具提示。 -> 理由: 將抽象的「傾向」概念具象化，更易比較。 2. 研究時間面向 (水平長條圖): 簡報原文為文字。 -> 目標: 比較不同時間設計的因果推論能力。 -> 視覺化: 使用Chart.js水平長條圖，比較橫斷、趨勢、世代、固定樣本研究的「因果推論能力」高低。 -> 互動: 滑鼠懸停顯示工具提示。 -> 理由: 將「能力高低」這個抽象屬性轉為可視的長度，一目了然。 3. 推論謬誤 (圖解): 簡報原文為文字定義。 -> 目標: 視覺化錯誤推論的「方向」。 -> 視覺化: 使用HTML/Tailwind和Unicode箭頭(→/←)製作簡單的圖解，顯示區位謬誤（群體→個體）和個體謬誤（個體→群體）的錯誤邏輯。 -> 互動: 靜態圖解。 -> 理由: 簡單的視覺方向能幫助學生立即記住兩種謬誤的關鍵區別。 4. 縱貫性研究 (圖解): 新增內容。 -> 目標: 視覺化三種縱貫性研究的「樣本」差異。 -> 視覺化: 使用HTML/CSS製作示意圖，清楚展示趨勢（樣本不同）、世代（特定群體，樣本不同）、固定樣本（樣本完全相同）。 -> 互動: 靜態圖解。 -> 理由: 這是區分三者最關鍵的核心，視覺化效果最好。 --><!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. --><link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
     
     <style>
         body {
             font-family: 'Noto Sans TC', sans-serif;
-        }
-        .chart-container {
-            position: relative;
-            width: 100%;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-            height: 300px;
-            max-height: 400px;
-        }
-        @media (min-width: 768px) {
-            .chart-container {
-                height: 350px;
-            }
         }
         .content-section {
             display: none;
@@ -50,991 +36,904 @@
         }
         .nav-link:hover {
             background-color: #f0f4f8;
-            color: #005A9C;
+            color: #007bff;
         }
-        .nav-link.nav-link-active {
-            background-color: #005A9C;
-            color: white;
+        .nav-link.active {
+            background-color: #e6f2ff;
+            color: #0056b3;
             font-weight: 700;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
-        .quiz-answer {
+        .nav-link.sub-link {
+            padding-left: 2rem;
+            font-size: 0.9rem;
+        }
+        .nav-link.sub-link.active {
+            background-color: #e0eafc;
+        }
+        
+        .quiz-option {
+            display: block;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            text-align: left;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        .quiz-option:hover {
+            background-color: #f9fafb;
+            border-color: #6b7280;
+        }
+        .quiz-feedback {
+            margin-top: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
             display: none;
         }
-        .card {
-            background-color: white;
-            border-radius: 0.75rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-            transition: all 0.3s ease-in-out;
+        .quiz-feedback.correct {
+            background-color: #d1fae5;
+            color: #065f46;
+            display: block;
         }
-        .card:hover {
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            transform: translateY(-2px);
+        .quiz-feedback.incorrect {
+            background-color: #fee2e2;
+            color: #991b1b;
+            display: block;
         }
-        /* 研究步驟流程樣式 */
-        .step-container {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
+
+        /* Chart.js Container */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px; /* Base height */
+            max-height: 400px;
         }
-        .step-item {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-        .step-number {
-            flex-shrink: 0;
-            width: 3rem;
-            height: 3rem;
-            border-radius: 50%;
-            background-color: #005A9C;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 1.25rem;
-        }
-        .step-content {
-            background-color: white;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            flex-grow: 1;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-        .step-arrow {
-            text-align: center;
-            font-size: 1.5rem;
-            color: #005A9C;
-            height: 2rem;
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
         }
     </style>
 </head>
-<body class="bg-neutral-50 text-neutral-800">
+<body class="bg-gray-50 text-gray-800">
 
-    <div class="flex flex-col md:flex-row min-h-screen">
-        
-        <header class="md:hidden flex justify-between items-center p-4 bg-white shadow-md sticky top-0 z-20">
-            <h1 class="text-lg font-bold text-blue-900">社會工作研究方法</h1>
-            <button id="menu-toggle" class="text-3xl text-blue-800">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-7 h-7">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+    <!-- Header --><header class="bg-white shadow-md sticky top-0 z-40">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <h1 class="text-xl md:text-2xl font-bold text-blue-800">社會工作研究方法：研究設計的關鍵要素</h1>
+            <button id="mobile-menu-button" class="md:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
             </button>
-        </header>
+        </div>
+    </header>
 
-        <nav id="sidebar-nav" class="hidden md:block md:w-64 bg-white shadow-lg p-5 space-y-2 fixed md:sticky top-0 h-screen md:h-auto z-10 md:z-0 overflow-y-auto">
-            <h2 class="text-xl font-bold text-blue-900 mb-6 hidden md:block">研究設計關鍵要素</h2>
-            <a class="nav-link nav-link-active" data-target="content-intro">
-                <span class="mr-2">🏠</span> 導論：為何重要？
-            </a>
-            <a class="nav-link" data-target="content-steps">
-                <span class="mr-2">📖</span> 研究步驟
-            </a>
-            <a class="nav-link" data-target="content-litreview">
-                <span class="mr-2">📚</span> 文獻回顧
-            </a>
-            <a class="nav-link" data-target="content-purpose">
-                <span class="mr-2">🎯</span> 研究目的
-            </a>
-            <a class="nav-link" data-target="content-time">
-                <span class="mr-2">⏳</span> 研究的時間面向
-            </a>
-            <a class="nav-link" data-target="content-longitudinal-types">
-                <span class="mr-2 pl-4">→</span> 縱貫性研究詳解
-            </a>
-            <a class="nav-link" data-target="content-unit">
-                <span class="mr-2">🔬</span> 研究的分析單位
-            </a>
-            <a class="nav-link" data-target="content-fallacy">
-                <span class="mr-2">⚠️</span> 推論謬誤
-            </a>
+    <!-- Main Content --><div class="container mx-auto px-4 py-6 flex flex-col md:flex-row">
+
+        <!-- Navigation Sidebar --><nav id="sidebar" class="w-full md:w-1/4 lg:w-1/5 bg-white p-4 rounded-lg shadow-sm md:sticky md:top-24 md:self-start transition-transform duration-300 ease-in-out -translate-x-full md:translate-x-0 fixed md:relative h-full md:h-auto z-30 overflow-y-auto">
+            <button id="close-menu-button" class="md:hidden p-2 absolute top-2 right-2 text-gray-600 hover:text-gray-900">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            <h2 class="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">章節導覽</h2>
+            <ul>
+                <li><a href="#intro" class="nav-link active" data-section="intro">🏠 導論：研究的藍圖</a></li>
+                <li><a href="#steps" class="nav-link" data-section="steps">🗺️ 研究步驟</a></li>
+                <li><a href="#literature" class="nav-link" data-section="literature">📚 文獻回顧</a></li>
+                <li><a href="#purpose" class="nav-link" data-section="purpose">🎯 研究目的之類型</a></li>
+                <li><a href="#time" class="nav-link" data-section="time">⏱️ 研究的時間面向</a></li>
+                <li><a href="#longitudinal" class="nav-link sub-link" data-section="longitudinal">↳ 縱貫性研究詳解</a></li>
+                <li><a href="#unit" class="nav-link" data-section="unit">👤 研究的分析單位</a></li>
+                <li><a href="#fallacy" class="nav-link" data-section="fallacy">🧠 推論謬誤</a></li>
+            </ul>
         </nav>
 
-        <main class="flex-1 p-6 md:p-10 overflow-y-auto">
+        <!-- Content Area --><main class="w-full md:w-3/4 lg:w-4/5 md:pl-8 mt-6 md:mt-0">
 
-            <section id="content-intro" class="content-section active">
-                <h1 class="text-3xl font-bold text-blue-900 mb-4">導論：為何研究設計對社工很重要？</h1>
-                <p class="text-lg text-neutral-600 mb-6">
-                    歡迎來到社會工作研究方法的核心！研究設計就像是建築藍圖，是整個研究的骨架。一個好的設計能確保我們的研究結果真實可信，並能有效地指導我們的實務工作。
-                </p>
+            <!-- Section: 導論 --><section id="intro" class="content-section active bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-4">🏠 導論：研究的藍圖</h2>
+                <p class="mb-4 text-lg">歡迎來到社會工作研究方法！「研究設計」就像是蓋房子的「藍圖」。</p>
+                <p class="mb-4">如果沒有一份好的藍圖，你可能會蓋出一棟歪斜的房子；同樣地，如果沒有好的研究設計，你可能會得到沒有意義、甚至完全錯誤的研究結果。這在社會工作領域尤其嚴重，因為錯誤的研究結果可能會導向無效的、甚至有害的社會服務。</p>
+                <p class="mb-4">研究設計的核心任務，就是確保我們用「最適合」且「最嚴謹」的方式，來回答我們的「研究問題」。</g>
+                
+                <div class="mt-6 bg-blue-50 border-l-4 border-blue-500 p-4 rounded-md">
+                    <h4 class="font-semibold text-blue-800">本章節學習重點：</h4>
+                    <p class="mt-2">本章節將帶您概覽研究設計中的幾個關鍵決策點：你要「為何」而做（研究目的）？你要在「何時」蒐集資料（時間面向）？你要分析「誰」（分析單位）？以及，你要如何避免做出錯誤的結論（推論謬誤）？</p>
+                </div>
+            </section>
+
+            <!-- Section: 研究步驟 --><section id="steps" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">🗺️ 研究步驟</h2>
+                <p class="mb-6">一個嚴謹的研究通常會遵循一個結構化的流程。雖然不同研究（尤其是量化與質性）在順序上會有些差異，但核心的邏E輯是相通的：</p>
+                
+                <div class="space-y-4">
+                    <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                        <h3 class="font-bold text-lg text-blue-800">1. 形成研究問題 (Formulating the Problem)</h3>
+                        <p>一切的起點。從一個廣泛的「興趣」（如：對青少年霸凌感到好奇）聚焦到一個「可研究的、具體的」問題。</p>
+                        <p class="mt-2 text-sm font-medium">範例：</p>
+                        <p class="text-sm bg-white p-2 border rounded">「學校的『反霸凌課程』是否真的能『降低』霸凌『事件的發生率』？」</p>
+                        <p class="mt-2 text-sm font-medium">更多範例 (EBP的PICOT框架)：</p>
+                        <p class="text-sm bg-white p-2 border rounded">
+                            <strong>P (群體)</strong>: 對於有創傷後壓力症候群(PTSD)的退伍軍人...<br>
+                            <strong>I (介入)</strong>: ...「團體治療」是否比...<br>
+                            <strong>C (比較)</strong>: ...「個別治療」...<br>
+                            <strong>O (結果)</strong>: ...更能「降低」其PTSD症狀？<br>
+                            <strong>T (時間)</strong>: ...在「六個月」的療程後？
+                        </p>
+                    </div>
+                    <div class="text-center text-gray-500 font-bold">↓</div>
+                    <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                        <h3 class="font-bold text-lg text-blue-800">2. 文獻回顧 (Literature Review)</h3>
+                        <p>看看「前人」是怎麼問這個問題的？他們發現了什麼？還有哪些「缺口」是他們沒做的？（詳見下一節）</p>
+                    </div>
+                    <div class="text-center text-gray-500 font-bold">↓</div>
+                    <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                        <h3 class="font-bold text-lg text-blue-800">3. 形成假設 / 概念化 (Hypothesizing / Conceptualization)</h3>
+                        <p>根據文獻，對你的問題提出一個「可被驗證的猜想」（假設）。並清楚定義你要測量的「核心概念」（概念化）。</p>
+                        <p class="mt-2 text-sm font-medium">範例（假設）：</p>
+                        <p class="text-sm bg-white p-2 border rounded">「『越常』參與反霸凌課程的學生，其『霸凌行為的發生率』會『越低』。」</p>
+                    </div>
+                    <div class="text-center text-gray-500 font-bold">↓</div>
+                    <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                        <h3 class="font-bold text-lg text-blue-800">4. 選擇研究設計 (Choosing a Research Design)</h3>
+                        <p>決定你的「藍圖」。你要做量化還是質性？是實驗研究、調查研究，還是深度訪談？（本章節後續會詳談）</p>
+                    </div>
+                    <div class="text-center text-gray-500 font-bold">↓</div>
+                    <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                        <h3 class="font-bold text-lg text-blue-800">5. 蒐集與分析資料 (Data Collection & Analysis)</h3>
+                        <p>實際去發問卷、做訪談、跑統計，或是分析質性逐字稿。</p>
+                    </div>
+                    <div class="text-center text-gray-500 font-bold">↓</div>
+                    <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                        <h3 class="font-bold text-lg text-blue-800">6. 結論與應用 (Conclusion & Application)</h3>
+                        <p>你的發現是否支持（或推翻）了你的假設？這個結果對「社會工作實務」有什麼「具體建議」？</p>
+                    </div>
+                </div>
+
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：研究步驟</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一位研究者根據過去的理論，推測「家庭支持度」越高的青少年，「憂鬱傾向」會越低。他設計了一份問卷來測量這兩個變項，並打算驗證這個猜想。</p>
+                        <p class="mb-4">這個「可被驗證的猜想」屬於研究步驟中的哪一個環節？</p>
+                        
+                        <div id="quiz-steps" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-steps', 0, 1)">A. 形成研究問題</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-steps', 1, 1)">B. 形成假設</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-steps', 2, 1)">C. 蒐集與分析資料</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-steps', 3, 1)">D. 結論與應用</button>
+                        </div>
+                        <div id="quiz-steps-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Section: 文獻回顧 --><section id="literature" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">📚 文獻回顧 (Literature Review)</h2>
+                <p class="mb-6">文獻回顧「不是」單純的「剪剪貼貼」或「摘要總匯」。它是一個「批判性的分析過程」，目的是回答：「關於這個主題，我們已經知道了什麼？又還不知道什麼？」</p>
+                
+                <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">文獻回顧的關鍵目的</h3>
                 <div class="grid md:grid-cols-2 gap-6">
-                    <div class="card p-6">
-                        <h3 class="text-xl font-bold text-blue-800 mb-2">確保結果的有效性與可靠性</h3>
-                        <p>讓我們能自信地說：「我們的研究結果是真的。」</p>
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">1. 避免重複造輪子</h3>
+                        <p class="mb-4">確保你的研究問題是「新的」，或是對舊問題提出「新的觀點」，而不是重複別人已經做過一模一樣的研究。</p>
+                        <p class="font-medium">範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">你本來想研究「單親是否影響學業」，文獻回顧後發現 90% 的研究都說「是」，但有少數研究指出「經濟狀況」才是關鍵。於是你將研究聚焦在「在控制了經濟狀況後，單親對學業的『獨立影響』還存在嗎？」</g>
                     </div>
-                    <div class="card p-6">
-                        <h3 class="text-xl font-bold text-blue-800 mb-2">協助「基於證據的決策」(EBP)</h3>
-                        <p>我們的介入有科學根據嗎？研究設計幫助我們回答這個問題。</p>
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">2. 學習理論與概念</h3>
+                        <p class="mb-4">前人用了哪些「理論框架」（如：依附理論、社會學習理論）來解釋這個現象？他們是如何「定義」你的核心概念（如：霸凌、復原力）的？</p>
+                        <p class="font-medium">範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">你想研究「青少年為何犯罪」，文獻回顧讓你認識了「社會控制理論」、「緊張理論」等，幫助你建立分析框架，而不是停留在「交到壞朋友」的表面解釋。</p>
                     </div>
-                    <div class="card p-6">
-                        <h3 class="text-xl font-bold text-blue-800 mb-2">評估服務方案的成效</h3>
-                        <p>我們提供的服務真的有效嗎？如何證明？</p>
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">3. 學習測量方法</h3>
+                        <p class="mb-4">前人是用什麼「工具」來測量你的概念的？是用「量表」、「訪談大綱」，還是「觀察法」？這些工具有哪些優缺點？</g>
+                        <p class="font-medium">範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">你想測量「憂鬱」。文獻回顧讓你發現，學界最廣泛使用、信效度最高的工具是「CES-D 量表」或「BDI-II 量表」，這遠比你自己隨便編 5 個題目來得嚴謹與可信。</p>
                     </div>
-                    <div class="card p-6">
-                        <h3 class="text-xl font-bold text-blue-800 mb-2">避免錯誤的結論</h3>
-                        <p>在助人專業中，錯誤的結論可能導致資源錯配或無效介入，必須極力避免。</p>
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">4. 找出研究缺口 (Gap)</h3>
+                        <p class="mb-4">這是最重要的目的。找出過去研究「沒做到的」、「互相矛盾的」、或是「有待釐清的」地方。你的研究就是要去填補這個「缺口」。</p>
+                        <p class="font-medium">範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">文獻大多在談「受虐兒童」的創傷，但「很少」有研究去探討他們的「復原力」(Resilience) 是如何發展的。這就是一個絕佳的研究缺口。</p>
+                    </div>
+                </div>
+
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：文獻回顧</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一位研究者想測量「家庭功能」，他透過文獻回顧，發現過去的研究者最常使用「FACES-IV」這套發展成熟的量表。</p>
+                        <p class="mb-4">這主要體現了文獻回顧的哪一項功能？</p>
+                        
+                        <div id="quiz-literature" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-literature', 0, 2)">A. 避免重複造輪子</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-literature', 1, 2)">B. 找出研究缺口</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-literature', 2, 2)">C. 學習測量方法</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-literature', 3, 2)">D. 結論與應用</button>
+                        </div>
+                        <div id="quiz-literature-feedback" class="quiz-feedback"></div>
                     </div>
                 </div>
             </section>
 
-            <section id="content-steps" class="content-section">
-                <h1 class="text-3xl font-bold text-blue-900 mb-4">📖 研究步驟：從問題到結論</h1>
-                <p class="text-lg text-neutral-600 mb-6">
-                    一個實證研究通常會遵循系統性的步驟，雖然在實務上這些步驟可能是迭代和循環的，但理解這個基本流程對於規劃一個嚴謹的研究至關重要。
-                </p>
-                <div class="max-w-2xl mx-auto p-4">
-                    <div class="step-container">
-                        
-                        <div class="step-item">
-                            <div class="step-number">1</div>
-                            <div class="step-content">
-                                <h3 class="font-bold text-lg text-blue-800">形成研究問題</h3>
-                                <p class="text-neutral-600">一切的起點。一個好的問題應該是清晰、具體、可回答的。可來自實務困惑、理論、或過去研究的建議。在 EBP 中，常使用 PICOT 框架來聚焦問題。</p>
-                            </div>
-                        </div>
-                        <div class="step-arrow">↓</div>
-                        
-                        <div class="step-item">
-                            <div class="step-number">2</div>
-                            <div class="step-content">
-                                <h3 class="font-bold text-lg text-blue-800">文獻回顧</h3>
-                                <p class="text-neutral-600">檢視現有文獻，了解已知、未知與研究缺口。這同時也幫助我們學習他人如何操作化概念、使用何種測量工具、以及採用何種理論框架。</p>
-                            </div>
-                        </div>
-                        <div class="step-arrow">↓</div>
+            <!-- Section: 研究目的 --><section id="purpose" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">🎯 研究目的之類型</h2>
+                <p class="mb-6">你的研究「想」做到什麼程度？是想淺嚐即止，還是想深入探討？根據研究的「深度」與「企圖心」，主要可分為四大類型：</p>
 
-                        <div class="step-item">
-                            <div class="step-number">3</div>
-                            <div class="step-content">
-                                <h3 class="font-bold text-lg text-blue-800">擬定研究設計</h3>
-                                <p class="text-neutral-600">研究的「藍圖」。決定你的研究目的（探索/描述/解釋/評估）、時間面向（橫斷/縱貫）、分析單位、抽樣策略與測量方法。</p>
-                            </div>
-                        </div>
-                        <div class="step-arrow">↓</div>
-
-                        <div class="step-item">
-                            <div class="step-number">4</div>
-                            <div class="step-content">
-                                <h3 class="font-bold text-lg text-blue-800">蒐集資料</h3>
-                                <p class="text-neutral-600">執行你的設計，透過問卷、深度訪談、觀察、實驗、或次級資料（如政府統計）等方式取得原始資料。此步驟需注意倫理考量（如知情同意）。</p>
-                            </div>
-                        </div>
-                        <div class="step-arrow">↓</div>
-
-                        <div class="step-item">
-                            <div class="step-number">5</div>
-                            <div class="step-content">
-                                <h3 class="font-bold text-lg text-blue-800">分析資料</h3>
-                                <p class="text-neutral-600">使用統計軟體（量化）進行描述或推論統計；或使用編碼、歸納、主題分析（質性）來解釋資料的深層意義。</p>
-                            </div>
-                        </div>
-                        <div class="step-arrow">↓</div>
-
-                        <div class="step-item">
-                            <div class="step-number">6</div>
-                            <div class="step-content">
-                                <h3 class="font-bold text-lg text-blue-800">撰寫報告與結論</h3>
-                                <p class="text-neutral-600">將你的研究發現、限制、以及對實務與未來研究的建議進行總結，並分享給學術界與實務界（例如：發表、研討會）。</D>
-                            </div>
-                        </div>
-
+                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- 探索性 -->
+                    <div class="border-2 border-blue-200 rounded-lg p-4 shadow-sm flex flex-col">
+                        <h3 class="text-lg font-semibold text-blue-800 mb-3">1. 探索性 (Exploratory)</h3>
+                        <p class="mb-4"><strong>目的</strong>：針對一個「全新的」、「未知的」或「缺乏研究的」主題，進行初步的探索與了解，目的是「產生新問題」或「建立初步概念」。</p>
+                        <p class="font-medium"><strong>常問</strong>：「這是什麼？」(What?)</p>
+                        <p class="font-medium"><strong>方法</strong>：常使用「質性研究」，如深度訪談、焦點團體。</p>
+                        <p class="font-medium mt-2">社工範例：</p>
+                        <p class="bg-blue-50 p-3 rounded border text-sm flex-grow">
+                            (1) 疫情剛爆發時，去探索「社工如何適應『遠距』服務」這個「全新」的經驗。<br>
+                            (2) 探討「青少年網路成癮者」他們「主觀」的虛擬世界「意義」是什麼？
+                        </p>
+                    </div>
+                    <!-- 描述性 -->
+                    <div class="border-2 border-green-200 rounded-lg p-4 shadow-sm flex flex-col">
+                        <h3 class="text-lg font-semibold text-green-800 mb-3">2. 描述性 (Descriptive)</h3>
+                        <p class="mb-4"><strong>目的</strong>：針對一個「已知的」主題，提供「精確」且「詳細」的描述，呈現其「樣貌」、「比例」或「特徵」。</p>
+                        <p class="font-medium"><strong>常問</strong>：「有多少？」(How many?)</p>
+                        <p class="font-medium"><strong>方法</strong>：常使用「量化研究」，如大型調查(Survey)、次級資料分析。</p>
+                        <p class="font-medium mt-2">社工範例：</p>
+                        <p class="bg-green-50 p-3 rounded border text-sm flex-grow">
+                            (1) 描述台灣「社工的薪資結構」與「平均工時」為何？<br>
+                            (2) 描述「不同縣市」的「家庭暴力通報率」的「比例」與「趨勢」為何？
+                        </p>
+                    </div>
+                    <!-- 解釋性 -->
+                    <div class="border-2 border-yellow-200 rounded-lg p-4 shadow-sm flex flex-col">
+                        <h3 class="text-lg font-semibold text-yellow-800 mb-3">3. 解釋性 (Explanatory)</h3>
+                        <p class="mb-4"><strong>目的</strong>：最高層次的研究。不只描述現象，更要找出「為什麼」會這樣？試圖建立「變項」之間的「因果關係」或「關聯性」。</p>
+                        <p class="font-medium"><strong>常問</strong>：「為什麼？」(Why?)</p>
+                        <p class="font-medium"><strong>方法</strong>：常使用「量化研究」，如實驗、迴歸分析；或「嚴謹的質性研究」。</p>
+                        <p class="font-medium mt-2">社工範例：</p>
+                        <p class="bg-yellow-50 p-3 rounded border text-sm flex-grow">
+                            (1) 「家庭支持」（自變項）如何「影響」（因果）青少年的「憂鬱程度」（依變項）？<br>
+                            (2) 「為什麼」有些在逆境中成長的孩子（如：貧窮），長大後仍有「高度復原力」，而有些人沒有？
+                        </p>
+                    </div>
+                    <!-- 評估性 -->
+                    <div class="border-2 border-purple-200 rounded-lg p-4 shadow-sm flex flex-col">
+                        <h3 class="text-lg font-semibold text-purple-800 mb-3">4. 評估性 (Evaluative)</h3>
+                        <p class="mb-4"><strong>目的</strong>：專門用來「評估」一個「社會方案」或「政策」是否「有效」？是否「值得」投入資源？</p>
+                        <p class="font-medium"><strong>常問</strong>：「有用嗎？」(Does it work?)</p>
+                        <p class="font-medium"><strong>方法</strong>：常是「解釋性」研究的應用。使用實驗設計（如：RCT）、準實驗設計。</p>
+                        <p class="font-medium mt-2">社工範例：</p>
+                        <p class="bg-purple-50 p-3 rounded border text-sm flex-grow">
+                            (1) 評估機構新辦的「A 戒酒團體」是否「真的」比「B 傳統療法」更能「有效降低」再犯率？<br>
+                            (2) 評估「政府發放的育兒津貼」政策，是否「確實」達到了「提升生育率」的預期目標？（形成性 vs. 總結性評估）
+                        </p>
                     </div>
                 </div>
 
-                <h2 class="text-2xl font-bold text-blue-800 mb-4 mt-10">小測驗：測試你的理解</h2>
-                <div class="card p-6 space-y-6">
-                    <div>
-                        <p class="text-lg font-semibold mb-3">情境一：在蒐集資料之前，先系統性地檢視現有知識，是哪個步驟？</p>
-                        <div class="flex flex-wrap gap-2">
-                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-s1-inc1">形成研究問題</button>
-                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-s1-cor">文獻回顧</button>
-                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-s1-inc2">擬定研究設計</button>
-                        </div>
-                        <div id="q-s1-inc1" class="quiz-answer mt-3 p-3 bg-red-50 text-red-800 rounded-lg">
-                            <strong>不對喔。</strong> 形成研究問題是第一步，文獻回顧是基於這個問題去檢視現有知識。
-                        </div>
-                        <div id="q-s1-cor" class="quiz-answer mt-3 p-3 bg-green-50 text-green-800 rounded-lg">
-                            <strong>答對了！</strong> 文獻回顧（步驟2）是系統性地檢視現有文獻。
-                        </div>
-                        <div id="q-s1-inc2" class="quiz-answer mt-3 p-3 bg-red-50 text-red-800 rounded-lg">
-                            <strong>不對喔。</strong> 擬定研究設計（步驟3）是決定「如何」進行研究，這通常在文獻回顧之後。
-                        </div>
-                    </div>
-                    
-                    <hr>
-
-                    <div>
-                        <p class="text-lg font-semibold mb-3">情境二：決定要用「問卷」還是「深度訪談」來蒐集資料，這屬於哪個步驟的核心任務？</p>
-                        <div class="flex flex-wrap gap-2">
-                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-s2-cor">擬定研究設計</button>
-                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-s2-inc1">蒐集資料</button>
-                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-s2-inc2">分析資料</button>
-                        </div>
-                        <div id="q-s2-cor" class="quiz-answer mt-3 p-3 bg-green-50 text-green-800 rounded-lg">
-                            <strong>答對了！</strong> 擬定研究設計（步驟3）包含了決定研究方法、測量工具（如問卷或訪談）等關鍵決策。
-                        </div>
-                        <div id="q-s2-inc1" class="quiz-answer mt-3 p-3 bg-red-50 text-red-800 rounded-lg">
-                            <strong>不對喔。</strong> 蒐集資料（步驟4）是「執行」設計好的方法，而不是「決定」要用什麼方法。
-                        </div>
-                        <div id="q-s2-inc2" class="quiz-answer mt-3 p-3 bg-red-50 text-red-800 rounded-lg">
-                            <strong>不對喔。</strong> 分析資料（步驟5）是處理已經蒐集回來的資料。
-                        </div>
-                    </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">視覺化：研究目的與方法的關聯</h3>
+                <p class="text-center mb-4">雖然並非絕對，但不同目的確實有其偏好的研究方法：</p>
+                <div class="chart-container">
+                    <canvas id="purposeChart"></canvas>
                 </div>
 
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：研究目的</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一份研究報告的主題是：「台北市街友的人口結構特徵分析：年齡、性別、教育程度與無家可歸的年數。」</g>
+                        <p class="mb-4">這份研究最主要的研究目的最接近下列何者？</p>
+                        
+                        <div id="quiz-purpose" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-purpose', 0, 1)">A. 探索性</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-purpose', 1, 1)">B. 描述性</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-purpose', 2, 1)">C. 解釋性</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-purpose', 3, 1)">D. 評估性</button>
+                        </div>
+                        <div id="quiz-purpose-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
             </section>
 
-            <section id="content-litreview" class="content-section">
-                <h1 class="text-3xl font-bold text-blue-900 mb-4">📚 文獻回顧：站在巨人的肩膀上</h1>
-                <p class="text-lg text-neutral-600 mb-6">
-                    文獻回顧（Literature Review）不僅僅是「閱讀參考資料」而已。它是一個系統性的過程，旨在找出、評估和整合特定主題上所有相關的已發表研究。
-                </p>
-                <h2 class="text-2xl font-bold text-blue-800 mb-4">文獻回顧的主要目的</h2>
+            <!-- Section: 時間面向 --><section id="time" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">⏱️ 研究的時間面向</h2>
+                <p class="mb-6">你的研究是「拍一張照片」，還是「看一部電影」？這是在蒐集資料時，關於「時間點」的關鍵抉擇。</p>
+
                 <div class="grid md:grid-cols-2 gap-6">
-                    <div class="card p-6">
-                        <h3 class="text-xl font-bold text-blue-800 mb-2">避免重複造輪</h3>
-                        <p>釐清目前學界對這個主題「已經知道什麼了」。如果你的問題已經被完美解答，你就不需要再做一次同樣的研究。</p>
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">1. 橫斷式研究 (Cross-Sectional Study)</h3>
+                        <p class="mb-4"><strong>定義</strong>：在「單一個時間點」，蒐集「多個」不同對象的資料。就像是「拍一張快照」。</p>
+                        <p class="mb-4"><strong>優點</strong>：省時、省力、省錢，適合快速進行「描述性」研究。</p>
+                        <p class="mb-4"><strong>限制</strong>：難以建立「因果關係」。因為你「同時」測量 A 和 B，你無法確定是 A 導致 B，還是 B 導致 A？（相關不等於因果）。也難以排除「虛假關係」。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">
+                            (1) 在 2024 年 5 月，對 500 位社工進行「一次性」問卷調查，測量他們的「工作壓力」(A) 與「離職意願」(B)。<br>
+                            (2) 你可能會發現 A 和 B「高度相關」，但你「無法確定」是壓力導致離職，還是想離職的人才覺得壓力大？
+                        </p>
                     </div>
-                    <div class="card p-6">
-                        <h3 class="text-xl font-bold text-blue-800 mb-2">釐清與精鍊研究問題</h3>
-                        <p>找出「尚未被解答」或「仍有爭議」的部分（即研究缺口, Research Gap），讓你的研究問題更聚焦、更有貢獻價值。</p>
-                    </div>
-                    <div class="card p-6">
-                        <h3 class="text-xl font-bold text-blue-800 mb-2">學習理論與研究方法</h3>
-                        <p>看看其他學者如何定義相關概念？他們用了哪些理論框架（例如：生態系統、社會學習理論）？他們是如何測量變項或蒐集資料的（例如：用了哪些量表、訪談大綱）？這能啟發你自己的研究設計。</p>
-                    </div>
-                    <div class="card p-6">
-                        <h3 class="text-xl font-bold text-blue-800 mb-2">建立理論基礎與對話</h3>
-                        <p>將你的研究定位在現有的學術地圖上，說明你的研究將如何與過去的研究對話，並延伸、驗證、或挑戰了哪些既有結論。</p>
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">2. 縱貫式研究 (Longitudinal Study)</h3>
+                        <p class="mb-4"><strong>定義</strong>：在「多個時間點」，「長期」追蹤並蒐集資料。就像是「看一部紀錄片」。</p>
+                        <p class="mb-4"><strong>優點</strong>：能觀察到「變遷的過程」與「發展的趨勢」，在建立「因果關係」上的推論能力「遠高於」橫斷式研究。</p>
+                        <p class="mb-4"><strong>限制</strong>：非常昂貴、耗時、耗力。且可能面臨「樣本流失」（中途退出）的威脅。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">
+                            (1) 從 2024 年開始，「每隔半年」測量「同一群」新進社工的「工作壓力」(A) 與「離職意願」(B)，「連續追蹤三年」。<br>
+                            (2) 這樣你就能更清楚地看到，是不是「先」發生了高壓力，「之後」才發生了離職意願。
+                        </p>
                     </div>
                 </div>
 
-                <h2 class="text-2xl font-bold text-blue-800 mb-4 mt-10">小測驗：測試你的理解</h2>
-                <div class="card p-6 space-y-6">
-                    <div>
-                        <p class="text-lg font-semibold mb-3">情境一：文獻回顧中提到的「研究缺口」(Research Gap) 是指什麼？</p>
-                        <div class="flex flex-wrap gap-2">
-                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-l1-inc1">研究者忘記閱讀的文獻</button>
-                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-l1-cor">尚未被充分解答或有爭議的問題</button>
-                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-l1-inc2">研究中使用錯誤的理論</button>
+                <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">視覺化：時間面向與因果推論能力</h3>
+                <div class="chart-container" style="height: 250px;">
+                    <canvas id="timeChart"></canvas>
+                </div>
+
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：時間面向</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一位研究者在 2024 年 6 月 1 日「當天」，發送問卷給 1000 位大學生，測量他們的「網路使用時數」與「人際關係滿意度」。</p>
+                        <p class="mb-4">這種在「單一時間點」蒐集資料的設計，稱為什麼？</p>
+                        
+                        <div id="quiz-time" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-time', 0, 0)">A. 橫斷式研究</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-time', 1, 0)">B. 縱貫式研究</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-time', 2, 0)">C. 實驗研究</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-time', 3, 0)">D. 評估研究</button>
                         </div>
-                        <div id="q-l1-inc1" class="quiz-answer mt-3 p-3 bg-red-50 text-red-800 rounded-lg">
-                            <strong>不對喔。</strong> 「缺口」是指知識上的空缺，而不是研究者個人的疏忽。
-                        </div>
-                        <div id="q-l1-cor" class="quiz-answer mt-3 p-3 bg-green-50 text-green-800 rounded-lg">
-                            <strong>答對了！</strong> 找到研究缺口是文獻回顧的核心目的，這能確保你的研究具有貢獻價值。
-                        </div>
-                        <div id="q-l1-inc2" class="quiz-answer mt-3 p-3 bg-red-50 text-red-800 rounded-lg">
-                            <strong>不對喔。</strong> 評估理論是否錯誤可能是文獻回顧的一部分，但「缺口」是指知識上待補足之處。
+                        <div id="quiz-time-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Section: 縱貫性研究詳解 --><section id="longitudinal" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">↳ 縱貫性研究詳解</h2>
+                <p class="mb-6">「縱貫式研究」（看電影）並非單一類型，根據「追蹤對象」的「抽樣方式」，又可細分為三種主要類型：</g>
+
+                <div class="grid lg:grid-cols-3 gap-6">
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">1. 趨勢研究 (Trend Study)</h3>
+                        <p class="mb-4"><strong>定義</strong>：在不同時間點，對「同一個大群體」（如：全台灣的成年人）進行「反覆抽樣」，測量同一個主題的「趨勢」變化。</p>
+                        <p class="mb-4"><strong>關鍵</strong>：每次測量的人「是不同的」，但他們都來自「同一個大群體」。</p>
+                        <p class="mb-4"><strong>優點</strong>：適合了解「宏觀」的社會變遷。<strong>限制</strong>：無法分析「個人」層次的改變。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">
+                            (1) 台灣的「社會變遷基本調查」：每五年「抽樣」一次，問「不同的」台灣人，看他們對「家庭價值觀」的「趨勢」變化。<br>
+                            (2) 衛福部「每三年」進行一次「藥物濫用調查」，樣本都是「不同的」藥物濫用者，目的是觀察「全國」的藥物使用「趨勢」。
+                        </p>
+                    </div>
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">2. 世代研究 (Cohort Study)</h3>
+                        <p class="mb-4"><strong>定義</strong>：鎖定一個「特定世代」（Cohort，指一群在某個時間點有「共同經驗」的人），在不同時間點，去研究這個「群體」的變化。</p>
+                        <p class="mb-4"><strong>關鍵</strong>：研究的是「同一個世代」，但每次抽樣的人「可能不同」。</p>
+                        <p class="mb-4"><strong>優點</strong>：能區分「年齡效應」（變老）和「世代效應」（時代不同）。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">
+                            (1) 研究「嬰兒潮世代」（1946-1964出生的人），看他們在 30 歲、50 歲、70 歲時，對「社會福利的態度」如何變化。<br>
+                            (2) 追蹤「經歷過 921 地震」的「那批兒少」，在他們 15 歲、25 歲、35 歲時，其「心理健康狀態」的變化。
+                        </p>
+                    </div>
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">3. 固定樣本研究 (Panel Study)</h3>
+                        <p class="mb-4"><strong>定義</strong>：在不同時間點，追蹤「完全相同的一群人」。這是最嚴謹但也最困難的縱貫研究。</p>
+                        <p class="mb-4"><strong>關鍵</strong>：每一次測量的都「是同一批人」。</p>
+                        <p class="mb-4"><strong>優點</strong>：能最精確地分析「個人」層次的「改變軌跡」與「因果」。<strong>限制</strong>：「樣本流失」(Attrition) 問題最嚴重。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">
+                            (1) 「台灣傳播調查資料庫」(TCSS) 選定「同一批」受訪者，每年都回去訪問他們，看「同一個人」的媒體使用習慣如何隨時間改變。<br>
+                            (2) 找出 100 個「接受過寄養服務」的家庭，在服務結束後第 1 年、第 3 年、第 5 年，都回去訪談「這 100 個完全相同的家庭」，看他們的長期適應狀況。
+                        </p>
+                    </div>
+                </div>
+                
+                <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">視覺化：三種縱貫性研究的樣本差異</h3>
+                <div class="space-y-4 mt-4">
+                    <div class="bg-white p-4 border rounded-lg shadow-sm">
+                        <h4 class="font-bold text-gray-800">趨勢研究 (Trend)</h4>
+                        <p class="text-sm mb-2">研究「同一個大群體」（如：台灣人），但每次「抽樣的人都不同」。</g>
+                        <div class="flex justify-around items-center bg-gray-50 p-3 rounded">
+                            <span><strong>2010年</strong><br>抽樣 A, B, C</span>
+                            <span class="text-2xl font-bold text-gray-400">→</span>
+                            <span><strong>2020年</strong><br>抽樣 D, E, F</span>
                         </div>
                     </div>
-                    
-                    <hr>
+                    <div class="bg-white p-4 border rounded-lg shadow-sm">
+                        <h4 class="font-bold text-gray-800">世代研究 (Cohort)</h4>
+                        <p class="text-sm mb-2">研究「同一個特定世代」（如：921地震倖存者），但每次「抽樣的人可能不同」。</g>
+                        <div class="flex justify-around items-center bg-gray-50 p-3 rounded">
+                            <span><strong>2010年</strong><br>抽樣 G, H, I</span>
+                            <span class="text-2xl font-bold text-gray-400">→</span>
+                            <span><strong>2020年</strong><br>抽樣 J, K, L</span>
+                        </div>
+                    </div>
+                    <div class="bg-white p-4 border rounded-lg shadow-sm">
+                        <h4 class="font-bold text-gray-800">固定樣本研究 (Panel)</h4>
+                        <p class="text-sm mb-2">研究「完全相同的同一群人」。</g>
+                        <div class="flex justify-around items-center bg-gray-50 p-3 rounded">
+                            <span class="font-bold text-blue-600"><strong>2010年</strong><br>訪談 M, N, O</span>
+                            <span class="text-2xl font-bold text-blue-600">→</span>
+                            <span class="font-bold text-blue-600"><strong>2020年</strong><br>訪談 M, N, O</span>
+                        </div>
+                    </div>
+                </div>
 
-                    <div>
-                        <p class="text-lg font-semibold mb-3">情境二：「避免重複造輪」在文獻回顧中的意思是？</p>
-                        <div class="flex flex-wrap gap-2">
-                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-l2-cor">確認你的問題沒有被別人完美解答過</button>
-                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-l2-inc1">一定要提出一個全新的理論</button>
-                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-l2-inc2">不要使用別人用過的研究方法</button>
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：縱貫性研究</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：內政部為了追蹤「台灣青年世代」（定義為 1990-2000 年出生者）的婚育價值觀，在 2020 年時，從這個世代中抽樣了 2000 人進行調查；在 2030 年時，又「回到這個世代」抽樣了另外 2000 人進行調查。</p>
+                        <p class="mb-4">這屬於哪一種縱貫性研究？</p>
+                        
+                        <div id="quiz-longitudinal" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-longitudinal', 0, 1)">A. 趨勢研究</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-longitudinal', 1, 1)">B. 世代研究</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-longitudinal', 2, 1)">C. 固定樣本研究</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-longitudinal', 3, 1)">D. 橫斷式研究</button>
                         </div>
-                        <div id="q-l2-cor" class="quiz-answer mt-3 p-3 bg-green-50 text-green-800 rounded-lg">
-                            <strong>答對了！</strong> 文獻回顧幫助我們了解「已知」的答案，避免浪費資源做重複的研究。
-                        </div>
-                        <div id="q-l2-inc1" class="quiz-answer mt-3 p-3 bg-red-50 text-red-800 rounded-lg">
-                            <strong>不對喔。</strong> 研究不一定要提出全新理論，也可以是驗證、延伸或補充現有理論。
-                        </div>
-                        <div id="q-l2-inc2" class="quiz-answer mt-3 p-3 bg-red-50 text-red-800 rounded-lg">
-                            <strong>不對喔。</strong> 相反地，文獻回顧可以幫助我們「學習」別人用過的好方法。
-                        </div>
+                        <div id="quiz-longitudinal-feedback" class="quiz-feedback"></div>
                     </div>
                 </div>
             </section>
 
-            <section id="content-purpose" class="content-section">
-                <h1 class="text-3xl font-bold text-blue-900 mb-4">🎯 研究目的：你想知道什麼？</h1>
-                <p class="text-lg text-neutral-600 mb-6">
-                    你的「研究目的」決定了你的研究策略。不同的目的適合不同的研究方法。我們主要可將其分為三種類型，有時也會加上第四種：評估性。
-                </p>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    <div class="card p-6">
-                        <h3 class="text-xl font-bold text-blue-800 mb-2">1. 探索性 (Exploratory)</h3>
-                        <p class="mb-3">當我們對一個主題所知甚少時，用來熟悉新現象、發掘新觀點。通常是質性研究的強項。</p>
-                        <p class="font-semibold">社工範例：</p>
-                        <ul class="list-disc list-inside text-sm text-neutral-700">
-                            <li>初探疫情下社工遠距工作的挑戰</li>
-                            <li>青少年對「元宇宙」社交的看法</li>
-                        </ul>
-                    </div>
-                    <div class="card p-6">
-                        <h3 class="text-xl font-bold text-blue-800 mb-2">2. 描述性 (Descriptive)</h3>
-                        <p class="mb-3">精確地「描述」情境或群體特徵。回答 "是什麼?"、"有多少?"。可以是量化（如：普查）或質性（如：民族誌）。</p>
-                        <p class="font-semibold">社工範例：</p>
-                        <ul class="list-disc list-inside text-sm text-neutral-700">
-                            <li>台灣遊民的特徵與生活狀況調查</li>
-                            <li>長者對長照服務的使用率與滿意度</li>
-                        </ul>
-                    </div>
-                    <div class="card p-6">
-                        <h3 class="text-xl font-bold text-blue-800 mb-2">3. 解釋性 (Explanatory)</h3>
-                        <p class="mb-3">探討變項之間的「因果關係」。回答 "為什麼?"。通常需要量化研究（如：實驗法、縱貫性研究）來檢驗假設。</p>
-                        <p class="font-semibold">社工範例：</p>
-                        <ul class="list-disc list-inside text-sm text-neutral-700">
-                            <li>家庭支持對藥物濫用者復發率的影響</li>
-                            <li>比較不同介入方案對兒童攻擊行為的效果</li>
-                        </ul>
-                    </div>
-                    <div class="card p-6">
-                        <h3 class="text-xl font-bold text-blue-800 mb-2">4. 評估性 (Evaluative)</h3>
-                        <p class="mb-3">評估社會政策、服務方案或介入措施的「效果」與「效率」。可視為一種應用型的解釋性研究。</p>
-                        <p class="font-semibold">社工範例：</p>
-                        <ul class="list-disc list-inside text-sm text-neutral-700">
-                            <li>「某項」藥物濫用戒治方案的成效評估</li>
-                            <li><strong>形成性評估：</strong> 方案「執行中」的評估，以利即時修正。</li>
-                            <li><strong>總結性評估：</strong> 方案「結束後」的評估，判斷其總體成效。</li>
-                        </ul>
-                    </div>
-                </div>
+            <!-- Section: 分析單位 --><section id="unit" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">👤 研究的分析單位 (Unit of Analysis)</h2>
+                <p class="mb-4">這是研究設計中最關鍵、也最容易混淆的概念之一。它回答的問題是：「你研究的『主角』是誰？當你要下結論時，你的主詞是『什麼』？」</g>
+                <p class="mb-6">分析單位「不」等於你蒐集資料的對象（觀察單位），而是你「最終要分析與推論」的對象。</p>
                 
-                <h2 class="text-2xl font-bold text-blue-800 mb-4 mt-10">視覺化：研究目的與方法的關聯</h2>
-                <p class="text-neutral-600 mb-4">這張圖表顯示了不同研究目的（探索、描述、解釋）與其常用的研究方法（質性 vs. 量化）之間的典型關聯。請注意這是一個大致的趨勢，並非絕對規則。</p>
-                <div class="card p-4">
-                    <div class="chart-container">
-                        <canvas id="purposeChart"></canvas>
+                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">1. 個人 (Individuals)</h3>
+                        <p class="mb-4">最常見的分析單位。你的研究結論是關於「某種人」。</p>
+                        <p class="font-medium">範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">研究「大學生」的憂鬱傾向。你蒐集了 500 位「學生」的資料，你的結論是：「『學生』的憂鬱傾向與...有關」。<br><strong>分析單位 = 個人</strong>。</g>
+                    </div>
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">2. 團體 (Groups)</h3>
+                        <p class="mb-4">你的研究結論是關於「某種群體」（如：家庭、幫派、社區）。</p>
+                        <p class="font-medium">範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">研究「家庭」的凝聚力。你訪談了「家庭中的『個人』」（爸、媽、小孩），但你最終分析的是「『家庭』的凝聚力高低」。<br><strong>分析單位 = 團體（家庭）</strong>。</g>
+                    </div>
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">3. 組織 (Organizations)</h3>
+                        <p class="mb-4">你的研究結論是關於「某種組織」（如：醫院、學校、NPO）。</p>
+                        <p class="font-medium">範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">研究「NPO」的募款成效。你蒐集了 100 間「NPO」的年度報表，你的結論是：「『NPO』的成效與...有關」。<br><strong>分析單位 = 組織 (NPO)</strong>。</g>
+                    </div>
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">4. 社會產製品 (Social Artifacts)</h3>
+                        <p class="mb-4">你的研究結論是關於「人類創造的物品」（如：報紙、電視、教科書）。</p>
+                        <p class="font-medium">範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">研究「新聞報導」中的性別刻板印象。你分析了 500 篇「新聞報導」，你的結論是：「『報導』的性別呈現...」。<br><strong>分析單位 = 社會產製品（報導）</strong>。</g>
                     </div>
                 </div>
 
-                <h2 class="text-2xl font-bold text-blue-800 mb-4 mt-10">小測驗：測試你的理解</h2>
-                <div class="card p-6 space-y-6">
-                    <div>
-                        <p class="text-lg font-semibold mb-3">情境一：研究者想「初探」一個全新的社會現象（例如：AI對社工實務的初期影響），這屬於哪種研究目的？</p>
-                        <div class="flex flex-wrap gap-2">
-                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-p1-cor">探索性</button>
-                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-p1-inc1">描述性</button>
-                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-p1-inc2">解釋性</button>
-                        </div>
-                        <div id="q-p1-cor" class="quiz-answer mt-3 p-3 bg-green-50 text-green-800 rounded-lg">
-                            <strong>答對了！</strong> 探索性研究用於我們所知甚少、尚無清楚理論的新領域。
-                        </div>
-                        <div id="q-p1-inc1" class="quiz-answer mt-3 p-3 bg-red-50 text-red-800 rounded-lg">
-                            <strong>不對喔。</strong> 描述性研究是描述已知群體的特徵（例如：AI使用率），而不是探索新現象。
-                        </div>
-                        <div id="q-p1-inc2" class="quiz-answer mt-3 p-3 bg-red-50 text-red-800 rounded-lg">
-                            <strong>不對喔。</strong> 解釋性研究是探討因果關係（例如：AI是否「影響」了...），這需要對現象有更多理解才能進行。
-                        </div>
-                    </div>
-                    
-                    <hr>
+                <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">觀察單位 vs. 分析單位</h3>
+                <p class="mb-4">這兩者可能相同，也可能不同。這是最關鍵的區別：</p>
+                <ul class="list-disc list-inside ml-4 space-y-2">
+                    <li><strong>範例一</strong>：研究「社工」的職業倦怠。
+                        <ul>
+                            <li>- <strong>觀察單位</strong>：社工（你訪問社工）。</li>
+                            <li>- <strong>分析單位</strong>：個人（你結論的主詞是「社工」）。</li>
+                            <li>- <i>(此時，觀察單位 = 分析單位)</i></li>
+                        </ul>
+                    </li>
+                    <li><strong>範例二</strong>：研究「社福機構」的創新能力。
+                        <ul>
+                            <li>- <strong>觀察單位</strong>：機構的「執行長」（你訪問執行長）或「機構的年報」（你分析年報）。</li>
+                            <li>- <strong>分析單位</strong>：組織（你結論的主詞是「機構」）。</li>
+                            <li>- <i>(此時，觀察單位 ≠ 分析單位)</i></li>
+                        </ul>
+                    </li>
+                    <li><strong>範例三</strong>：研究「學校」的反霸凌成效。
+                        <ul>
+                            <li>- <strong>觀察單位</strong>：「學生」（你對學生發問卷）。</li>
+                            <li>- <strong>分析單位</strong>：「學校」（你將學生的分數彙整成「學校」的平均霸凌分數，然後比較不同「學校」的成效）。</li>
+                            <li>- <i>(此時，觀察單位 ≠ 分析單位)</i></li>
+                        </ul>
+                    </li>
+                </ul>
 
-                    <div>
-                        <p class="text-lg font-semibold mb-3">情境二：研究者想知道「某項介入方案」是否「有效」降低了案主的憂鬱分數，這最接近哪種目的？</p>
-                        <div class="flex flex-wrap gap-2">
-                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-p2-inc1">探索性</button>
-                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-p2-cor">評估性</button>
-                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-p2-inc2">描述性</button>
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：分析單位</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一位研究者想了解「不同國小」的「校園霸凌嚴重程度」是否與「學校是否有駐點社工」有關。他蒐集了 50 所國小的資料，並比較這 50 所「學校」的特徵。</p>
+                        <p class="mb-4">請問這位研究者的「分析單位」是什麼？</p>
+                        
+                        <div id="quiz-unit" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-unit', 0, 1)">A. 學生（個人）</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-unit', 1, 1)">B. 國小（組織）</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-unit', 2, 1)">C. 社工（個人）</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-unit', 3, 1)">D. 霸凌事件（社會產製品）</button>
                         </div>
-                        <div id="q-p2-inc1" class="quiz-answer mt-3 p-3 bg-red-50 text-red-800 rounded-lg">
-                            <strong>不對喔。</strong> 探索性研究不會去測量一個方案的「效果」。
-                        </div>
-                        <div id="q-p2-cor" class="quiz-answer mt-3 p-3 bg-green-50 text-green-800 rounded-lg">
-                            <strong>答對了！</strong> 評估性研究專門用於評估方案的「效果」(Effectiveness) 或「效率」(Efficiency)。
-                        </div>
-                        <div id="q-p2-inc2" class="quiz-answer mt-3 p-3 bg-red-50 text-red-800 rounded-lg">
-                            <strong>不對喔。</strong> 描述性研究只會描述「案主的憂鬱分數是多少」，而不會去評估方案「是否有效」。
-                        </div>
+                        <div id="quiz-unit-feedback" class="quiz-feedback"></div>
                     </div>
                 </div>
-
             </section>
 
-            <section id="content-time" class="content-section">
-                <h1 class="text-3xl font-bold text-blue-900 mb-4">⏳ 研究的時間面向</h1>
-                <p class="text-lg text-neutral-600 mb-6">
-                    你的研究是在「一個時間點」上觀察，還是「跨越一段時間」？這決定了你的研究是橫斷式（快照）還是縱貫性（電影）。
-                </p>
-                
-                <div class="grid md:grid-cols-2 gap-8 mb-8">
-                    <div class="card p-6">
-                        <h2 class="text-2xl font-bold text-blue-800 mb-3">橫斷式研究 (Cross-Sectional)</h2>
-                        <p class="mb-4">在「一個」特定的時間點上蒐集資料，就像拍一張「快照」。</p>
-                        <p class="font-semibold text-green-700">優點：</p>
-                        <p class="mb-3">省時、省力、省錢，非常適合描述性研究。能快速了解某個時間點的現象分佈。</p>
-                        <p class="font-semibold text-red-700">缺點：</p>
-                        <p class="mb-3"><strong>難以建立因果關係</strong>。無法確定變項的「先後順序」（是A導致B，還是B導致A？）。例如，發現「低家庭支持」與「高憂鬱程度」同時存在，但無法斷定是誰導致誰。</p>
-                        <p class="font-semibold">社工範例：</p>
-                        <p class="text-neutral-700">"2025年10月台北市社工的職業倦怠程度與督導風格之關聯性調查"</p>
-                    </div>
-                    <div class="card p-6 bg-blue-50">
-                        <h2 class="text-2xl font-bold text-blue-800 mb-3">縱貫性研究 (Longitudinal)</h2>
-                        <p class="mb-4">在「一段時間內」，重複蒐集資料，就像拍一部「電影」。</p>
-                        <p class="font-semibold text-green-700">優點：</p>
-                        <p class="mb-3">可觀察變項隨時間的「變化」，更有助於探討因果關係（能釐清時間順序）。例如，可先測量T1的家庭支持，再看它如何影響T2的憂鬱程度。</p>
-                        <p class="font-semibold">主要類型：</p>
-                        <ul class="list-disc list-inside text-neutral-700">
-                            <li><strong>趨勢研究 (Trend)</strong>: 在不同時間點，從「同一群體」抽「不同樣本」。 (例：每五年調查台灣民眾對...的態度)</li>
-                            <li><strong>世代研究 (Cohort)</strong>: 追蹤具「共同特徵」的「特定次群體」。 (例：追蹤2020年畢業社工的職業發展)</li>
-                            <li><strong>固定樣本研究 (Panel)</strong>: 重複訪談「完全相同」的一群人。 (例：每半年訪談同一批家暴受害者)</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <h2 class="text-2xl font-bold text-blue-800 mb-4 mt-10">視覺化：時間面向與因果推論</h2>
-                <p class="text-neutral-600 mb-4">縱貫性研究能觀察到事件的先後順序，因此在建立因果關係上的能力遠強於橫斷式研究。</p>
-                <div class="card p-4">
-                    <div class="chart-container">
-                        <canvas id="timeChart"></canvas>
-                    </div>
-                </div>
-
-                <h2 class="text-2xl font-bold text-blue-800 mb-4 mt-10">小測驗：測試你的理解</h2>
-                <div class="card p-6 space-y-6">
-                    <div>
-                        <p class="text-lg font-semibold mb-3">情境一：研究者在2025年3月發放了一次問卷，以了解「社工的督導風格」與「職業倦怠」的「當下」關聯。這是什麼研究？</p>
-                        <div class="flex flex-wrap gap-2">
-                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-t1-cor">橫斷式研究</button>
-                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-t1-inc1">縱貫性研究</button>
-                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-t1-inc2">固定樣本研究</button>
-                        </div>
-                        <div id="q-t1-cor" class="quiz-answer mt-3 p-3 bg-green-50 text-green-800 rounded-lg">
-                            <strong>答對了！</strong> 橫斷式研究在「一個」特定的時間點上蒐集資料，像拍快照。
-                        </div>
-                        <div id="q-t1-inc1" class="quiz-answer mt-3 p-3 bg-red-50 text-red-800 rounded-lg">
-                            <strong>不對喔。</strong> 縱貫性研究需要「重複蒐集」資料（例如2025年、2026年...）。
-                        </div>
-                        <div id="q-t1-inc2" class="quiz-answer mt-3 p-3 bg-red-50 text-red-800 rounded-lg">
-                            <strong>不對喔。</strong> 固定樣本研究是縱貫性研究的一種，需要跨時間重複訪談。
-                        </div>
-                    </div>
-                    
-                    <hr>
-
-                    <div>
-                        <p class="text-lg font-semibold mb-3">情境二：哪一種研究在建立「因果關係」上能力較強，因為它能釐清事件發生的「先後順序」？</p>
-                        <div class="flex flex-wrap gap-2">
-                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-t2-inc1">橫斷式研究</button>
-                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-t2-cor">縱貫性研究</button>
-                        </div>
-                        <div id="q-t2-inc1" class="quiz-answer mt-3 p-3 bg-red-50 text-red-800 rounded-lg">
-                            <strong>不對喔。</strong> 橫斷式研究最大的限制就是無法釐清「雞生蛋還是蛋生雞」的時間順序問題。
-                        </div>
-                        <div id="q-t2-cor" class="quiz-answer mt-3 p-3 bg-green-50 text-green-800 rounded-lg">
-                            <strong>答對了！</strong> 縱貫性研究（如固定樣本研究）可以先測量A，再測量B，有助於釐清時間順序。
-                        </div>
-                    </div>
-                </div>
-
-            </section>
-
-            <section id="content-longitudinal-types" class="content-section">
-                <h1 class="text-3xl font-bold text-blue-900 mb-4">深入探討：縱貫性研究的三種類型</h1>
-                <p class="text-lg text-neutral-600 mb-6">
-                    縱貫性研究（Longitudinal Research）是社工研究中用來理解「隨時間變化」的強大工具。以下我們將詳細比較三種主要的縱貫性研究設計。
-                </p>
-                
-                <div class="card p-6 mb-8">
-                    <h2 class="text-2xl font-bold text-blue-800 mb-4">三種類型比較图解</h2>
-                    <div class="space-y-4">
-                        
-                        <div>
-                            <h3 class="font-bold text-lg text-blue-800">1. 趨勢研究 (Trend)</h3>
-                            <p class="text-sm text-neutral-600 mb-2">追蹤同一個「大群體」，但每次都抽取「不同樣本」。</p>
-                            <div class="flex flex-col md:flex-row md:items-center md:space-x-2 text-sm text-neutral-700 p-3 bg-blue-50 rounded-lg">
-                                <span class="font-semibold">[大群體 (如: 台灣民眾)]</span>
-                                <span class="text-blue-600 text-2xl hidden md:block">→</span>
-                                <span class="text-2xl text-center md:hidden">↓</span>
-                                <span class="bg-white p-2 rounded shadow">2015年 (樣本A)</span>
-                                <span class="text-blue-600 text-2xl hidden md:block">→</span>
-                                <span class="text-2xl text-center md:hidden">↓</span>
-                                <span class="bg-white p-2 rounded shadow">2020年 (樣本B)</span>
-                                <span class="text-blue-600 text-2xl hidden md:block">→</span>
-                                <span class="text-2xl text-center md:hidden">↓</span>
-                                <span class="bg-white p-2 rounded shadow">2025年 (樣本C)</span>
-                            </div>
-                        </div>
-                        
-                        <div>
-                            <h3 class="font-bold text-lg text-blue-800">2. 世代研究 (Cohort)</h3>
-                            <p class="text-sm text-neutral-600 mb-2">追蹤同一個「特定世代」，樣本可不同但需屬同世代。</p>
-                            <div class="flex flex-col md:flex-row md:items-center md:space-x-2 text-sm text-neutral-700 p-3 bg-blue-50 rounded-lg">
-                                <span class="font-semibold">[特定世代 (如: 2020畢業生)]</span>
-                                <span class="text-blue-600 text-2xl hidden md:block">→</span>
-                                <span class="text-2xl text-center md:hidden">↓</span>
-                                <span class="bg-white p-2 rounded shadow">2021年 (樣本A)</span>
-                                <span class="text-blue-600 text-2xl hidden md:block">→</span>
-                                <span class="text-2xl text-center md:hidden">↓</span>
-                                <span class="bg-white p-2 rounded shadow">2023年 (樣本B)</span>
-                                <span class="text-blue-600 text-2xl hidden md:block">→</span>
-                                <span class="text-2xl text-center md:hidden">↓</span>
-                                <span class="bg-white p-2 rounded shadow">2025年 (樣本C)</span>
-                            </div>
-                        </div>
-                        
-                        <div>
-                            <h3 class="font-bold text-lg text-blue-800">3. 固定樣本研究 (Panel)</h3>
-                            <p class="text-sm text-neutral-600 mb-2">重複追蹤「完全相同」的一群人。</p>
-                            <div class="flex flex-col md:flex-row md:items-center md:space-x-2 text-sm text-neutral-700 p-3 bg-blue-50 rounded-lg">
-                                <span class="font-semibold text-red-700">[固定樣本 (樣本 A)]</span>
-                                <span class="text-blue-600 text-2xl hidden md:block">→</span>
-                                <span class="text-2xl text-center md:hidden">↓</span>
-                                <span class="bg-white p-2 rounded shadow">2023年 (訪問 樣本A)</span>
-                                <span class="text-blue-600 text-2xl hidden md:block">→</span>
-                                <span class="text-2xl text-center md:hidden">↓</span>
-                                <span class="bg-white p-2 rounded shadow">2024年 (訪問 樣本A)</span>
-                                <span class="text-blue-600 text-2xl hidden md:block">→</span>
-                                <span class="text-2xl text-center md:hidden">↓</span>
-                                <span class="bg-white p-2 rounded shadow">2025年 (訪問 樣本A)</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <!-- Section: 推論謬誤 --><section id="fallacy" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-red-700 mb-6">🧠 推論謬誤 (Fallacies)</h2>
+                <p class="mb-6">當我們在「不同分析單位」之間進行「不當的跳躍」時，就會產生嚴重的推論謬誤。搞錯分析單位，是研究中最致命的錯誤之一。</p>
 
                 <div class="grid md:grid-cols-3 gap-6">
-                    <div class="card p-6">
-                        <h3 class="text-xl font-bold text-blue-800 mb-2">趨勢研究 (Trend Study)</h3>
-                        <p class="mb-3">在不同時間點，從「同一大群體」中抽取「不同樣本」。</p>
-                        <p class="font-semibold">重點：</p>
-                        <ul class="list-disc list-inside text-sm text-neutral-700">
-                            <li>追蹤的是「群體」的總體變化。</li>
-                            <li>範例：每四年調查台灣民眾的投票傾向。</li>
-                        </ul>
-                        <p class="font-semibold mt-2 text-green-700">優點：</p>
-                        <p class="text-sm text-neutral-700">成本相對低，無樣本流失問題。</p>
-                        <p class="font-semibold mt-2 text-red-700">限制：</p>
-                        <p class="text-sm text-neutral-700">無法分析「個體」的變化軌跡。</p>
+                    <div class="border-2 border-red-200 rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-red-800 mb-3">1. 區位謬誤 (Ecological Fallacy)</h3>
+                        <p class="mb-4"><strong>定義</strong>：錯誤地將「群體」層次的統計發現，直接「套用」到「個體」層次上。</p>
+                        <div class="text-center font-bold text-2xl text-red-500 p-4 bg-red-50 rounded">
+                            群體 (O) ➡️ 個體 (X)
+                        </div>
+                        <p class="font-medium mt-4">社工範例：</p>
+                        <p class="bg-red-50 p-3 rounded border">
+                            <strong>發現</strong>：「犯罪率高」的「社區」（群體），其居民「貧窮比例」也高。<br>
+                            <strong>錯誤推論</strong>：因此，住在那個社區的「某個特定窮人」（個體），他「一定」有很高的犯罪傾向。<br>
+                            <strong>真相</strong>：這完全是歧視。群體的「相關」不等於個體的「絕對」。也許那個社區的犯罪都是由「外地人」或「一小撮非窮人」造成的。
+                        </p>
+                        <p class="font-medium mt-2">更多範例：</p>
+                        <p class="bg-red-50 p-3 rounded border">
+                            <strong>發現</strong>：某學區（群體）的學生平均成績很高。<br>
+                            <strong>錯誤推論</strong>：住在該學區的「小明」（個體）成績一定很好。
+                        </p>
                     </div>
-                    <div class="card p-6">
-                        <h3 class="text-xl font-bold text-blue-800 mb-2">世代研究 (Cohort Study)</h3>
-                        <p class="mb-3">在不同時間點，追蹤具有「共同特徵」的「特定次群體」（世代）。</p>
-                        <p class="font-semibold">重點：</p>
-                        <ul class="list-disc list-inside text-sm text-neutral-700">
-                            <li>追蹤的是「特定世代」的變化。</li>
-                            <li>範例：追蹤千禧世代（Millennials）的購屋態度變化。</li>
-                        </ul>
-                        <p class="font-semibold mt-2 text-green-700">優點：</p>
-                        <p class="text-sm text-neutral-700">可分析特定群體的生命歷程，比趨勢研究更聚焦。</p>
-                        <p class="font-semibold mt-2 text-red-700">限制：</p>
-                        <p class="text-sm text-neutral-700">需注意「世代效應」（Cohort Effect）的影響。</p>
+                    <div class="border-2 border-blue-200 rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-blue-800 mb-3">2. 個體謬誤 (Individualistic Fallacy)</h3>
+                        <p class="mb-4"><strong>定義</strong>：與區位謬誤「相反」。錯誤地將「個體」層次的特例，「過度概化」用來解釋「群體」層次的複雜現象。</p>
+                        <div class="text-center font-bold text-2xl text-blue-500 p-4 bg-blue-50 rounded">
+                            個體 (O) ➡️ 群體 (X)
+                        </div>
+                        <p class="font-medium mt-4">社工範例：</p>
+                        <p class="bg-blue-50 p-3 rounded border">
+                            <strong>發現</strong>：某位「白手起家的富翁」（個體）非常努力，成功脫離了貧窮。<br>
+                            <strong>錯誤推論</strong>：因此，「所有」的「貧窮問題」（群體），都是因為「個人不夠努力」造成的。<br>
+                            <strong>真相</strong>：這忽略了造成貧窮的「結構性因素」（如：景氣、制度、歧視），這不是單一個案的努力就能涵蓋的。
+                        </p>
+                        <p class="font-medium mt-2">更多範例：</p>
+                        <p class="bg-blue-50 p-3 rounded border">
+                            <strong>發現</strong>：我阿嬤（個體）抽菸一輩子，活到 90 歲。<br>
+                            <strong>錯誤推論</strong>：因此，抽菸（群體）根本不會影響健康。
+                        </p>
                     </div>
-                    <div class="card p-6">
-                        <h3 class="text-xl font-bold text-blue-800 mb-2">固定樣本研究 (Panel Study)</h3>
-                        <p class="mb-3">在不同時間點，重複訪談「完全相同」的一群人。</p>
-                        <p class="font-semibold">重點：</p>
-                        <ul class="list-disc list-inside text-sm text-neutral-700">
-                            <li>追蹤的是「特定個人」的精確變化。</li>
-                            <li>範例：每半年訪談同一批(100位)家暴受害者。</li>
-                        </ul>
-                        <p class="font-semibold mt-2 text-green-700">優點：</p>
-                        <p class="text-sm text-neutral-700">因果推論能力最強，能分析個體的轉變過程。</p>
-                        <p class="font-semibold mt-2 text-red-700">限制：</p>
-                        <p class="text-sm text-neutral-700">成本最高、最耗時、且易發生「樣本流失」（attrition）。</p>
-                    </div>
-                </div>
-
-                <h2 class="text-2xl font-bold text-blue-800 mb-4 mt-10">小測驗：測試你的理解</h2>
-                <div class="card p-6 space-y-6">
-                    <div>
-                        <p class="text-lg font-semibold mb-3">情境一：哪一種縱貫性研究的「因果推論能力最強」，但也最容易面臨「樣本流失」(attrition) 的問題？</p>
-                        <div class="flex flex-wrap gap-2">
-                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-lgt1-inc1">趨勢研究</button>
-                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-lgt1-inc2">世代研究</button>
-                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-lgt1-cor">固定樣本研究</button>
+                    <div class="border-2 border-gray-200 rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3">3. 化約論 (Reductionism)</h3>
+                        <p class="mb-4"><strong>定義</strong>：試圖將「複雜」的社會現象，過度簡化，只用「單一」學科或「單一」類型的變項來解釋。</p>
+                        <div class="text-center font-bold text-2xl text-gray-500 p-4 bg-gray-50 rounded">
+                            複雜 (O) ➡️ 單一 (X)
                         </div>
-                        <div id="q-lgt1-inc1" class="quiz-answer mt-3 p-3 bg-red-50 text-red-800 rounded-lg">
-                            <strong>不對喔。</strong> 趨勢研究每次都抽不同樣本，所以沒有「樣本流失」的問題，但因果推論能力也最弱。
-                        </div>
-                        <div id="q-lgt1-inc2" class="quiz-answer mt-3 p-3 bg-red-50 text-red-800 rounded-lg">
-                            <strong>不對喔。</strong> 世代研究的樣本不需完全相同，樣本流失的衝擊小於固定樣本研究。
-                        </div>
-                        <div id="q-lgt1-cor" class="quiz-answer mt-3 p-3 bg-green-50 text-green-800 rounded-lg">
-                            <strong>答對了！</strong> 固定樣本研究必須重複追蹤「同一個人」，因此推論能力最強，但也最怕樣本中途退出（流失）。
-                        </div>
-                    </div>
-                    
-                    <hr>
-
-                    <div>
-                        <p class="text-lg font-semibold mb-3">情境二：研究者想知道「2000年出生世代」的投票傾向如何隨時間變化，他訪問了2020年、2024年的「2000年出生者」(但每次訪問的對象不完全相同)。這是？</p>
-                        <div class="flex flex-wrap gap-2">
-                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-lgt2-inc1">趨勢研究</button>
-                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-lgt2-cor">世代研究</button>
-                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-lgt2-inc2">固定樣本研究</button>
-                        </div>
-                        <div id="q-lgt2-inc1" class="quiz-answer mt-3 p-3 bg-red-50 text-red-800 rounded-lg">
-                            <strong>不對喔。</strong> 趨勢研究是針對「大群體」（例如：全體台灣民眾），而不是「特定世代」。
-                        </div>
-                        <div id="q-lgt2-cor" class="quiz-answer mt-3 p-3 bg-green-50 text-green-800 rounded-lg">
-                            <strong>答對了！</strong> 世代研究追蹤的是具有共同特徵（2000年出生）的「特定次群體」。
-                        </div>
-                        <div id="q-lgt2-inc2" class="quiz-answer mt-3 p-3 bg-red-50 text-red-800 rounded-lg">
-                            <strong>不對喔。</strong> 固定樣本研究必須訪問「完全相同」的對象。
-                        </div>
+                        <p class="font-medium mt-4">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">
+                            <strong>現象</strong>：「青少年霸凌」（複雜現象）。<br>
+                            <strong>錯誤推論</strong>：<br>
+                            - 心理學家：「這『純粹』是個人攻擊傾向的問題。」<br>
+                            - 經濟學家：「這『純粹』是家庭社經地位的問題。」<br>
+                            <strong>真相</strong>：霸凌是「多重因素」交織的結果，同時涉及個人心理、家庭動力、同儕壓力、學校文化、社會階級...等等。
+                        </p>
                     </div>
                 </div>
 
-            </section>
-
-            <section id="content-unit" class="content-section">
-                <h1 class="text-3xl font-bold text-blue-900 mb-4">🔬 研究的分析單位</h1>
-                <p class="text-lg text-neutral-600 mb-6">
-                    你最終要對「誰」或「什麼」下結論？這就是你的「分析單位」。釐清這一點對於抽樣、測量，以及避免推論謬誤至關重要。
-                </p>
-                
-                <blockquote class="border-l-4 border-blue-700 bg-blue-50 p-4 rounded-r-lg mb-6">
-                    <p class="text-lg font-semibold text-blue-900">重要觀念：</p>
-                    <p class="text-neutral-700">分析單位 (Unit of Analysis) <strong>不等於</strong> 資料蒐集單位 (Unit of Observation)。</p>
-                    <p class="text-neutral-600 mt-2"><strong>範例：</strong> 為了研究「家庭」(分析單位)，我們訪問了「家庭中的個人」(資料蒐集單位)。</p>
-                </blockquote>
-
-                <h2 class="text-2xl font-bold text-blue-800 mb-4">常見的分析單位</h2>
-                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div class="card p-6">
-                        <h3 class="text-xl font-bold text-blue-800 mb-2">個人 (Individuals)</h3>
-                        <p class="mb-3">最常見的分析單位。你的結論是關於「個人」的特質或行為。</p>
-                        <p class="font-semibold">範例：</p>
-                        <p class="text-neutral-700">案主、學生、社工、遊民、受虐兒童</p>
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-red-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：推論謬誤</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一位政治人物說：「我認識一個領取社會救助的『個人』，他被發現濫用藥物。可見『所有』領取社會救助的『群體』都在濫用藥物，我們應該取消這個制度。」</p>
+                        <p class="mb-4">這種「以偏概全」，拿「個體」特例來推論「群體」現象的錯誤，稱為什麼？</p>
+                        
+                        <div id="quiz-fallacy" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-fallacy', 0, 1)">A. 區位謬誤 (Ecological Fallacy)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-fallacy', 1, 1)">B. 個體謬誤 (Individualistic Fallacy)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-fallacy', 2, 1)">C. 化約論 (Reductionism)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-fallacy', 3, 1)">D. 描述性研究</button>
+                        </div>
+                        <div id="quiz-fallacy-feedback" class="quiz-feedback"></div>
                     </div>
-                    <div class="card p-6">
-                        <h3 class="text-xl font-bold text-blue-800 mb-2">團體 (Groups)</h3>
-                        <p class="mb-3">具有共同特徵的個人集合。你的結論是關於「團體」的動力或特徵。</p>
-                        <p class="font-semibold">範例：</p>
-                        <p class="text-neutral-700">家庭、同儕團體、治療小組、社區</p>
-                    </div>
-                    <div class="card p-6">
-                        <h3 class="text-xl font-bold text-blue-800 mb-2">組織 (Organizations)</h3>
-                        <p class="mb-3">正式的社會結構。你的結論是關於「組織」的政策、文化或結構。</p>
-                        <p class="font-semibold">範例：</p>
-                        <p class="text-neutral-700">社會福利機構、醫院、學校、政府部門</p>
-                    </div>
-                    <div class="card p-6">
-                        <h3 class="text-xl font-bold text-blue-800 mb-2">社會產製品 (Social Artifacts)</h3>
-                        <p class="mb-3">人類行為的產物。你的結論是關於「物品」的內容或特徵。</p>
-                        <p class="font-semibold">範例：</p>
-                        <p class="text-neutral-700">報紙文章、法律條文、社工個案紀錄、電視節目</p>
-                    </div>
-                </div>
-
-                <h2 class="text-2xl font-bold text-blue-800 mb-4 mt-10">小測驗：測試你的理解</h2>
-                <div class="card p-6 space-y-6">
-                    <div>
-                        <p class="text-lg font-semibold mb-3">情境一：研究者想比較「不同社福機構」(A) 的「年均預算」(B)。請問「分析單位」是什麼？</p>
-                        <div class="flex flex-wrap gap-2">
-                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-u1-inc1">個人 (社工)</button>
-                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-u1-inc2">團體 (家庭)</button>
-                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-u1-cor">組織 (機構)</button>
-                        </div>
-                        <div id="q-u1-inc1" class="quiz-answer mt-3 p-3 bg-red-50 text-red-800 rounded-lg">
-                            <strong>不對喔。</strong> 研究者比較的對象是「機構」，而不是機構裡的「個人」。
-                        </div>
-                        <div id="q-u1-inc2" class="quiz-answer mt-3 p-3 bg-red-50 text-red-800 rounded-lg">
-                            <strong>不對喔。</strong> 機構是正式的社會結構，屬於「組織」。
-                        </div>
-                        <div id="q-u1-cor" class="quiz-answer mt-3 p-3 bg-green-50 text-green-800 rounded-lg">
-                            <strong>答對了！</strong> 分析單位是「組織」(Organizations)，因為研究者最終要對「機構」下結論。
-                        </div>
-                    </div>
-                    
-                    <hr>
-
-                    <div>
-                        <p class="text-lg font-semibold mb-3">情境二：研究者想研究「家庭」(A) 的「溝通模式」，他為此訪問了「家庭中的所有成員」(B)。請問 (A) 和 (B) 分別是什麼？</p>
-                        <div class="flex flex-wrap gap-2">
-                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-u2-cor">(A)分析單位, (B)資料蒐集單位</button>
-                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-u2-inc1">(A)資料蒐集單位, (B)分析單位</button>
-                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q-u2-inc2">兩者都是分析單位</button>
-                        </div>
-                        <div id="q-u2-cor" class="quiz-answer mt-3 p-3 bg-green-50 text-green-800 rounded-lg">
-                            <strong>答對了！</strong> 研究者最終要對「家庭」(團體) 下結論，因此 (A) 是分析單位；但他實際訪問的是「成員」(個人)，因此 (B) 是資料蒐集單位。
-                        </div>
-                        <div id="q-u2-inc1" class="quiz-answer mt-3 p-3 bg-red-50 text-red-800 rounded-lg">
-                            <strong>不對喔，剛好相反。</strong> 分析單位是我們要下結論的對象（家庭）；資料蒐集單位是我們觀察的對象（成員）。
-                        </div>
-                        <div id="q-u2-inc2" class="quiz-answer mt-3 p-3 bg-red-50 text-red-800 rounded-lg">
-                            <strong>不對喔。</strong> 分析單位是研究者最終要描述或解釋的對象（家庭）。
-                        </div>
-                    </div>
-                </div>
-
-            </section>
-
-            <section id="content-fallacy" class="content-section">
-                <h1 class="text-3xl font-bold text-blue-900 mb-4">⚠️ 推論的陷阱：常見的謬誤</h1>
-                <p class="text-lg text-neutral-600 mb-6">
-                    當我們的「結論」所指的分析單位，與我們「實際觀察」的分析單位不一致時，就會發生推論謬誤。這是研究中必須極力避免的嚴重錯誤。
-                </p>
-                
-                <div class="space-y-8">
-                    <div class="card p-6">
-                        <h2 class="text-2xl font-bold text-red-700 mb-3">謬誤一：區位謬誤 (Ecological Fallacy)</h2>
-                        <p class="mb-4">從「團體」層次的資料，不當地推論到「個人」層次的行為。</p>
-                        <div class="bg-red-50 p-4 rounded-lg flex items-center justify-center space-x-4 text-lg font-semibold">
-                            <span class="text-blue-900 p-3 bg-white rounded-lg shadow">團體 / 區位</span>
-                            <span class="text-red-700 text-3xl font-bold">→</span>
-                            <span class="text-red-700 p-3 bg-white rounded-lg shadow border-2 border-red-500">個人 (錯誤推論)</span>
-                        </div>
-                        <p class="font-semibold mt-4">經典範例：</p>
-                        <ul class="list-disc list-inside text-neutral-700">
-                            <li><strong>觀察 (團體)：</strong> 犯罪率高的「社區」，新移民比例也高。</li>
-                            <li><strong>錯誤推論 (個人)：</strong> $\rightarrow$ 「新移民」比較容易犯罪。（事實可能是在該社區中，反而是本地居民的犯罪率更高）。</li>
-                        </ul>
-                    </div>
-
-                    <div class="card p-6">
-                        <h2 class="text-2xl font-bold text-red-700 mb-3">謬誤二：個體謬誤 (Individualistic Fallacy)</h2>
-                        <p class="mb-4">從「個人」層次的特例，不當地推論到「整體」或「團體」的普遍現象（以偏概全）。</p>
-                        <div class="bg-red-50 p-4 rounded-lg flex items-center justify-center space-x-4 text-lg font-semibold">
-                            <span class="text-blue-900 p-3 bg-white rounded-lg shadow">個人 / 個案</span>
-                            <span class="text-red-700 text-3xl font-bold">→</span>
-                            <span class="text-red-700 p-3 bg-white rounded-lg shadow border-2 border-red-500">團體 / 整體 (錯誤推論)</span>
-                        </div>
-                        <p class="font-semibold mt-4">範例：</p>
-                        <ul class="list-disc list-inside text-neutral-700">
-                            <li><strong>觀察 (個人)：</strong> "我認識一個領救助金的人開名車。"</li>
-                            <li><strong>錯誤推論 (團體)：</strong> $\rightarrow$ 「所有領救助金的人」都在濫用福利。</li>
-                        </ul>
-                    </div>
-
-                    <div class="card p-6">
-                        <h2 class="text-2xl font-bold text-red-700 mb-3">謬誤三：化約論 (Reductionism)</h2>
-                        <p class="mb-4">試圖用「過度簡化」或「單一類型」的因素來解釋複雜的社會現象。</p>
-                        <div class="bg-red-50 p-4 rounded-lg flex items-center justify-center space-x-4 text-lg font-semibold">
-                            <span class="text-blue-900 p-3 bg-white rounded-lg shadow">複雜現象</span>
-                            <span class="text-red-700 text-3xl font-bold">→</span>
-                            <span class="text-red-700 p-3 bg-white rounded-lg shadow border-2 border-red-500">單一因素解釋 (錯誤推論)</span>
-                        </div>
-                        <p class="font-semibold mt-4">範例：</small> (解釋青少年犯罪)</p>
-                        <ul class="list-disc list-inside text-neutral-700">
-                            <li>"一切都是因為**心理問題**" (心理化約論)</li>
-                            <li>"一切都是因為**家庭貧窮**" (經濟化約論)</li>
-                            <li>"一切都是因為**社會結構不公**" (社會化約論)</li>
-                            <li>社工應具備「生態系統觀點」，理解問題是多層次因素（個人、家庭、社區、社會）共同作用的結果。</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <h2 class="text-2xl font-bold text-blue-800 mb-4 mt-10">小測驗：測試你的理解</h2>
-                <div class="card p-6 space-y-6">
-                    <div>
-                        <p class="text-lg font-semibold mb-3">情境一：研究者發現，「A機構」的結案率（組織層級資料）比B機構低。他因此結論：「A機構的『王社工』」一定比B機構的『李社工』不認真。」</p>
-                        <p class="mb-3">這犯了什麼謬誤？</p>
-                        <div class="flex flex-wrap gap-2">
-                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q1-eco">區位謬誤</button>
-                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q1-ind">個體謬誤</button>
-                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q1-red">化約論</button>
-                        </div>
-                        <div id="q1-eco" class="quiz-answer mt-3 p-3 bg-green-50 text-green-800 rounded-lg">
-                            <strong>答對了！</strong> 這是區位謬誤。研究者將「機構」（團體）的特性，不當推論到「個別社工」（個人）的表現上。
-                        </div>
-                        <div id="q1-ind" class="quiz-answer mt-3 p-3 bg-red-50 text-red-800 rounded-lg">
-                            <strong>不對喔。</strong> 個體謬誤是從個人推論到團體。這個例子是從團體推論到個人。
-                        </div>
-                        <div id="q1-red" class="quiz-answer mt-3 p-3 bg-red-50 text-red-800 rounded-lg">
-                            <strong>不對喔。</strong> 化約論是過度簡化解釋。這個例子的核心錯誤是分析單位的錯置。
-                        </div>
-                    </div>
-                    
-                    <hr>
-
-                    <div>
-                        <p class="text-lg font-semibold mb-3">情境二：一位社工在實務中遇到兩位「單親家庭」的青少年有行為問題。他因此下結論：「『所有單親家庭』的孩子都比較容易出問題。」</p>
-                        <p class="mb-3">這犯了什麼謬誤？</p>
-                        <div class="flex flex-wrap gap-2">
-                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q2-eco">區位謬誤</button>
-                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q2-ind">個體謬誤</button>
-                            <button class="quiz-btn bg-blue-100 text-blue-800 py-2 px-4 rounded-lg hover:bg-blue-200" data-answer="q2-red">化約論</button>
-                        </div>
-                        <div id="q2-eco" class="quiz-answer mt-3 p-3 bg-red-50 text-red-800 rounded-lg">
-                            <strong>不對喔。</strong> 區位謬誤是從團體推論到個人。這個例子是從個人推論到團體。
-                        </div>
-                        <div id="q2-ind" class="quiz-answer mt-3 p-3 bg-green-50 text-green-800 rounded-lg">
-                            <strong>答對了！</strong> 這是個體謬誤（或稱以偏概全）。社工將「兩位個案」（個人）的特例，不當推論到「所有單親家庭」（團體）的普遍現象。
-                        </div>
-                        <div id="q2-red" class="quiz-answer mt-3 p-3 bg-red-50 text-red-800 rounded-lg">
-                            <strong>不完全正確。</strong> 雖然這也可能涉及化約論（將行為問題簡化為單一家庭因素），但其最主要的邏輯錯誤是「以偏概全」，即個體謬誤。
-                        </div>
-                    </div>
-
                 </div>
             </section>
 
         </main>
     </div>
 
+    <!-- Overlay for mobile menu --><div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden" onclick="toggleMenu(false)"></div>
+
+
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const navLinks = document.querySelectorAll('.nav-link');
-            const contentSections = document.querySelectorAll('.content-section');
-            const menuToggle = document.getElementById('menu-toggle');
-            const sidebar = document.getElementById('sidebar-nav');
+        const sections = document.querySelectorAll('.content-section');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const closeMenuButton = document.getElementById('close-menu-button');
 
-            const setActiveSection = (targetId) => {
-                contentSections.forEach(section => {
-                    section.classList.remove('active');
-                });
-                
-                navLinks.forEach(link => {
-                    link.classList.remove('nav-link-active');
-                    if (link.dataset.target === targetId) {
-                        link.classList.add('nav-link-active');
+        // --- Chart.js Instances ---
+        let purposeChartInstance = null;
+        let timeChartInstance = null;
+
+        function renderPurposeChart() {
+            const ctx = document.getElementById('purposeChart');
+            if (!ctx) return;
+            if (purposeChartInstance) {
+                purposeChartInstance.destroy();
+            }
+            purposeChartInstance = new Chart(ctx.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['探索性', '描述性', '解釋性', '評估性'],
+                    datasets: [
+                        {
+                            label: '質性方法 (QUAL)',
+                            data: [80, 20, 40, 50],
+                            backgroundColor: 'rgba(56, 189, 248, 0.7)', // 亮藍色
+                            borderColor: 'rgba(56, 189, 248, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: '量化方法 (QUANT)',
+                            data: [20, 80, 70, 60],
+                            backgroundColor: 'rgba(239, 68, 68, 0.7)', // 紅色
+                            borderColor: 'rgba(239, 68, 68, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: '研究方法傾向 (%)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: '研究目的'
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                        },
+                        title: {
+                            display: true,
+                            text: '研究目的與方法的關聯（示意圖）'
+                        }
                     }
-                });
-
-                const activeSection = document.getElementById(targetId);
-                if (activeSection) {
-                    activeSection.classList.add('active');
                 }
-            };
+            });
+        }
+
+        function renderTimeChart() {
+            const ctx = document.getElementById('timeChart');
+            if (!ctx) return;
+            if (timeChartInstance) {
+                timeChartInstance.destroy();
+            }
+            timeChartInstance = new Chart(ctx.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['橫斷式', '趨勢研究', '世代研究', '固定樣本', '實驗研究'],
+                    datasets: [{
+                        label: '因果推論能力（示意）',
+                        data: [20, 30, 50, 70, 90],
+                        backgroundColor: [
+                            'rgba(255, 159, 64, 0.6)',
+                            'rgba(255, 205, 86, 0.6)',
+                            'rgba(75, 192, 192, 0.6)',
+                            'rgba(54, 162, 235, 0.6)',
+                            'rgba(153, 102, 255, 0.6)'
+                        ],
+                        borderColor: [
+                            'rgba(255, 159, 64, 1)',
+                            'rgba(255, 205, 86, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(153, 102, 255, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: 'y', // 轉為水平長條圖
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: '因果推論能力（低 ➔ 高）'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        title: {
+                            display: true,
+                            text: '不同研究設計的因果推論能力比較'
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- Navigation Logic ---
+        function showSection(sectionId) {
+            sections.forEach(section => {
+                if (section.id === sectionId) {
+                    section.classList.add('active');
+                    // Re-render charts only when their section becomes active
+                    if (sectionId === 'purpose') {
+                        renderPurposeChart();
+                    }
+                    if (sectionId === 'time') {
+                        renderTimeChart();
+                    }
+                } else {
+                    section.classList.remove('active');
+                }
+            });
 
             navLinks.forEach(link => {
-                link.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const targetId = e.currentTarget.dataset.target;
-                    setActiveSection(targetId);
-                    
-                    if (!sidebar.classList.contains('hidden') && window.innerWidth < 768) {
-                        sidebar.classList.add('hidden');
-                    }
-                });
+                if (link.dataset.section === sectionId) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
             });
 
-            menuToggle.addEventListener('click', () => {
-                sidebar.classList.toggle('hidden');
+            // Auto-scroll to top of content on section change
+            document.querySelector('.md\\:w-3\\/4')?.scrollTo(0, 0);
+            
+            // Close mobile menu on navigation
+            if (window.innerWidth < 768) {
+                toggleMenu(false);
+            }
+        }
+
+        function toggleMenu(show) {
+            if (show) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const sectionId = e.target.closest('a').dataset.section;
+                showSection(sectionId);
+                // Update URL hash for better history (optional)
+                window.location.hash = e.target.closest('a').getAttribute('href');
             });
-
-            setActiveSection('content-intro');
-
-            const quizBtns = document.querySelectorAll('.quiz-btn');
-            quizBtns.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const answerId = btn.dataset.answer;
-                    const answerEl = document.getElementById(answerId);
-                    
-                    if (answerEl) {
-                        const parentCard = btn.closest('div.flex-wrap').parentElement;
-                        const allAnswers = parentCard.querySelectorAll('.quiz-answer');
-                        
-                        allAnswers.forEach(ans => {
-                            if (ans.id !== answerId) {
-                                ans.style.display = 'none';
-                            }
-                        });
-                        answerEl.style.display = 'block';
-                    }
-                });
-            });
-
-            const createPurposeChart = () => {
-                const ctx = document.getElementById('purposeChart')?.getContext('2d');
-                if (!ctx) return;
-                new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: ['探索性研究', '描述性研究', '解釋性研究'],
-                        datasets: [
-                            {
-                                label: '質性方法使用佔比',
-                                data: [85, 30, 20],
-                                backgroundColor: 'rgba(54, 162, 235, 0.7)', 
-                                stack: 'A',
-                            },
-                            {
-                                label: '量化方法使用佔比',
-                                data: [15, 70, 80],
-                                backgroundColor: 'rgba(255, 99, 132, 0.7)', 
-                                stack: 'A',
-                            }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        indexAxis: 'x',
-                        scales: {
-                            x: { stacked: true },
-                            y: { 
-                                stacked: true, 
-                                beginAtZero: true, 
-                                max: 100,
-                                ticks: {
-                                    callback: function(value) {
-                                        return value + '%'
-                                    }
-                                }
-                            }
-                        },
-                        plugins: {
-                            title: {
-                                display: true,
-                                text: '研究目的與方法使用傾向（示意圖）',
-                                font: { size: 16 }
-                            },
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        let label = context.dataset.label || '';
-                                        if (label) {
-                                            label += ': ';
-                                        }
-                                        if (context.parsed.y !== null) {
-                                            label += context.parsed.y + '%';
-                                        }
-                                        return label;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                });
-            };
-
-            const createTimeChart = () => {
-                const ctx = document.getElementById('timeChart')?.getContext('2d');
-                if (!ctx) return;
-                new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: ['橫斷式研究 (Cross-Sectional)', '縱貫性研究 (Longitudinal)'],
-                        datasets: [{
-                            label: '建立因果關係的能力（示意）',
-                            data: [25, 85],
-                            backgroundColor: [
-                                'rgba(255, 159, 64, 0.7)',
-                                'rgba(75, 192, 192, 0.7)'
-                            ],
-                            borderColor: [
-                                'rgba(255, 159, 64, 1)',
-                                'rgba(75, 192, 192, 1)'
-                            ],
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        indexAxis: 'y',
-                        scales: {
-                            x: {
-                                beginAtZero: true,
-                                max: 100
-                            }
-                        },
-                        plugins: {
-                            legend: {
-                                display: false
-                            },
-                            title: {
-                                display: true,
-                                text: '研究時間面向與因果推論能力',
-                                font: { size: 16 }
-                            }
-                        }
-                    }
-                });
-            };
-
-            createPurposeChart();
-            createTimeChart();
         });
+
+        mobileMenuButton.addEventListener('click', () => toggleMenu(true));
+        closeMenuButton.addEventListener('click', () => toggleMenu(false));
+        overlay.addEventListener('click', () => toggleMenu(false));
+
+        // Handle page load with hash
+        document.addEventListener('DOMContentLoaded', () => {
+            const hash = window.location.hash;
+            if (hash) {
+                const sectionId = hash.substring(1);
+                const sectionElement = document.getElementById(sectionId);
+                if (sectionElement) {
+                    showSection(sectionId);
+                } else {
+                    showSection('intro');
+                }
+            } else {
+                showSection('intro');
+            }
+        });
+
+        // --- Quiz Logic ---
+        const quizAnswers = {
+            'quiz-steps': {
+                correctIndex: 1,
+                responses: [
+                    "不正確。研究問題是一個更廣泛的疑問。",
+                    "答對了！假設（Hypothesis）是根據理論對變項關係提出的「可被驗證的猜想」。",
+                    "不正確。蒐集資料是驗證假設的「後續」步驟。",
+                    "不正確。結論是分析資料「之後」才得出的。"
+                ]
+            },
+            'quiz-literature': {
+                correctIndex: 2,
+                responses: [
+                    "不正確。這個情境不是在避免重複。",
+                    "不正確。這個情境不是在找研究缺口。",
+                    "答對了！找到「FACES-IV」這套成熟量表，是文獻回顧在「測量方法」上的重要功能。",
+                    "不正確。結論是研究「最後」才有的。"
+                ]
+            },
+            'quiz-purpose': {
+                correctIndex: 1,
+                responses: [
+                    "不正確。探索性研究是針對「未知」的主題。",
+                    "答對了！描述性研究（Descriptive）的目的就是精確描述一個群體的「特徵」與「比例」（如：年齡、性別）。",
+                    "不正確。解釋性研究要探討「為什麼」，例如「為什麼」街友的教育程度與...有關。",
+                    "不正確。評估性研究是評估「方案」是否有效。"
+                ]
+            },
+            'quiz-time': {
+                correctIndex: 0,
+                responses: [
+                    "答對了！橫斷式研究（Cross-Sectional）就是在「單一時間點」蒐集資料，像拍快照一樣。",
+                    "不正確。縱貫式研究需要「多個時間點」蒐集資料。",
+                    "不正確。實驗研究是一種特定的研究設計，與時間點無關。",
+                    "不正確。評估研究是一種研究目的。"
+                ]
+            },
+            'quiz-longitudinal': {
+                correctIndex: 1,
+                responses: [
+                    "不正確。趨勢研究是針對「同一個大群體」（如：全台灣青年），而非「特定世代」。",
+                    "答對了！世代研究（Cohort）就是鎖定一個「特定世代」（1990-2000出生者），並在不同時間點去追蹤這個「群體」的變化。",
+                    "不正確。固定樣本研究需要追蹤「同一批人」，但題幹說明了兩次抽樣的人是「不同的」。",
+                    "不正確。這是在多個時間點（2020, 2030）進行，所以是縱貫式。"
+                ]
+            },
+            'quiz-unit': {
+                correctIndex: 1,
+                responses: [
+                    "不正確。雖然研究者可能向「學生」（觀察單位）蒐集資料，但他最終要比較與下結論的對象是「學校」。",
+                    "答對了！研究者的結論是關於「學校」的特徵（是否有社工）與「學校」的霸凌程度。因此分析單位是「組織（學校）」。",
+                    "不正確。社工是研究中的一個「變項」（有/無），而不是分析的主體。",
+                    "不正確。霸凌事件是測量的內容，不是分析的主體。"
+                ]
+            },
+            'quiz-fallacy': {
+                correctIndex: 1,
+                responses: [
+                    "不正確。區位謬誤是「由群推個」。",
+                    "答對了！個體謬誤（Individualistic Fallacy）就是拿「個體」的特例（一個濫用藥物的人），去推論「群體」的現象（所有領救助的人）。",
+                    "不正確。化約論是將複雜現象簡化為「單一」原因。",
+                    "不正確。描述性研究是一種研究目的。"
+                ]
+            }
+        };
+
+        function checkQuiz(quizId, selectedIndex, correctIndex) {
+            // If quizAnswers object is defined, use it.
+            if (quizAnswers[quizId]) {
+                correctIndex = quizAnswers[quizId].correctIndex;
+            }
+
+            const feedbackEl = document.getElementById(`${quizId}-feedback`);
+            const options = document.getElementById(quizId).getElementsByClassName('quiz-option');
+            
+            // Reset styles
+            for (let i = 0; i < options.length; i++) {
+                options[i].classList.remove('bg-green-200', 'border-green-400', 'bg-red-200', 'border-red-400');
+                options[i].disabled = true;
+            }
+
+            if (selectedIndex === correctIndex) {
+                feedbackEl.textContent = quizAnswers[quizId].responses[selectedIndex];
+                feedbackEl.className = 'quiz-feedback correct';
+                options[selectedIndex].classList.add('bg-green-200', 'border-green-400');
+            } else {
+                feedbackEl.textContent = quizAnswers[quizId].responses[selectedIndex];
+                feedbackEl.className = 'quiz-feedback incorrect';
+                options[selectedIndex].classList.add('bg-red-200', 'border-red-400');
+                // Highlight correct answer
+                options[correctIndex].classList.add('bg-green-200', 'border-green-400');
+            }
+        }
+
     </script>
 </body>
 </html>
