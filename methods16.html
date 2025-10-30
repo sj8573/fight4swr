@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>方案評估</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chosen Palette: Academic Blue and Warm Neutrals --><!-- Application Structure Plan: 本SPA採用固定側邊導覽列（行動裝置為漢堡選單）結構。使用者可點選任一主題（如評估目的、類型、方法），主內容區會動態顯示對應的<section>。此結構的優點是讓使用者能以非線性的方式自由探索、複習特定概念。 --><!-- Visualization & Content Choices: 1. 評估類型 (圖解): 原文為文字。 -> 目標: 視覺化不同評估類型在「方案生命週期」中的位置。 -> 視覺化: 使用HTML/Tailwind製作一個水平流程圖（規劃期 -> 執行期 -> 結束期），並將「需求評估」、「過程評估」、「結果評估」等放置在對應的位置。 -> 互動: 靜態。 -> 理由: 將抽象的評估類型與具體的方案時間點連結，易於理解。 2. 評估方法 (列表/卡片): 原文為文字。 -> 目標: 連結本主題與先前的研究方法。 -> 視覺化: 使用卡片式佈局，說明如何「應用」實驗設計、準實驗設計、單案設計、質性方法等於方案評估中。 -> 互動: 靜態。 -> 理由: 結構清晰，易於查閱。 --><!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. --><link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .nav-link {
+            display: block;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .nav-link:hover {
+            background-color: #f0f4f8;
+            color: #007bff;
+        }
+        .nav-link.active {
+            background-color: #e6f2ff;
+            color: #0056b3;
+            font-weight: 700;
+        }
+        .nav-link.sub-link {
+            padding-left: 2rem;
+            font-size: 0.9rem;
+        }
+        .nav-link.sub-link.active {
+            background-color: #e0eafc;
+        }
+        
+        .quiz-option {
+            display: block;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            text-align: left;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        .quiz-option:hover {
+            background-color: #f9fafb;
+            border-color: #6b7280;
+        }
+        .quiz-feedback {
+            margin-top: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            display: none;
+        }
+        .quiz-feedback.correct {
+            background-color: #d1fae5;
+            color: #065f46;
+            display: block;
+        }
+        .quiz-feedback.incorrect {
+            background-color: #fee2e2;
+            color: #991b1b;
+            display: block;
+        }
+        
+        /* Program Lifecycle Flow */
+        .lifecycle-flow {
+            display: flex;
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+            justify-content: space-between;
+            align-items: stretch; /* Make cards same height */
+            gap: 1rem;
+            margin-top: 2rem;
+            padding: 1rem;
+        }
+        .lifecycle-stage {
+            background-color: #f3f4f6; /* Gray-100 */
+            border: 1px solid #d1d5db; /* Gray-300 */
+            border-radius: 0.75rem;
+            padding: 1rem 1.25rem;
+            text-align: center;
+            flex: 1 1 auto; /* Allow flexible sizing */
+            min-width: 200px; /* Minimum width for cards */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+        }
+        .lifecycle-stage h4 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #1f2937; /* Gray-800 */
+            margin-bottom: 0.75rem;
+            border-bottom: 2px solid #60a5fa; /* Blue-400 */
+            padding-bottom: 0.5rem;
+        }
+        .lifecycle-stage p {
+            font-size: 0.9rem;
+            color: #4b5563; /* Gray-600 */
+            margin-bottom: 0.5rem;
+        }
+        .lifecycle-stage strong {
+            display: block;
+            font-weight: 700;
+            color: #1d4ed8; /* Blue-700 */
+            margin-top: auto; /* Push to bottom */
+            padding-top: 0.5rem;
+        }
+        .lifecycle-arrow {
+            font-size: 2rem;
+            color: #60a5fa; /* Blue-400 */
+            font-weight: 700;
+            align-self: center; /* Center arrow vertically */
+        }
+        @media (max-width: 768px) {
+            .lifecycle-flow {
+                flex-direction: column;
+            }
+            .lifecycle-arrow {
+                transform: rotate(90deg);
+                margin: 0.5rem 0;
+            }
+        }
+
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- Header --><header class="bg-white shadow-md sticky top-0 z-40">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <h1 class="text-xl md:text-2xl font-bold text-blue-800">方案評估 (Program Evaluation)</h1>
+            <button id="mobile-menu-button" class="md:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content --><div class="container mx-auto px-4 py-6 flex flex-col md:flex-row">
+
+        <!-- Navigation Sidebar --><nav id="sidebar" class="w-full md:w-1/4 lg:w-1/5 bg-white p-4 rounded-lg shadow-sm md:sticky md:top-24 md:self-start transition-transform duration-300 ease-in-out -translate-x-full md:translate-x-0 fixed md:relative h-full md:h-auto z-30 overflow-y-auto">
+            <button id="close-menu-button" class="md:hidden p-2 absolute top-2 right-2 text-gray-600 hover:text-gray-900">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            <h2 class="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">章節導覽</h2>
+            <ul>
+                <li><a href="#intro" class="nav-link active" data-section="intro">🏠 導論：什麼是方案評估？</a></li>
+                <li><a href="#purpose" class="nav-link" data-section="purpose">🎯 評估之目的與研究問題</a></li>
+                <li><a href="#types" class="nav-link" data-section="types">🔄 評估研究類型</a></li>
+                <li><a href="#methods" class="nav-link" data-section="methods">🛠️ 方案評估方法</a></li>
+            </ul>
+        </nav>
+
+        <!-- Content Area --><main class="w-full md:w-3/4 lg:w-4/5 md:pl-8 mt-6 md:mt-0">
+
+            <!-- Section: 導論 --><section id="intro" class="content-section active bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-4">🏠 導論：什麼是方案評估？</h2>
+                <p class="mb-4 text-lg">「方案評估」是「應用」社會研究方法的一個子領域。它的目的**不是**為了「發展新理論」或「發表學術論文」（雖然也可以），而是為了「實際應用」：針對一個「特定的」社會服務方案，進行系統性的資料蒐集與分析，以判斷其成效、價值與品質，並提供資訊以利「決策」。</p>
+                <p class="mb-4">方案評估是社會工作「責信」(Accountability) 的核心。我們不能只憑「善意」或「直覺」來提供服務，我們有「責任」去「評估」我們的服務是否：</p>
+                <ul class="list-disc list-inside ml-4 space-y-1 mb-4">
+                    <li><strong>確實有效？</strong> (Did it work?)</li>
+                    <li><strong>符合成本效益？</strong> (Was it worth the cost?)</li>
+                    <li><strong>是否按照計畫執行？</strong> (Was it implemented correctly?)</li>
+                    <li><strong>是否滿足了案主真正的需求？</strong> (Did it meet the needs?)</li>
+                </ul>
+                <p class="mb-4">方案評估的結果，會直接影響到「利害關係人」(Stakeholders)——包括案主、實務工作者、機構管理者、政府補助單位、捐款人等——的決策。</p>
+                
+                <div class="mt-6 bg-blue-50 border-l-4 border-blue-500 p-4 rounded-md">
+                    <h4 class="font-semibold text-blue-800">本章節學習重點：</h4>
+                    <p class="mt-2">本章節將介紹方案評估的目的、如何形成評估問題、評估的四大類型（需求、過程、結果、成本效益），以及在評估中如何「應用」我們先前學過的各種研究方法（如實驗設計、質性訪談等）。
+                    </p>
+                </div>
+            </section>
+
+            <!-- Section: 評估之目的與研究問題 --><section id="purpose" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">🎯 評估之目的與研究問題</h2>
+                <p class="mb-6">方案評估的「目的」會直接決定其「研究問題」的類型。評估的目的通常不是由「研究者」決定，而是由「利害關係人」的需求決定。</p>
+
+                <div class="space-y-6">
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">1. 目的：判斷方案的「價值」或「成效」(Merit / Worth)</h3>
+                        <p class="mb-4">這是最常見的目的，旨在回答「這個方案有效嗎？」</p>
+                        <p class="font-medium">範例研究問題：</p>
+                        <ul class="list-disc list-inside ml-4 space-y-1 bg-gray-50 p-3 rounded border">
+                            <li>「相較於未參加者，參與『青少年職涯探索團體』的學生，其未來的就業穩定度是否『更高』？」</li>
+                            <li>「執行『居家喘息服務』後，家庭照顧者的『壓力指數』是否『顯著下降』？」</li>
+                        </ul>
+                    </div>
+
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">2. 目的：改善方案的「執行」或「運作」(Improvement)</h3>
+                        <p class="mb-4">旨在了解「方案是如何運作的？」，找出執行上的優點與困難點，以便「即時」修正。</p>
+                        <p class="font-medium">範例研究問題：</p>
+                        <ul class="list-disc list-inside ml-4 space-y-1 bg-gray-50 p-3 rounded border">
+                            <li>「方案的『實際』服務內容，是否與『原定』的計畫一致？」</li>
+                            <li>「案主對於方案的『可近性』（如：地點、時間）滿意度如何？」</li>
+                            <li>「社工在執行方案時，面臨的主要『障礙』是什麼？」</li>
+                        </ul>
+                    </div>
+
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">3. 目的：提供「資源分配」的決策依據 (Allocation)</h3>
+                        <p class="mb-4">旨在回答「錢該花在哪裡？」，通常涉及「成本」與「效益」的比較。</p>
+                        <p class="font-medium">範例研究問題：</p>
+                        <ul class="list-disc list-inside ml-4 space-y-1 bg-gray-50 p-3 rounded border">
+                            <li>「方案 A 和方案 B，哪一個方案能用『更少』的錢，達到『相同』的戒癮成功率？」</li>
+                            <li>「投入在『預防性』家庭教育的每一塊錢，未來能省下多少『社會成本』（如：兒虐安置費用）？」</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">4. 目的：了解社區的「需求」(Need)</h3>
+                        <p class="mb-4">旨在回答「我們『應該』做什麼？」，通常發生在方案「規劃階段」。</p>
+                        <p class="font-medium">範例研究問題：</p>
+                        <ul class="list-disc list-inside ml-4 space-y-1 bg-gray-50 p-3 rounded border">
+                            <li>「本社區有多少比例的獨居老人有『送餐』的需求？」</li>
+                            <li>「新住民家庭在本地適應上，所面臨的『最大挑戰』是什麼？」</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：評估之目的與研究問題</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一個機構管理者想知道：「相較於方案 A，方案 B 是否能用『更少』的預算，達到『相同』的案主滿意度？」</t>
+                        <p class="mb-4">這個研究問題，最符合方案評估的哪一種目的？</p>
+                        
+                        <div id="quiz-purpose" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-purpose', 0, 2)">A. 改善方案的執行 (Improvement)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-purpose', 1, 2)">B. 判斷方案的成效 (Merit)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-purpose', 2, 2)">C. 提供資源分配的決策依據 (Allocation)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-purpose', 3, 2)">D. 了解社區的需求 (Need)</button>
+                        </div>
+                        <div id="quiz-purpose-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Section: 評估研究類型 --><section id="types" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">🔄 評估研究類型</h2>
+                <p class="mb-6">方案評估可以根據其在「方案生命週期」中的位置，分為多種類型。最常見的包括：</q>
+                
+                <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">方案生命週期與評估類型</h3>
+                <div class="lifecycle-flow">
+                    <div class="lifecycle-stage">
+                        <h4>1. 規劃期 (Planning)</h4>
+                        <p>在方案開始「之前」，用來釐清問題與資源。</p>
+                        <strong>需求評估<br>(Needs Assessment)</strong>
+                    </div>
+                    <div class="lifecycle-arrow">➔</div>
+                    <div class="lifecycle-stage">
+                        <h4>2. 執行期 (Implementation)</h4>
+                        <p>在方案「進行中」，用來監測與修正流程。</p>
+                        <strong>過程評估<br>(Process Evaluation) / 形成性評估 (Formative)</strong>
+                    </div>
+                    <div class="lifecycle-arrow">➔</div>
+                    <div class="lifecycle-stage">
+                        <h4>3. 結束期 (Completion)</h4>
+                        <p>在方案「結束後」，用來判斷成效與價值。</p>
+                        <strong>結果評估 (Outcome) / 總結性評估 (Summative) / 成本效益評估 (Cost-Benefit)</strong>
+                    </div>
+                </div>
+                
+                <div class="space-y-6 mt-6">
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">A. 需求評估 (Needs Assessment)</h3>
+                        <p class="mb-4"><strong>目的</strong>：在規劃方案前，用來界定「問題的嚴重程度」、「目標群體是誰」、「現有資源是否足夠」。</p>
+                        <p class="mb-4"><strong>方法</strong>：通常使用「調查研究」（如：社區普查）、「質性訪談」（如：焦點團體）、「次級資料分析」（如：分析政府統計數據）。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">在開設「課後輔導班」前，先對學區內的家長進行「問卷調查」，了解有多少學童有需求、他們能負擔的費用、以及他們偏好的時段。</p>
+                    </div>
+                    
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">B. 過程評估 (Process Evaluation) / 形成性評估 (Formative)</h3>
+                        <p class="mb-4"><strong>目的</strong>：在方案「執行中」進行，像「隨堂測驗」。用來監測「方案是否照計畫執行？」、「案主的出席率/滿意度如何？」，以便「即時修正」。</p>
+                        <p class="mb-4"><strong>方法</strong>：通常使用「質性方法」（如：觀察、訪談社工）、「非干擾研究」（如：分析出席紀錄、活動簽到表）。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">在「青少年團體」進行到一半時，對成員進行「焦點團體訪談」，了解他們覺得哪些單元最有用、哪些最無聊，並「立即調整」後續的課程設計。</p>
+                    </div>
+                    
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">C. 結果/成效評估 (Outcome / Summative Evaluation)</h3>
+                        <p class="mb-4"><strong>目的</strong>：在方案「結束後」進行，像「期末大考」。用來判斷「方案是否達成了『預期』的目標？」、「案主是否真的改變了？」。這是最常被要求（但也最難做）的評估。</p>
+                        <p class="mb-4"><strong>方法</strong>：通常使用「量化」的「準實驗設計」（如：不等控制組前後測）或「單案設計」。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">為了評估「戒酒方案」的「成效」，研究者比較「參與方案者」與「未參與者」在方案結束後「半年」的「復發率」是否有顯著差異。</p>
+                    </div>
+                    
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">D. 成本效益/成本效果評估 (Cost-Benefit / Cost-Effectiveness)</h3>
+                        <p class="mb-4"><strong>目的</strong>：將方案的「成本」（投入的金錢、人力）與其「產出」進行比較。</p>
+                        <ul class="list-disc list-inside ml-4 space-y-1 mb-4">
+                            <li><strong>成本效益 (Cost-Benefit)</strong>：將「結果」也「換算成金錢」。(例：每投入 1 元在預防性服務，能省下 5 元的安置費用？)</li>
+                            <li><strong>成本效果 (Cost-Effectiveness)</strong>：不換算金錢，而是比較「達到『一個單位』的效果」需要多少成本。(例：要讓一位案主「成功戒菸」，A 方案要花 1 萬元，B 方案要花 2 萬元？)</li>
+                        </ul>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">評估一個「中輟生復學方案」。計算總成本為 100 萬，成功讓 10 位學生復學。其「成本效果」即為：「每位」成功復學的學生，需花費 10 萬元成本。</p>
+                    </div>
+                </div>
+
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：評估研究類型</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一個機構在「規劃」新的獨居老人送餐服務「之前」，先派研究員去「訪談」社區中的長者與里長，以了解「目前有多少人」需要送餐，以及他們「偏好的口味」。</p>
+                        <p class="mb-4">這屬於哪一種類型的評估？</p>
+                        
+                        <div id="quiz-types" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-types', 0, 0)">A. 需求評估 (Needs Assessment)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-types', 1, 0)">B. 過程評估 (Process Evaluation)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-types', 2, 0)">C. 結果評估 (Outcome Evaluation)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-types', 3, 0)">D. 成本效益評估 (Cost-Benefit)</button>
+                        </div>
+                        <div id="quiz-types-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Section: 方案評估方法 --><section id="methods" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">🛠️ 方案評估方法</h2>
+                <p class="mb-6">方案評估「不是」一種獨特的研究方法，而是「應用」各種研究方法來達成評估目的。選擇何種方法，取決於你的「評估問題」和「評估類型」。</p>
+
+                <div class="space-y-6">
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">1. 應用「實驗/準實驗設計」</h3>
+                        <p class="mb-4"><strong>最適用於</strong>：「結果/成效評估」(Outcome Evaluation)。</p>
+                        <p class="mb-4"><strong>目的</strong>：建立方案（自變項 X）與案主改變（依變項 O）之間的「因果關係」。</p>
+                        <p class="mb-4"><strong>實務挑戰</strong>：在社工領域，「真實驗設計」（有隨機分派 R）通常不可行，因此「準實驗設計」（如：不等控制組前後測）是評估「方案成效」最常被使用、也最被接受的「量化」方法。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">採用「不等控制組前後測設計」，比較 A 機構（有執行方案）與 B 機構（未執行）的案主，在「憂鬱分數」上的「進步幅度」差異。</p>
+                    </div>
+
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">2. 應用「單案評估設計」</h3>
+                        <p class="mb-4"><strong>最適用於</strong>：「結果/成效評估」，特別是針對「個人」或「小團體」的實務工作者。</p>
+                        <p class="mb-4"><strong>目的</strong>：系統性地監測「單一個案」在介入前 (A) 與介入後 (B) 的改變，適合「實務工作者」在日常工作中「自行評估」自己的成效。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">一位學校社工使用「ABAB 撤回設計」或「多重基準線設計」，來評估他對某位學童的「代幣獎勵制度 (B)」，是否真的「有效」降低了該學童的「上課插嘴次數 (O)」。</p>
+                    </div>
+
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">3. 應用「質性研究法」</h3>
+                        <p class="mb-4"><strong>最適用於</strong>：「需求評估」與「過程評估」(Process Evaluation)。</t>
+                        <p class="mb-4"><strong>目的</strong>：量化方法告訴我們「有沒有效」(What)，質性方法告訴我們「為什麼有效」或「如何運作」(How & Why)。</p>
+                        <p class="mb-4"><strong>方法</strong>：包括「焦點團體」、「深度訪談」、「參與式觀察」等。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">在「過程評估」中，研究者「深度訪談」第一線社工，以了解他們在執行方案時，「實際上」遇到了哪些困難、他們「如何」克服這些困難，以及他們對方案手冊的「真實看法」。</p>
+                    </div>
+                    
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">4. 應用「調查研究」與「次級分析」</h3>
+                        <p class="mb-4"><strong>最適用於</strong>：「需求評估」。</p>
+                        <p class="mb-4"><strong>目的</strong>：用來描述一個「大群體」的「需求」或「問題」的普遍性。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">在「需求評估」中，(1) 使用「郵寄問卷」對社區居民進行「普查」，了解社區的治安滿意度。 (2) 「分析」政府的「次級資料」（如：警政署的犯罪率統計），來界定問題的嚴重性。</p>
+                    </div>
+                </div>
+
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：方案評估方法</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一位機構督導想了解，為何某個新方案的「案主出席率」這麼低。他決定「不」看統計數字，而是去「深度訪談」幾位中途退出的案主，想聽聽他們「真實的」感受與退出的「原因」。</p>
+                        <p class="mb-4">這位督導最可能是在進行哪一類評估，以及應用了何種方法？</p>
+                        
+                        <div id="quiz-methods" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-methods', 0, 1)">A. 結果評估 + 準實驗設計</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-methods', 1, 1)">B. 過程評估 + 質性訪談</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-methods', 2, 1)">C. 需求評估 + 調查研究</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-methods', 3, 1)">D. 成本效益評估 + 次級分析</button>
+                        </div>
+                        <div id="quiz-methods-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Overlay for mobile menu --><div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden" onclick="toggleMenu(false)"></div>
+
+
+    <script>
+        const sections = document.querySelectorAll('.content-section');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const closeMenuButton = document.getElementById('close-menu-button');
+
+        function showSection(sectionId) {
+            sections.forEach(section => {
+                if (section.id === sectionId) {
+                    section.classList.add('active');
+                } else {
+                    section.classList.remove('active');
+                }
+            });
+
+            navLinks.forEach(link => {
+                if (link.dataset.section === sectionId) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+
+            // Auto-scroll to top of content on section change
+            document.querySelector('.md\\:w-3\\/4')?.scrollTo(0, 0);
+            
+            // Close mobile menu on navigation
+            if (window.innerWidth < 768) {
+                toggleMenu(false);
+            }
+        }
+
+        function toggleMenu(show) {
+            if (show) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const sectionId = e.target.closest('a').dataset.section;
+                showSection(sectionId);
+                // Update URL hash for better history (optional)
+                window.location.hash = e.target.closest('a').getAttribute('href');
+            });
+        });
+
+        mobileMenuButton.addEventListener('click', () => toggleMenu(true));
+        closeMenuButton.addEventListener('click', () => toggleMenu(false));
+        overlay.addEventListener('click', () => toggleMenu(false));
+
+        // Handle page load with hash
+        document.addEventListener('DOMContentLoaded', () => {
+            const hash = window.location.hash;
+            if (hash) {
+                const sectionId = hash.substring(1);
+                const sectionElement = document.getElementById(sectionId);
+                if (sectionElement) {
+                    showSection(sectionId);
+                } else {
+                    showSection('intro');
+                }
+            } else {
+                showSection('intro');
+            }
+        });
+
+        // --- Quiz Logic ---
+        const quizAnswers = {
+            'quiz-purpose': {
+                correctIndex: 2,
+                responses: [
+                    "不正確。改善執行（過程評估）關心的是「如何運作」。",
+                    "不正確。判斷成效關心的是「有沒有效」，但未必要比較「成本」。",
+                    "答對了！當研究問題涉及「成本」（更少的預算）和「效益」（相同的滿意度）的比較時，其目的就是為了「資源分配」。",
+                    "不正確。了解需求是在方案「規劃前」進行的。"
+                ]
+            },
+            'quiz-types': {
+                correctIndex: 0,
+                responses: [
+                    "答對了！在方案「規劃之前」進行，用來了解「問題」與「需求」的評估，稱為「需求評估」。",
+                    "不正確。過程評估是在方案「執行中」進行的。",
+                    "不正確。結果評估是在方案「結束後」進行的。",
+                    "不正確。成本效益評估關心的是「成本」與「效益」的關係。"
+                ]
+            },
+            'quiz-methods': {
+                correctIndex: 1,
+                responses: [
+                    "不正確。結果評估關心「有沒有效」，而督導想知道的是「為什麼」出席率低。",
+                    "答對了！督導想了解「方案執行」的問題（出席率低），這屬於「過程評估」。他使用「深度訪談」（質性方法）來探尋「原因」。",
+                    "不正確。需求評估是在方案「開始前」做的。",
+                    "不正確。這個情境與「成本」無關。"
+                ]
+            }
+        };
+
+        function checkQuiz(quizId, selectedIndex, correctIndex) {
+            // If quizAnswers object is defined, use it.
+            if (quizAnswers[quizId]) {
+                correctIndex = quizAnswers[quizId].correctIndex;
+            }
+
+            const feedbackEl = document.getElementById(`${quizId}-feedback`);
+            const options = document.getElementById(quizId).getElementsByClassName('quiz-option');
+            
+            // Reset styles
+            for (let i = 0; i < options.length; i++) {
+                options[i].classList.remove('bg-green-200', 'border-green-400', 'bg-red-200', 'border-red-400');
+                options[i].disabled = true;
+            }
+
+            if (selectedIndex === correctIndex) {
+                feedbackEl.textContent = quizAnswers[quizId].responses[selectedIndex];
+                feedbackEl.className = 'quiz-feedback correct';
+                options[selectedIndex].classList.add('bg-green-200', 'border-green-400');
+            } else {
+                feedbackEl.textContent = quizAnswers[quizId].responses[selectedIndex];
+                feedbackEl.className = 'quiz-feedback incorrect';
+                options[selectedIndex].classList.add('bg-red-200', 'border-red-400');
+                // Highlight correct answer
+                options[correctIndex].classList.add('bg-green-200', 'border-green-400');
+            }
+        }
+
+    </script>
+</body>
+</html>
