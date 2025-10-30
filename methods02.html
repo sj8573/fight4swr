@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>社會工作研究的哲學與理論</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Chosen Palette: Academic Blue and Warm Neutrals --><link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .nav-link {
+            display: block;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .nav-link:hover {
+            background-color: #f0f4f8;
+            color: #007bff;
+        }
+        .nav-link.active {
+            background-color: #e6f2ff;
+            color: #0056b3;
+            font-weight: 700;
+        }
+        .nav-link.sub-link {
+            padding-left: 2rem;
+            font-size: 0.9rem;
+        }
+        .nav-link.sub-link.active {
+            background-color: #e0eafc;
+        }
+        
+        .quiz-option {
+            display: block;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            text-align: left;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        .quiz-option:hover {
+            background-color: #f9fafb;
+            border-color: #6b7280;
+        }
+        .quiz-feedback {
+            margin-top: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            display: none;
+        }
+        .quiz-feedback.correct {
+            background-color: #d1fae5;
+            color: #065f46;
+            display: block;
+        }
+        .quiz-feedback.incorrect {
+            background-color: #fee2e2;
+            color: #991b1b;
+            display: block;
+        }
+
+        /* Logic Flow Diagram */
+        .logic-flow-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+        .logic-box {
+            background-color: #e0f2fe; /* Light blue */
+            border: 1px solid #90cdf4; /* Blue-300 */
+            border-radius: 0.5rem;
+            padding: 0.75rem 1.25rem;
+            text-align: center;
+            font-weight: 500;
+            width: 80%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .logic-arrow {
+            font-size: 2rem;
+            color: #60a5fa; /* Blue-400 */
+            font-weight: 700;
+            line-height: 1;
+        }
+        
+        /* Wheel of Science */
+        .wheel-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin: 2rem auto;
+            height: 450px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .wheel-box {
+            position: absolute;
+            background-color: #ffffff;
+            border: 2px solid;
+            border-radius: 0.75rem;
+            padding: 0.75rem 1rem;
+            text-align: center;
+            font-weight: 600;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            width: 150px;
+        }
+        .wheel-theory {
+            border-color: #1d4ed8; /* Blue-700 */
+            color: #1d4ed8;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .wheel-hypothesis {
+            border-color: #059669; /* Emerald-600 */
+            color: #059669;
+            top: 150px;
+            right: 20px;
+        }
+        .wheel-observation {
+            border-color: #ca8a04; /* Yellow-600 */
+            color: #ca8a04;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .wheel-generalization {
+            border-color: #c2410c; /* Orange-600 */
+            color: #c2410c;
+            top: 150px;
+            left: 20px;
+        }
+        .wheel-arrow {
+            position: absolute;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #374151; /* Gray-700 */
+        }
+        /* Theory -> Hypothesis */
+        .arrow-1 { top: 90px; right: 90px; transform: rotate(30deg); }
+        /* Hypothesis -> Observation */
+        .arrow-2 { bottom: 90px; right: 90px; transform: rotate(150deg); }
+        /* Observation -> Generalization */
+        .arrow-3 { bottom: 90px; left: 90px; transform: rotate(-150deg); }
+        /* Generalization -> Theory */
+        .arrow-4 { top: 90px; left: 90px; transform: rotate(-30deg); }
+        .wheel-label {
+            position: absolute;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        .label-deduction {
+            color: #059669; /* Emerald-600 */
+            top: 130px;
+            right: 100px;
+        }
+        .label-induction {
+            color: #c2410c; /* Orange-600 */
+            top: 130px;
+            left: 100px;
+        }
+
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- Header --><header class="bg-white shadow-md sticky top-0 z-40">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <h1 class="text-xl md:text-2xl font-bold text-blue-800">社會工作研究的哲學與理論</h1>
+            <button id="mobile-menu-button" class="md:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content --><div class="container mx-auto px-4 py-6 flex flex-col md:flex-row">
+
+        <!-- Navigation Sidebar --><nav id="sidebar" class="w-full md:w-1S-1/4 lg:w-1/5 bg-white p-4 rounded-lg shadow-sm md:sticky md:top-24 md:self-start transition-transform duration-300 ease-in-out -translate-x-full md:translate-x-0 fixed md:relative h-full md:h-auto z-30 overflow-y-auto">
+            <button id="close-menu-button" class="md:hidden p-2 absolute top-2 right-2 text-gray-600 hover:text-gray-900">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            <h2 class="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">章節導覽</h2>
+            <ul>
+                <li><a href="#intro" class="nav-link active" data-section="intro">🏠 導論：哲學與理論</a></li>
+                <li><a href="#paradigm" class="nav-link" data-section="paradigm">🌎 哲學典範</a></li>
+                <li><a href="#theory" class="nav-link" data-section="theory">🧱 理論、概念、命題</a></li>
+                <li><a href="#logic" class="nav-link" data-section="logic">🔄 歸納 vs. 演繹</a></li>
+                <li><a href="#explanation" class="nav-link" data-section="explanation">🎯 個殊式 vs. 律則式解釋</a></li>
+            </ul>
+        </nav>
+
+        <!-- Content Area --><main class="w-full md:w-3/4 lg:w-4/5 md:pl-8 mt-6 md:mt-0">
+
+            <!-- Section: 導論 --><section id="intro" class="content-section active bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-4">🏠 導論：哲學與理論</h2>
+                <p class="mb-4 text-lg">如果說「研究方法」是蓋房子的「工具」（如鎚子、鋸子），那麼「哲學與理論」就是指導我們蓋房子的「藍圖」與「地基」。</p>
+                <p class="mb-4">在社會工作研究中，哲學與理論扮演著至關重要的角色：</p>
+                <ul class="list-disc list-inside mt-2 ml-4 space-y-2">
+                    <li><strong>哲學典範 (Paradigm)</strong>：決定了我們的「世界觀」。它回答了「什麼是真實？」(本體論)、「我們如何能認識真實？」(知識論)、「我們該用什麼方法去認識？」(方法論) 等根本問題。</li>
+                    <li><strong>理論 (Theory)</strong>：提供了我們觀察世界的「鏡片」。它幫助我們組織零散的觀察、解釋現象為何發生、並預測未來可能的情況。</li>
+                </ul>
+                <p class="mt-4">一個不了解哲學與理論的研究者，就像一個拿著工具箱卻沒有藍圖的工人。他或許能釘釘子，卻不知道自己為何而釘，也不知道該蓋出什麼樣的房子。</p>
+                
+                <div class="mt-6 bg-blue-50 border-l-4 border-blue-500 p-4 rounded-md">
+                    <h4 class="font-semibold text-blue-800">本章節學習重點：</h4>
+                    <p class="mt-2">本章節將帶您探索研究的「靈魂」：從支配研究的哲學典範，到理論如何被建構與運用（歸納與演繹），以及我們希望達成的解釋層次（個殊式與律則式）。</p>
+                </div>
+            </section>
+
+            <!-- Section: 哲學典範 --><section id="paradigm" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">🌎 哲學典範 (Philosophical Paradigms)</h2>
+                <p class="mb-6">哲學典範是研究者看待世界的基本信念系統，它會直接影響研究者選擇的研究主題、提問方式，以及使用的方法（量化或質性）。</p>
+                
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="border rounded-lg p-5 shadow-sm bg-white hover:shadow-lg transition-shadow">
+                        <h3 class="text-xl font-semibold text-blue-600 mb-3">1. 實證主義 (Positivism)</h3>
+                        <p class="mb-2"><strong>世界觀</strong>：存在一個「客觀、獨立於人」的真實世界，如同物理世界。</p>
+                        <p class="mb-2"><strong>研究目標</strong>：尋找普世的「因果法則」(Universal Laws)。</p>
+                        <p class="mb-2"><strong>常用方法</strong>：量化研究、實驗法、問卷調查。</p>
+                        <p class="font-medium mt-3">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">透過「隨機對照試驗」(RCT) 來客觀地驗證「A 方案」是否「導致」青少年憂鬱分數「顯著下降」。</p>
+                    </div>
+
+                    <div class="border rounded-lg p-5 shadow-sm bg-white hover:shadow-lg transition-shadow">
+                        <h3 class="text-xl font-semibold text-green-600 mb-3">2. 詮釋/建構主義 (Interpretivism/Constructivism)</h3>
+                        <p class="mb-2"><strong>世界觀</strong>：真實是「主觀建構」的，是人們透過社會互動和語言所賦予的「意義」。</p>
+                        <p class="mb-2"><strong>研究目標</strong>：深入「理解」人們的「主觀經驗」與「詮釋」。</p>
+                        <p class="mb-2"><strong>常用方法</strong>：質性研究、深度訪談、參與觀察。</p>
+                        <p class="font-medium mt-3">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">深入訪談 10 位單親媽媽，去「理解」她們在育兒過程中所體驗到的「主觀壓力」與「意義建構」。</p>
+                    </div>
+
+                    <div class="border rounded-lg p-5 shadow-sm bg-white hover:shadow-lg transition-shadow">
+                        <h3 class="text-xl font-semibold text-red-600 mb-3">3. 批判典範 (Critical Paradigm)</h3>
+                        <p class="mb-2"><strong>世界觀</strong>：真實世界充滿了「權力鬥爭」與「不平等」，這些結構壓迫著弱勢群體。</p>
+                        <p class="mb-2"><strong>研究目標</strong>：「揭露」不公義的權力結構，並「賦權」受壓迫者，以促成「社會改變」。</p>
+                        <p class="mb-2"><strong>常用方法</strong>：批判性話語分析、行動研究、女性主義研究。</p>
+                        <p class="font-medium mt-3">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">分析「精神疾病診斷手冊」(DSM) 的語言，探討其如何「建構」並「污名化」特定群體，從而鞏固醫療權威。</p>
+                    </div>
+
+                    <div class="border rounded-lg p-5 shadow-sm bg-white hover:shadow-lg transition-shadow">
+                        <h3 class="text-xl font-semibold text-purple-600 mb-3">4. 實用主義 (Pragmatism)</h3>
+                        <p class="mb-2"><strong>世界觀</strong>：不過度爭論「什麼是真實」，而是關注「什麼是有效的」。</p>
+                        <p class="mb-2"><strong>研究目標</strong>：解決「實際問題」，尋找「有用的」知識。</p>
+                        <p class="mb-2"><strong>常用方法</strong>：混合研究法 (Mixed Methods)，同時使用量化與質性方法。</p>
+                        <p class="font-medium mt-3">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">評估一個戒癮方案，同時使用「問卷」(量化) 了解成效，並「訪談」(質性) 了解成員中途脫落的原因，以「實際地」改善方案。</p>
+                    </div>
+                </div>
+
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：哲學典範</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一位研究者想透過「行動研究」，與社區居民「共同」探討當地托育資源不足的問題，並「一起」找出解決方案以爭取權益。</p>
+                        <p class="mb-4">這位研究者最可能依循哪一種哲學典範？</p>
+                        
+                        <div id="quiz-paradigm" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-paradigm', 0, 2)">A. 實證主義 (Positivism)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-paradigm', 1, 2)">B. 詮釋主義 (Interpretivism)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-paradigm', 2, 2)">C. 批判典範 (Critical Paradigm)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-paradigm', 3, 2)">D. 實用主義 (Pragmatism)</button>
+                        </div>
+                        <div id="quiz-paradigm-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section: 理論、概念、命題 --><section id="theory" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">🧱 理論、概念、命題</h2>
+                <p class="mb-6">理論是研究的骨架。它由不同的元件所組成，從抽象到具體，構成一個邏輯嚴謹的體系：</p>
+
+                <div class="bg-blue-50 p-4 rounded-lg shadow-inner">
+                    <div class="logic-flow-container">
+                        <div class="logic-box bg-blue-200 border-blue-400"><strong>理論 (Theory)</strong><br><small>一套有系統的命題，用以解釋特定現象。理論是可被驗證（或否證）的解釋，而非事實。<br>(例如：社會學習理論、巨觀理論、中觀理論)</small></div>
+                        <div class="logic-arrow">⬇</div>
+                        <div class="logic-box bg-blue-100 border-blue-300"><strong>概念 (Concepts)</strong><br><small>理論的基石，是抽象的標籤。有些概念很複雜，會包含多個「維度」(Dimensions)。<br>(例如：觀察學習、攻擊行為、自我效能、社會階級)</small></div>
+                        <div class="logic-arrow">⬇</div>
+                        <div class="logic-box bg-blue-100 border-blue-300"><strong>命題 (Propositions)</strong><br><small>陳述「概念」之間的「抽象關係」。此階段仍在理論層次。<br>(例如：『觀察到的攻擊行為』與『自身的攻擊行為』呈正相關)</small></div>
+                        <div class="logic-arrow">⬇</div>
+                        <div class="logic-box bg-white border-blue-300"><strong>假設 (Hypothesis)</strong><br><small>將抽象的命題轉化為「可被測量」的具體陳述，說明變項間的預期關係。<br>(例如：『觀看暴力電視時數』越長的兒童，在『同儕衝突量表』上的得分越高)</small></div>
+                    </div>
+                </div>
+
+                <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">社工範例一：充權理論 (Empowerment Theory)</h3>
+                <ul class="list-disc list-inside ml-4 space-y-3">
+                    <li><strong>理論</strong>：充權理論。</li>
+                    <li><strong>概念</strong>：權力感 (Sense of Power)、自我效能 (Self-Efficacy)、社會參與 (Social Participation)。</li>
+                    <li><strong>命題</strong>：當個人的「自我效能」提升時，其「社會參與」的程度也會提升。</li>
+                    <li><strong>假設</strong>：參與「A 充權團體」（操作化的自我效能介入）的成員，其「社區會議出席次數」（操作化的社會參與）將顯著高於未參與團體的成員。</li>
+                </ul>
+
+                <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">社工範例二：社會連帶理論 (Social Bond Theory)</h3>
+                <p class="mb-4">这个理论（由 Hirschi 提出）试图解释“为什么多数人‘没有’犯罪？”答案是因为个人与社会的连结（社会连带）使他们不愿冒险。</p>
+                <ul class="list-disc list-inside ml-4 space-y-3">
+                    <li><strong>理论</strong>：社会连带理论。</li>
+                    <li><strong>概念</strong>：社会连带 (Social Bond)、偏差行为 (Deviant Behavior)。<br>
+                        <span class="ml-4 text-gray-700"><small><strong>注</strong>：“社会连带”这个复杂概念包含了四个“维度”：依附(Attachment)、承诺(Commitment)、参与(Involvement)、信念(Belief)。</small></span></li>
+                    <li><strong>命题</strong>：个人的“社会连带”越强，其“偏差行为”的可能性就越低。</li>
+                    <li><strong>假设</strong>：在青少年中，“对父母的依附程度”（操作化的依附）越高，其“自我报告的逃学次数”（操作化的偏差行为）就越少。</li>
+                </ul>
+
+
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：理論的元件</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一位研究者提出：「『社會支持』(概念A) 越高的人，其『憂鬱程度』(概念B) 越低。」</p>
+                        <p class="mb-4">這個陳述在理論建構中屬於哪一個層次？</p>
+                        
+                        <div id="quiz-theory" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-theory', 0, 2)">A. 理論 (Theory)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-theory', 1, 2)">B. 概念 (Concept)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-theory', 2, 2)">C. 命題 (Proposition)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-theory', 3, 2)">D. 假設 (Hypothesis)</button>
+                        </div>
+                        <div id="quiz-theory-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section: 歸納 vs. 演繹 --><section id="logic" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">🔄 歸納 vs. 演繹 (Induction vs. Deduction)</h2>
+                <p class="mb-6">理論與研究的關係是雙向的，我們可以透過「歸納法」來建立理論，也可以透過「演繹法」來驗證理論。</p>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="border rounded-lg p-5 shadow-sm bg-white">
+                        <h3 class="text-xl font-semibold text-purple-600 mb-3">歸納法 (Induction)：從觀察到理論</h3>
+                        <p class="mb-3">又稱為「由下而上」(Bottom-up) 的邏輯。研究者從具體的、個別的觀察資料出發，從中尋找「共同模式」(Patterns)，最後歸納出一個「暫時性的理論」。</D>
+                        <p class="mb-3"><strong>常用於</strong>：質性研究、探索性研究。</p>
+                        
+                        <div class="logic-flow-container mt-4">
+                            <div class="logic-box bg-purple-50 border-purple-200"><strong>具體觀察</strong><br><small>(訪談 20 位街友)</small></div>
+                            <div class="logic-arrow">⬇</div>
+                            <div class="logic-box bg-purple-50 border-purple-200"><strong>尋找模式</strong><br><small>(發現許多人提到「失去家庭支持」)</small></div>
+                            <div class="logic-arrow">⬇</div>
+                            <div class="logic-box bg-purple-100 border-purple-300"><strong>建立暫時性理論</strong><br><small>(「家庭支持的斷裂」是無家可歸的關鍵因素)</small></div>
+                        </div>
+                    </div>
+
+                    <div class="border rounded-lg p-5 shadow-sm bg-white">
+                        <h3 class="text-xl font-semibold text-teal-600 mb-3">演繹法 (Deduction)：從理論到觀察</h3>
+                        <p class="mb-3">又稱為「由上而下」(Top-down) 的邏輯。研究者從一個「既有的理論」出發，推導出一個「具體的假設」，然後蒐集資料來「驗證」這個假設是否成立。</p>
+                        <p class="mb-3"><strong>常用於</strong>：量化研究、驗證性研究。</p>
+                        
+                        <div class="logic-flow-container mt-4">
+                            <div class="logic-box bg-teal-100 border-teal-300"><strong>既有理論</strong><br><small>(依附理論)</small></div>
+                            <div class="logic-arrow">⬇</div>
+                            <div class="logic-box bg-teal-50 border-teal-200"><strong>推導假設</strong><br><small>(「安全依附」的兒童應有較佳的人際關係)</small></div>
+                            <div class="logic-arrow">⬇</div>
+                            <div class="logic-box bg-teal-50 border-teal-200"><strong>蒐集資料 (觀察)</strong><br><small>(使用量表測量依附與人際關係並檢定)</small></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <h3 class="text-xl font-semibold text-gray-900 mb-4 mt-8">視覺化：科學之輪 (The Wheel of Science)</h3>
+                <p class="mb-4">在現實的研究中，歸納法與演繹法是相輔相成的，構成一個不斷循環的「科學之輪」：</p>
+                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 flex justify-center items-center">
+                    <div class="wheel-container">
+                        <!-- Boxes -->
+                        <div class="wheel-box wheel-theory">理論 (Theories)</div>
+                        <div class="wheel-box wheel-hypothesis">假設 (Hypotheses)</div>
+                        <div class="wheel-box wheel-observation">觀察 (Observations)</div>
+                        <div class="wheel-box wheel-generalization">實證歸納 (Empirical Generalizations)</div>
+                        
+                        <!-- Arrows -->
+                        <div class="wheel-arrow arrow-1">➔</div>
+                        <div class="wheel-arrow arrow-2">➔</div>
+                        <div class="wheel-arrow arrow-3">➔</div>
+                        <div class="wheel-arrow arrow-4">➔</div>
+                        
+                        <!-- Labels -->
+                        <div class="wheel-label label-deduction">演繹法<br>(Deduction)</div>
+                        <div class="wheel-label label-induction">歸納法<br>(Induction)</div>
+                    </div>
+                </div>
+                <p class="mt-4 text-center text-gray-700">研究者可以從「理論」出發，透過「演繹法」去「驗證」假設；<br>也可以從「觀察」出發，透過「歸納法」去「建構」理論。</p>
+
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：歸納 vs. 演繹</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一位社工在訪談數位遭受家暴的婦女後，發現她們都提到了「經濟依賴」是她們難以離開受暴關係的主因。於是，她「發展」出一個關於經濟賦權重要性的初步理論。</p>
+                        <p class="mb-4">這位社工使用的是哪一種邏輯？</p>
+                        
+                        <div id="quiz-logic" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-logic', 0, 0)">A. 歸納法 (Induction)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-logic', 1, 0)">B. 演繹法 (Deduction)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-logic', 2, 0)">C. 個殊式 (Idiographic)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-logic', 3, 0)">D. 律則式 (Nomothetic)</button>
+                        </div>
+                        <div id="quiz-logic-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section: 個殊式 vs. 律則式 --><section id="explanation" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">🎯 個殊式 vs. 律則式解釋</h2>
+                <p class="mb-6">研究的目標是「解釋」，但解釋的層次有兩種：一種是追求「深度」的個案理解，另一種是追求「廣度」的通則。
+</p>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="border rounded-lg p-5 shadow-sm bg-white">
+                        <h3 class="text-xl font-semibold text-cyan-600 mb-3">個殊式解釋 (Idiographic Explanation)</h3>
+                        <p class="mb-3"><strong>目標</strong>：追求「完整」與「深入」地理解「單一」個案或事件的所有成因與脈絡。</p>
+                        <p class="mb-3"><strong>範例</strong>：深入研究「小明」這位中輟生，探討他「所有」可能的原因：家庭失和、同儕霸凌、學習障礙、社區環境...等，試圖完整拼湊出「他為何中輟」的獨特故事。</p>
+                        <p class="mb-3"><strong>對應</strong>：常用於質性研究、個案研究、歷史研究。</p>
+                        <p class="font-medium mt-3">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">社工撰寫一份「個案研究報告」，詳細分析某位案主從陷入危機到成功復原的「完整心路歷程」與「所有」相關因素。</p>
+                    </div>
+
+                    <div class="border rounded-lg p-5 shadow-sm bg-white">
+                        <h3 class="text-xl font-semibold text-orange-600 mb-3">律則式解釋 (Nomothetic Explanation)</h3>
+                        <p class="mb-3"><strong>目標</strong>：追求「簡潔」與「概化」，試圖找出「最主要」的幾個因素（變項），來解釋「某一類」現象的「平均」情況。</p>
+                        <p class="mb-3"><strong>範例</strong>：研究「500 位」中輟生，找出「最關鍵」的 3 個預測因子（例如：家庭支持低、學業成就低、偏差同儕多），這些因子能「大致上」解釋「多數」中輟生的情況。</p>
+                        <p class="mb-3"><strong>對應</strong>：常用於量化研究、調查研究、實驗研究。</p>
+                        <p class="font-medium mt-3">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">一份方案評估報告指出，「方案出席率」和「家庭支持」是預測戒癮「成功與否」的兩個最重要變項。</p>
+                    </div>
+                </div>
+
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：解釋的類型</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一位社工想了解「是什麼因素」導致了「A 社區」在某次風災後「特別快」地復原了。她深入訪談了該社區的里長、居民、志工，試圖完整了解該社區的歷史、文化與互動網絡。</p>
+                        <p class="mb-4">這位社工追求的是哪一種解釋？</p>
+                        
+                        <div id="quiz-explanation" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-explanation', 0, 0)">A. 個殊式解釋 (Idiographic)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-explanation', 1, 0)">B. 律則式解釋 (Nomothetic)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-explanation', 2, 0)">C. 演繹法 (Deduction)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-explanation', 3, 0)">D. 實證主義 (Positivism)</button>
+                        </div>
+                        <div id="quiz-explanation-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Overlay for mobile menu --><div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden" onclick="toggleMenu(false)"></div>
+
+
+    <script>
+        const sections = document.querySelectorAll('.content-section');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const closeMenuButton = document.getElementById('close-menu-button');
+
+        function showSection(sectionId) {
+            sections.forEach(section => {
+                if (section.id === sectionId) {
+                    section.classList.add('active');
+                } else {
+                    section.classList.remove('active');
+                }
+            });
+
+            navLinks.forEach(link => {
+                if (link.dataset.section === sectionId) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+
+            // Auto-scroll to top of content on section change
+            document.querySelector('.md\\:w-3\\/4')?.scrollTo(0, 0);
+            
+            // Close mobile menu on navigation
+            if (window.innerWidth < 768) {
+                toggleMenu(false);
+            }
+        }
+
+        function toggleMenu(show) {
+            if (show) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const sectionId = e.target.closest('a').dataset.section;
+                showSection(sectionId);
+                // Update URL hash for better history (optional)
+                window.location.hash = e.target.closest('a').getAttribute('href');
+            });
+        });
+
+        mobileMenuButton.addEventListener('click', () => toggleMenu(true));
+        closeMenuButton.addEventListener('click', () => toggleMenu(false));
+        overlay.addEventListener('click', () => toggleMenu(false));
+
+        // Handle page load with hash
+        document.addEventListener('DOMContentLoaded', () => {
+            const hash = window.location.hash;
+            if (hash) {
+                const sectionId = hash.substring(1);
+                const sectionElement = document.getElementById(sectionId);
+                if (sectionElement) {
+                    showSection(sectionId);
+                } else {
+                    showSection('intro');
+                }
+            } else {
+                showSection('intro');
+            }
+        });
+
+        // --- Quiz Logic ---
+        const quizAnswers = {
+            'quiz-paradigm': {
+                correctIndex: 2,
+                responses: [
+                    "不正確。實證主義尋求客觀法則，而非社會改變。",
+                    "不正確。詮釋主義尋求理解，但批判典範更強調『賦權』與『行動』。",
+                    "答對了！批判典範的核心目標是揭露不義、賦權弱勢，並透過行動（如行動研究）來促成社會改變。",
+                    "不正確。實用主義關注『有用』的解決方案，但批判典範更明確地關注『權力』與『解放』。"
+                ]
+            },
+            'quiz-theory': {
+                correctIndex: 2,
+                responses: [
+                    "不正確。理論是更宏觀、更完整的解釋體系。",
+                    "不正確。概念是單一的抽象標籤（如 '社會支持' 或 '憂鬱'）。",
+                    "答對了！命題是陳述兩個或多個『概念』之間的抽象關係。",
+                    "不正確。假設會更具體，包含可測量的變項（例如：『社會支持量表得分』越高，『貝克憂鬱量表得分』越低）。"
+                ]
+            },
+            'quiz-logic': {
+                correctIndex: 0,
+                responses: [
+                    "答對了！歸納法是『由下而上』的過程，從具體的觀察（訪談內容）中『發展』出一般性的理論或模式。",
+                    "不正確。演繹法是『由上而下』，會從一個既有理論出發來『驗證』假設。",
+                    "不正確。個殊式是一種解釋類型，不是邏輯過程。",
+                    "不正確。律則式是一種解釋類型，不是邏輯過程。"
+                ]
+            },
+            'quiz-explanation': {
+                correctIndex: 0,
+                responses: [
+                    "答對了！個殊式解釋試圖『完整』且『深入』地理解『單一』個案（A社區）的所有獨特因素與脈絡。",
+                    "不正確。律則式解釋會尋找『通則』，例如比較 100 個社區，找出『平均而言』最關鍵的 3 個復原因子。",
+                    "不正確。演繹法是一種邏輯過程，不是解釋的類型。",
+                    "不正確。實證主義是一種哲學典範，不是解釋的類型。"
+                ]
+            }
+        };
+
+        function checkQuiz(quizId, selectedIndex, correctIndex) {
+            // If quizAnswers object is defined, use it.
+            if (quizAnswers[quizId]) {
+                correctIndex = quizAnswers[quizId].correctIndex;
+            }
+
+            const feedbackEl = document.getElementById(`${quizId}-feedback`);
+            const options = document.getElementById(quizId).getElementsByClassName('quiz-option');
+            
+            // Reset styles
+            for (let i = 0; i < options.length; i++) {
+                options[i].classList.remove('bg-green-200', 'border-green-400', 'bg-red-200', 'border-red-400');
+                options[i].disabled = true;
+            }
+
+            if (selectedIndex === correctIndex) {
+                feedbackEl.textContent = quizAnswers[quizId].responses[selectedIndex];
+                feedbackEl.className = 'quiz-feedback correct';
+                options[selectedIndex].classList.add('bg-green-200', 'border-green-400');
+            } else {
+                feedbackEl.textContent = quizAnswers[quizId].responses[selectedIndex];
+                feedbackEl.className = 'quiz-feedback incorrect';
+                options[selectedIndex].classList.add('bg-red-200', 'border-red-400');
+                // Highlight correct answer
+                options[correctIndex].classList.add('bg-green-200', 'border-green-400');
+            }
+        }
+
+    </script>
+</body>
+</html>
+
