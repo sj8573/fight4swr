@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
-    <!-- Chosen Palette: Academic Blue and Warm Neutrals --><!-- Application Structure Plan: 採用與之前檔案一致的單頁應用程式(SPA)結構。左側為固定導覽列（行動裝置為漢堡選單），點擊後在右側主內容區動態顯示對應的<section>。此結構能讓學生在「抽樣架構」、「誤差」與「各種類型」之間自由切換，符合非線性學習。 --><!-- Visualization & Content Choices: 1. 抽樣流程 (圖解): 報告原文為文字定義。 -> 目標: 視覺化從母體到樣本的過程。 -> 視覺化: 使用HTML/Tailwind和Unicode箭頭製作「母體 → 抽樣架構 → 樣本」的流程圖。 -> 互動: 靜態圖解。 -> 理由: 將抽象的流程具象化。 2. 四種機率抽樣 (圖解): 報告原文為文字定義。 -> 目標: 視覺化比較四種機率抽樣。 -> 視覺化: 使用HTML/CSS製作2x2網格圖塊，分別展示Simple Random(隨機選點)、Systematic(間隔選點)、Stratified(分層後每層都選)、Cluster(選中整塊)。 -> 互動: 靜態圖解。 -> 理由: 視覺化是區分這四種方法的最佳途徑，特別是分層與部落的差異。 3. 機率 vs 非機率 (表格): 報告原文為文字。 -> 目標: 系統性比較兩大類抽樣。 -> 視覺化: 使用HTML <table> 進行多維度比較 (推論性、成本、誤差估計等)。 -> 互動: 靜態表格。 -> 理由: 表格是進行多點比較的最佳工具。 4. 互動測驗 (測驗): 報告原文無此內容。 -> 目標: 鞏固學習成果。 -> 視覺化: 在每個子題末尾加入HTML/JS按鈕測驗。 -> 互動: 點擊按鈕檢查答案，並顯示回饋。 -> 理由: 即時回饋能有效強化學習記憶點。 --><!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. --><link rel="preconnect" href="https://fonts.googleapis.com">
+    <!-- Chosen Palette: Academic Blue and Warm Neutrals --><!-- Application Structure Plan: 採用與之前檔案一致的單頁應用程式(SPA)結構。左側為固定導覽列（行動裝置為漢堡選單），點擊後在右側主內容區動態顯示對應的<section>。此結構能讓學生在「抽樣架構」、「誤差」與「各種類型」之間自由切換，符合非線性學習。 --><!-- Visualization & Content Choices: 1. 抽樣流程 (圖解): 報告原文為文字定義。 -> 目標: 視覺化從母體到樣本的過程。 -> 視覺化: 使用HTML/Tailwind和Unicode箭頭製作「母體 → 抽樣架構 → 樣本」的流程圖。 -> 互動: 靜態圖解。 -> 理由: 將抽象的流程具象化。 2. 四種機率抽樣 (圖解): 報告原文為文字定義。 -> 目標: 視覺化比較四種機率抽樣。 -> 視覺化: 使用HTML/CSS製作2x2網格圖塊，分別展示Simple Random(隨機選點)、Systematic(間隔選點)、Stratified(分層後每層都選)、Cluster(選中整塊)。 -> 互動: 靜態圖解。 -> 理由: 視覺化是區分這四種方法的最佳途徑，特別是分層與叢集(部落)的差異。 3. 機率 vs 非機率 (表格): 報告原文為文字。 -> 目標: 系統性比較兩大類抽樣。 -> 視覺化: 使用HTML <table> 進行多維度比較 (推論性、成本、誤差估計等)。 -> 互動: 靜態表格。 -> 理由: 表格是進行多點比較的最佳工具。 4. 互動測驗 (測驗): 報告原文無此內容。 -> 目標: 鞏固學習成果。 -> 視覺化: 在每個子題末尾加入HTML/JS按鈕測驗。 -> 互動: 點擊按鈕檢查答案，並顯示回饋。 -> 理由: 即時回饋能有效強化學習記憶點。 --><!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. --><link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
     
@@ -224,6 +224,56 @@
             color: #4b5563;
         }
 
+        /* --- Added for 2x1 Comparison --- */
+        .sampling-viz-flex {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            justify-content: center;
+            margin-top: 1.5rem;
+        }
+        .viz-box-flex {
+            border: 2px solid #ccc;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            background: #fafafa;
+            min-width: 220px;
+            flex: 1;
+            max-width: 350px;
+        }
+        .viz-title-flex {
+            font-weight: 600;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .viz-stratum-item {
+            background-color: #fed7aa; /* Orange-200 */
+            border: 1px solid #f97316; /* Orange-500 */
+            padding: 0.5rem;
+            margin: 0.25rem 0;
+            border-radius: 0.25rem;
+            text-align: center;
+        }
+        .viz-cluster-item {
+            background-color: #a5f3fc; /* Cyan-200 */
+            border: 1px solid #0891b2; /* Cyan-500 */
+            padding: 0.5rem;
+            margin: 0.25rem 0;
+            border-radius: 0.25rem;
+            text-align: center;
+        }
+        .viz-cluster-item.selected {
+            background-color: #0e7490; /* Cyan-700 */
+            color: white;
+        }
+        .viz-stratum-item.selected {
+             background-color: #fb923c; /* Orange-400 */
+             color: white;
+        }
+        /* --- End of Added CSS --- */
+
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
@@ -318,7 +368,7 @@
                             <button class="quiz-option" onclick="checkQuiz('quiz-frame', 0, 1)">A. 母體 (Population)</button>
                             <button class="quiz-option" onclick="checkQuiz('quiz-frame', 1, 1)">B. 抽樣架構 (Sampling Frame)</button>
                             <button class="quiz-option" onclick="checkQuiz('quiz-frame', 2, 1)">C. 樣本 (Sample)</button>
-                            <button class="quiz-option" onclick="checkQuiz('quiz-frame', 3, 1)">D. 部落 (Cluster)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-frame', 3, 1)">D. 叢集(部落) (Cluster)</button>
                         </div>
                         <div id="quiz-frame-feedback" class="quiz-feedback"></div>
                     </div>
@@ -403,10 +453,10 @@
                     
                     <!-- Type 4: Cluster -->
                     <div class="border rounded-lg p-4 shadow-sm">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-3">4. 部落抽樣 (Cluster Sampling)</h3>
-                        <p class="mb-4">當母體非常分散時使用。先將母體分成數個「部落」(Cluster)（通常是地理區域，如里、鄰、學校），部落內部是異質的。然後「隨機抽取數個部落」，並調查「部落中所有」的成員。</p>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">4. 叢集(部落)抽樣 (Cluster Sampling)</h3>
+                        <p class="mb-4">當母體非常分散時使用。先將母體分成數個「叢集(部落)」(Cluster)（通常是地理區域，如里、鄰、學校），叢集(部落)內部是異質的。然後「隨機抽取數個叢集(部落)」，並調查「叢集(部落)中所有」的成員。</p>
                         <p class="font-medium">社工範例：</p>
-                        <p class="bg-gray-50 p-3 rounded border">研究「台北市」國中生的霸凌情況。先取得台北市所有國中的名單（每一所學校是一個部落）。隨機抽出10所國中。然後「普查」這10所國中的所有學生。</p>
+                        <p class="bg-gray-50 p-3 rounded border">研究「台北市」國中生的霸凌情況。先取得台北市所有國中的名單（每一所學校是一個叢集(部落)）。隨機抽出10所國中。然後「普查」這10所國中的所有學生。</p>
                     </div>
                     
                     <!-- Viz Comparison -->
@@ -459,7 +509,7 @@
                             
                             <!-- Cluster Viz -->
                             <div class="viz-box">
-                                <div class="viz-title">4. 部落抽樣</div>
+                                <div class="viz-title">4. 叢集(部落)抽樣</div>
                                 <div class="viz-population-cluster">
                                     <div class="viz-cluster selected-cluster">
                                         <div class="viz-pop-unit"></div><div class="viz-pop-unit"></div>
@@ -478,10 +528,37 @@
                                         <div class="viz-pop-unit"></div><div class="viz-pop-unit"></div>
                                     </div>
                                 </div>
-                                <div class="viz-description">隨機抽「整包部落」，再普查部落內所有人。</div>
+                                <div class="viz-description">隨機抽「整包叢集(部落)」，再普查叢集(部落)內所有人。</div>
                             </div>
                         </div>
                     </div>
+                    
+                    <!-- Added 2x1 Comparison Block -->
+                    <div class="border rounded-lg p-6 shadow-sm bg-gray-50 mt-6">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4 text-center">重點比較：分層抽樣 vs 叢集(部落)抽樣</h3>
+                        <div class="sampling-viz-flex">
+                            <div class="viz-box-flex">
+                                <div class="viz-title-flex">分層抽樣 (Stratified)</div>
+                                <div class="text-sm text-center mb-3"><strong>邏輯</strong>：組內同質、組間異質</div>
+                                <div class="viz-stratum-item selected">第一層 (大一) ➔ 抽30人</div>
+                                <div class="viz-stratum-item selected">第二層 (大二) ➔ 抽30人</div>
+                                <div class="viz-stratum-item selected">第三層 (大三) ➔ 抽30人</div>
+                                <div class="viz-stratum-item selected">第四層 (大四) ➔ 抽30人</div>
+                                <div class="viz-description mt-3"><strong>結果</strong>：樣本包含「所有」層級。</div>
+                            </div>
+                            <div class="viz-box-flex">
+                                <div class="viz-title-flex">叢集(部落)抽樣 (Cluster)</div>
+                                <div class="text-sm text-center mb-3"><strong>邏輯</strong>：組內異質、組間同質</div>
+                                <div class="viz-cluster-item selected">A校 (抽中) ➔ 全查</div>
+                                <div class="viz-cluster-item">B校 (未抽中)</div>
+                                <div class="viz-cluster-item">C校 (未抽中)</div>
+                                <div class="viz-cluster-item selected">D校 (抽中) ➔ 全查</div>
+                                <div class="viz-description mt-3"><strong>結果</strong>：樣本只包含「被抽中」的叢集(部落)。</div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- End of Added Block -->
+
                 </div>
 
                 <!-- Quiz -->
@@ -494,7 +571,7 @@
                         <div id="quiz-prob" class="space-y-2">
                             <button class="quiz-option" onclick="checkQuiz('quiz-prob', 0, 1)">A. 簡單隨機抽樣</button>
                             <button class="quiz-option" onclick="checkQuiz('quiz-prob', 1, 1)">B. 分層抽樣</button>
-                            <button class="quiz-option" onclick="checkQuiz('quiz-prob', 2, 1)">C. 部落抽樣</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-prob', 2, 1)">C. 叢集(部落)抽樣</button>
                             <button class="quiz-option" onclick="checkQuiz('quiz-prob', 3, 1)">D. 系統抽樣</button>
                         </div>
                         <div id="quiz-prob-feedback" class="quiz-feedback"></div>
@@ -611,7 +688,7 @@
                             </tr>
                             <tr>
                                 <td><strong>範例</strong></td>
-                                <td class="text-blue-600">分層抽樣、部落抽樣</td>
+                                <td class="text-blue-600">分層抽樣、叢集(部落)抽樣</td>
                                 <td class="text-gray-700">方便抽樣、雪球抽樣</td>
                             </tr>
                         </tbody>
@@ -725,7 +802,7 @@
                     "不正確。母體是「理論上」的全體，是抽象的；這份名冊是「具體」的。",
                     "答對了！抽樣架構是執行抽樣所依據的具體名冊。",
                     "不正確。樣本是從這份名冊中「被抽出」的那群人。",
-                    "不正確。部落是一種抽樣「方法」，不是名冊。"
+                    "不正確。叢集(部落)是一種抽樣「方法」，不是名冊。"
                 ]
             },
             'quiz-error': {
@@ -742,7 +819,7 @@
                 responses: [
                     "不正確。簡單隨機抽樣是從「全體」中一次抽出，不會先分類。",
                     "答對了！先將母體依特徵分成數「層」(部門)，再從「每一層」都抽出樣本，這是分層抽樣。",
-                    "不正確。部落抽樣是隨機抽「其中幾個」部落(部門)，然後「普查」被抽中的部門。",
+                    "不正確。叢集(部落)抽樣是隨機抽「其中幾個」叢集(部落)(部門)，然後「普查」被抽中的部門。",
                     "不正確。系統抽樣是依固定「間隔」(k) 抽樣。"
                 ]
             },
