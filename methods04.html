@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>研究的倫理與文化議題</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Chosen Palette: Academic Blue and Warm Neutrals --><link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .nav-link {
+            display: block;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .nav-link:hover {
+            background-color: #f0f4f8;
+            color: #007bff;
+        }
+        .nav-link.active {
+            background-color: #e6f2ff;
+            color: #0056b3;
+            font-weight: 700;
+        }
+        .nav-link.sub-link {
+            padding-left: 2rem;
+            font-size: 0.9rem;
+        }
+        .nav-link.sub-link.active {
+            background-color: #e0eafc;
+        }
+        
+        .quiz-option {
+            display: block;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            text-align: left;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        .quiz-option:hover {
+            background-color: #f9fafb;
+            border-color: #6b7280;
+        }
+        .quiz-feedback {
+            margin-top: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            display: none;
+        }
+        .quiz-feedback.correct {
+            background-color: #d1fae5;
+            color: #065f46;
+            display: block;
+        }
+        .quiz-feedback.incorrect {
+            background-color: #fee2e2;
+            color: #991b1b;
+            display: block;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- Header --><header class="bg-white shadow-md sticky top-0 z-40">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <h1 class="text-xl md:text-2xl font-bold text-blue-800">研究的倫理與文化議題</h1>
+            <button id="mobile-menu-button" class="md:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content --><div class="container mx-auto px-4 py-6 flex flex-col md:flex-row">
+
+        <!-- Navigation Sidebar --><nav id="sidebar" class="w-full md:w-1/4 lg:w-1/5 bg-white p-4 rounded-lg shadow-sm md:sticky md:top-24 md:self-start transition-transform duration-300 ease-in-out -translate-x-full md:translate-x-0 fixed md:relative h-full md:h-auto z-30 overflow-y-auto">
+            <button id="close-menu-button" class="md:hidden p-2 absolute top-2 right-2 text-gray-600 hover:text-gray-900">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            <h2 class="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">章節導覽</h2>
+            <ul>
+                <li><a href="#intro" class="nav-link active" data-section="intro">🏠 導論：研究倫理的重要性</a></li>
+                <li><a href="#principles" class="nav-link" data-section="principles">⚖️ 研究倫理的內涵</a></li>
+                <li><a href="#consent" class="nav-link" data-section="consent">📜 知情同意 (Informed Consent)</a></li>
+                <li><a href="#sensitivity" class="nav-link" data-section="sensitivity">🌍 性別與文化敏感</a></li>
+            </ul>
+        </nav>
+
+        <!-- Content Area --><main class="w-full md:w-3/4 lg:w-4/5 md:pl-8 mt-6 md:mt-0">
+
+            <!-- Section: 導論 --><section id="intro" class="content-section active bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-4">🏠 導論：研究倫理的重要性</h2>
+                <p class="mb-4 text-lg">在所有科學領域中，倫理都是根本。但在社會工作研究中，它更具有無可取代的重要性。</p>
+                <p class="mb-4">為什麼？因為社會工作研究的對象，往往是社會中最「弱勢」與「最容易受傷害」的群體，例如：受虐兒童、精神疾病患者、貧困家庭、受刑人等。他們在權力關係中處於劣勢，可能更容易受到不當研究的剝削或傷害。</p>
+                <p class="mb-4">歷史上充滿了不道德的醫學與社會研究（如：塔斯基吉梅毒實驗、米爾格倫的服從實驗），這些教訓促使我們必須建立一套嚴謹的倫理規範，以「保護研究參與者」為最高原則。</p>
+                <p class="mb-4">對社工而言，研究倫理不僅是「法律規範」（如 IRB/研究倫理委員會的審查），更是「專業倫理」的延伸。我們的首要任務是「增進案主福祉」與「避免傷害」，這個原則在研究中與實務中同樣適用。</p>
+                
+                <div class="mt-6 bg-blue-50 border-l-4 border-blue-500 p-4 rounded-md">
+                    <h4 class="font-semibold text-blue-800">本章節學習重點：</h4>
+                    <p class="mt-2">本章節將介紹研究倫
+理的核心原則（如：避免傷害、保密、知情同意），並探討在多元文化的社會中，如何執行具有「性別與文化敏感度」的研究，以真正實踐社會工作的專業價值。</p>
+                </div>
+            </section>
+
+            <!-- Section: 倫理內涵 --><section id="principles" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">⚖️ 研究倫理的內涵</h2>
+                <p class="mb-6">社會工作研究倫理建立在幾個核心原則之上，旨在平衡「追求科學知識」與「保護參與者權益」之間的關係。</p>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">1. 避免傷害 (Do No Harm / Beneficence)</h3>
+                        <p class="mb-4">這是倫理的最高指導原則。研究者必須盡一切努力，保護參與者免於「生理」、「心理」、「情緒」或「社會」上的傷害。研究帶來的「潛在利益」必須遠大於其「潛在風險」。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">
+                            <strong>錯誤範例</strong>：要求家暴受害者反覆詳細描述受虐過程，導致其「二度創傷」。<br>
+                            <strong>正確做法</strong>：在訪談前備妥「轉介資源」（如心理諮商），若發現參與者情緒崩潰，應立即中止訪談，並提供必要的支持服務。
+                        </p>
+                    </div>
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">2. 尊重自主 (Respect for Persons)</h3>
+                        <p class="mb-4">此原則強調參與者是「自主的個體」，他們有權利在充分資訊下「自由決定」是否參與研究，並且「隨時可以退出」而不會受到任何懲罰或不利對待。這主要透過「知情同意」來實踐。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">
+                            <strong>錯誤範例</strong>：社工對案主說：「如果你不參加我的研究，我就很難幫你申請補助。」（構成「不當脅迫」）。<br>
+                            <strong>正確做法</strong>：明確告知案主：「這份研究與你的服務是完全分開的。不論你是否參與，都不會影響你獲得的任何服務。」
+                        </p>
+                    </div>
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">3. 匿名 (Anonymity) vs. 保密 (Confidentiality)</h3>
+                        <p class="mb-4">這兩者經常被混淆，但層次不同：<br>
+                            <strong>匿名</strong>：研究者「完全無法」將資料與特定參與者連結（例如：不記名網路問卷）。這是最高層級的保護。<br>
+                            <strong>保密</strong>：研究者「知道」是誰的資料，但「承諾」會妥善保管，且在發表時會將所有可辨識的資訊（姓名、地址）移除或編碼。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">
+                            在質性訪談中，幾乎不可能做到「匿名」（因為你知道是誰在受訪），因此「保密」變得至關重要。研究者必須將逐字稿鎖在加密硬碟中，並在報告中僅使用「S1」、「A 社工」等代號。
+                        </p>
+                    </div>
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">4. 公平/正義 (Justice)</h3>
+                        <p class="mb-4">此原則關注「誰」承受了研究的風險？「誰」又獲得了研究的利益？研究者必須「公平」地挑選參與者，不能系統性地剝削特定弱勢群體（例如：只找監獄的受刑人做藥物試驗），且研究成果應回饋給參與的群體。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">
+                            如果一項研究在某個「原住民社區」進行，研究成果不應只發表在學術期刊上。研究者有倫理責任將研究發現（例如：該社區的健康需求）轉化為「易讀的報告」，回饋給部落，並倡議相關的資源。
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：研究倫理的內涵</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一位研究者進行了一項網路問卷調查，他沒有蒐集姓名、IP 位址或任何可辨識的個人資訊。研究者自己也無法將問卷答案與任何特定的人連結起來。</p>
+                        <p class="mb-4">這達到了哪一種倫理保護？</p>
+                        
+                        <div id="quiz-principles" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-principles', 0, 1)">A. 保密 (Confidentiality)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-principles', 1, 1)">B. 匿名 (Anonymity)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-principles', 2, 1)">C. 正義 (Justice)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-principles', 3, 1)">D. 避免傷害 (Do No Harm)</button>
+                        </div>
+                        <div id="quiz-principles-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section: 知情同意 --><section id="consent" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">📜 知情同意 (Informed Consent)</h2>
+                <p class="mb-4">「知情同意」是實踐「尊重自主」原則的具體程序。它不只是一張簽名的表格，而是一個「持續溝通」的過程，確保參與者在「充分理解」資訊後，做出「自由且自願」的決定。</p>
+                <p class="mb-6">一份有效的知情同意，必須包含三大要素：</p>
+                
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div class="border rounded-lg p-4 shadow-sm bg-blue-50">
+                        <h3 class="text-lg font-semibold text-blue-800 mb-3">1. 知情 / 資訊 (Information)</h3>
+                        <p class="mb-4">必須以「淺顯易懂」的語言（而非學術術語）清楚說明：</p>
+                        <ul class="list-disc list-inside ml-4 space-y-1">
+                            <li>研究目的與程序（要做什麼？）。</li>
+                            <li>潛在的風險與不適（可能發生什麼壞事？）。</li>
+                            <li>潛在的利益（可能得到什麼好處？）。</li>
+                            <li>保密的方式（如何保護隱私？）。</li>
+                            <li>聯絡人資訊（有問題找誰？）。</li>
+                        </ul>
+                    </div>
+                    <div class="border rounded-lg p-4 shadow-sm bg-green-50">
+                        <h3 class="text-lg font-semibold text-green-800 mb-3">2. 同意 / 自願 (Voluntariness)</h3>
+                        <p class="mb-4">參與必須是「完全自願」的。研究者必須主動排除任何形式的「脅迫」或「不當誘因」。</p>
+                        <ul class="list-disc list-inside ml-4 space-y-1">
+                            <li><strong>脅迫</strong>：案主「害怕」若不參加，會失去福利或服務。</li>
+                            <li><strong>不當誘因</strong>：提供的「車馬費」或「禮金」過高，高到讓參與者無法理性拒絕（例如：提供 5000 元給低收入戶填一份問卷）。</li>
+                        </ul>
+                    </div>
+                    <div class="border rounded-lg p-4 shadow-sm bg-yellow-50">
+                        <h3 class="text-lg font-semibold text-yellow-800 mb-3">3. 理解力 (Comprehension)</h3>
+                        <p class="mb-4">研究者有責任確保參與者「真的聽懂了」知情同意的內容。這在面對特殊群體時尤其重要。</p>
+                        <ul class="list-disc list-inside ml-4 space-y-1">
+                            <li><strong>語言</strong>：是否使用參與者的母語？（例如：為新住民製作越南語版本）</li>
+                            <li><strong>認知</strong>：參與者是否心智健全？（例如：精神疾病患者）</li>
+                            <li><strong>年齡</strong>：是否為未成年人？</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">特殊群體的同意</h3>
+                <p class="mb-4">當參與者「不具備」完全的法律或心智能力來提供「知情同意」(Consent) 時，研究者必須執行雙重程序：</p>
+                <ol class="list-decimal list-inside ml-4 space-y-2">
+                    <li><strong>1. 取得「監護人/法定代理人」的同意 (Consent)</strong>：例如：必須先取得「家長」或「機構主管」的書面同意。</li>
+                    <li><strong>2. 取得「參與者本人」的同意/知情贊同 (Assent)</strong>：例如：用「兒童」聽得懂的語言（或繪本），向他說明研究在做什麼，並徵詢他「願不願意」參加。如果兒童明確表示「不要」，即使家長同意了，研究者在倫理上也不應強迫其參與。</li>
+                </ol>
+
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：知情同意</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一位社工想研究機構中的 10 歲兒童。他已經取得了兒童家長的「書面同意書」(Consent)。當他去跟兒童說明研究時，他使用兒童可以理解的繪本和語言，徵詢兒童是否願意參加這個「遊戲」（研究）。</article>
+                        <p class="mb-4">這個向 10 歲兒童本人徵詢意願的過程，稱為什麼？</p>
+                        
+                        <div id="quiz-consent" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-consent', 0, 1)">A. 知情同意 (Informed Consent)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-consent', 1, 1)">B. 知情贊同 (Assent)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-consent', 2, 1)">C. 保密協定 (Confidentiality)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-consent', 3, 1)">D. 不當誘因 (Undue Inducement)</button>
+                        </div>
+                        <div id="quiz-consent-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section: 文化敏感 --><section id="sensitivity" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">🌍 性別與文化敏感</h2>
+                <p class="mb-4">研究並非在真空中進行，它深受研究者本身的「性別」、「種族」、「文化」與「社會階級」所影響。若缺乏敏感度，研究很可能「複製」甚至「強化」社會的不平等與刻板印象。</p>
+                <p class="mb-6">一個具有敏感度的研究，應在「研究歷程的每一步」都納入考量：</p>
+                
+                <div class="space-y-6">
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">1. 研究問題的形成</h3>
+                        <p class="mb-4">避免「問題化」特定群體。思考研究問題是否隱含了性別或文化的偏見。</p>
+                        <p class="font-medium">範例：</p>
+                        <ul class="list-disc list-inside ml-4 space-y-2">
+                            <li><strong>不敏感</strong>：「為什麼『單親媽媽』教養下的孩子『問題』特別多？」（預設了單親=問題）</li>
+                            <li><strong>敏感</strong>：「單親媽媽在教養過程中，面臨了哪些『結構性障礙』？她們發展出哪些『增權策略』？」</li>
+                        </ul>
+                    </div>
+
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">2. 測量工具的設計</h3>
+                        <p class="mb-4">許多在「西方、白人、男性」基礎上發展的量表，可能完全不適用於其他文化。直接套用（稱為 Etic 途徑的謬誤）可能導致嚴重的「測量偏誤」。</p>
+                        <p class="font-medium">範例：</p>
+                        <ul class="list-disc list-inside ml-4 space-y-2">
+                            <li><strong>不敏感</strong>：拿美國發展的「憂鬱量表」（強調個人情緒）去測量一個「壓抑情緒」為美德的亞洲文化群體，導致低估憂鬱盛行率。</li>
+                            <li><strong>敏感</strong>：研究者應「修改」量表（例如：加入更多「身體化」症狀的題項），或與在地群體合作發展「本土化」的量表（稱為 Emic 途徑）。</li>
+                        </ul>
+                    </div>
+
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">3. 資料蒐集與詮釋</h3>
+                        <p class="mb-4">研究者必須意識到自己與參與者之間的「權力不對等」，並進行「自我反思」(Self-reflexivity)。</p>
+                        <p class="font-medium">範例：</p>
+                        <ul class="list-disc list-inside ml-4 space-y-2">
+                            <li><strong>性別</strong>：一位「男性」研究者訪談「受暴婦女」時，是否會因為權力與性別差異，導致婦女不敢真實表達？</li>
+                            <li><strong>文化</strong>：一位「漢人」研究者在「原住民社區」做研究，是否能真正理解「Gaya」（泰雅族規範）的文化意涵？還是會用漢人觀點去錯誤詮釋？</li>
+                            <li><strong>敏感做法</strong>：研究者應在報告中「反思」並「揭露」自己的立場與限制，並盡可能採用「協同研究」（讓受訪群體也成為研究夥伴）。</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：性別與文化敏感</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一位研究者想了解原住民部落的「幸福感」。他沒有發展本土化工具，而是直接拿一份在「美國大學生」身上發展的「幸福感量表」給部落長者填寫，結果發現分數普遍偏低。</p>
+                        <p class="mb-4">這位研究者最可能在哪個環節缺乏敏感度？</p>
+                        
+                        <div id="quiz-sensitivity" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-sensitivity', 0, 1)">A. 避免傷害</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-sensitivity', 1, 1)">B. 測量工具的文化適用性</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-sensitivity', 2, 1)">C. 匿名與保密</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-sensitivity', 3, 1)">D. 知情同意</button>
+                        </div>
+                        <div id="quiz-sensitivity-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Overlay for mobile menu --><div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden" onclick="toggleMenu(false)"></div>
+
+
+    <script>
+        const sections = document.querySelectorAll('.content-section');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const closeMenuButton = document.getElementById('close-menu-button');
+
+        function showSection(sectionId) {
+            sections.forEach(section => {
+                if (section.id === sectionId) {
+                    section.classList.add('active');
+                } else {
+                    section.classList.remove('active');
+                }
+            });
+
+            navLinks.forEach(link => {
+                if (link.dataset.section === sectionId) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+
+            // Auto-scroll to top of content on section change
+            document.querySelector('.md\\:w-3\\/4')?.scrollTo(0, 0);
+            
+            // Close mobile menu on navigation
+            if (window.innerWidth < 768) {
+                toggleMenu(false);
+            }
+        }
+
+        function toggleMenu(show) {
+            if (show) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const sectionId = e.target.closest('a').dataset.section;
+                showSection(sectionId);
+                // Update URL hash for better history (optional)
+                window.location.hash = e.target.closest('a').getAttribute('href');
+            });
+        });
+
+        mobileMenuButton.addEventListener('click', () => toggleMenu(true));
+        closeMenuButton.addEventListener('click', () => toggleMenu(false));
+        overlay.addEventListener('click', () => toggleMenu(false));
+
+        // Handle page load with hash
+        document.addEventListener('DOMContentLoaded', () => {
+            const hash = window.location.hash;
+            if (hash) {
+                const sectionId = hash.substring(1);
+                const sectionElement = document.getElementById(sectionId);
+                if (sectionElement) {
+                    showSection(sectionId);
+                } else {
+                    showSection('intro');
+                }
+            } else {
+                showSection('intro');
+            }
+        });
+
+        // --- Quiz Logic ---
+        const quizAnswers = {
+            'quiz-principles': {
+                correctIndex: 1,
+                responses: [
+                    "不正確。保密是指研究者知道是誰，但承諾不洩露。",
+                    "答對了！匿名是指研究者「完全無法」將資料與個人連結，這是最高層級的保護。",
+                    "不正確。正義是指公平地選擇參與者並分配利益/風險。",
+                    "不正確。避免傷害是指保護參與者免於身心傷害。"
+                ]
+            },
+            'quiz-consent': {
+                correctIndex: 1,
+                responses: [
+                    "不正確。知情同意 (Consent) 是由具備完全法定能力的「成人」或「監護人」所提供的。",
+                    "答對了！知情贊同 (Assent) 是指徵求「未成年人」或「不具備」完全同意能力者本人，以他們能理解的方式所表達的「參與意願」。",
+                    "不正確。保密協定是關於資料保護的承諾。",
+                    "不正確。不當誘因是指提供過高的酬勞。"
+                ]
+            },
+            'quiz-sensitivity': {
+                correctIndex: 1,
+                responses: [
+                    "不正確。雖然研究結果可能無用，但填寫問卷本身不一定造成傷害。",
+                    "答對了！直接套用在「不同文化」發展的量表，是典型的「測量偏誤」來源，顯示研究者缺乏文化敏感度，導致工具不適用。",
+                    "不正確。這個情境主要問題不在於保密。",
+                    "不正確。這個情境主要問題不在於知情同意的過程。"
+                ]
+            }
+        };
+
+        function checkQuiz(quizId, selectedIndex, correctIndex) {
+            // If quizAnswers object is defined, use it.
+            if (quizAnswers[quizId]) {
+                correctIndex = quizAnswers[quizId].correctIndex;
+            }
+
+            const feedbackEl = document.getElementById(`${quizId}-feedback`);
+            const options = document.getElementById(quizId).getElementsByClassName('quiz-option');
+            
+            // Reset styles
+            for (let i = 0; i < options.length; i++) {
+                options[i].classList.remove('bg-green-200', 'border-green-400', 'bg-red-200', 'border-red-400');
+                options[i].disabled = true;
+            }
+
+            if (selectedIndex === correctIndex) {
+                feedbackEl.textContent = quizAnswers[quizId].responses[selectedIndex];
+                feedbackEl.className = 'quiz-feedback correct';
+                options[selectedIndex].classList.add('bg-green-200', 'border-green-400');
+            } else {
+                feedbackEl.textContent = quizAnswers[quizId].responses[selectedIndex];
+                feedbackEl.className = 'quiz-feedback incorrect';
+                options[selectedIndex].classList.add('bg-red-200', 'border-red-400');
+                // Highlight correct answer
+                options[correctIndex].classList.add('bg-green-200', 'border-green-400');
+            }
+        }
+
+    </script>
+</body>
+</html>
