@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>質性和量化資料分析</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chosen Palette: Academic Blue and Warm Neutrals --><!-- Application Structure Plan: 本SPA採用固定側邊導覽列（行動裝置為漢堡選單）結構。使用者可點選任一主題（如質性分析、描述統計、推論統計），主內容區會動態顯示對應的<section>。此結構的優點是讓使用者能以非線性的方式自由探索、複習特定概念。 --><!-- Visualization & Content Choices: 1. 質性編碼 (圖解): 原文為文字。 -> 目標: 視覺化編碼的抽象過程。 -> 視覺化: 使用HTML/Tailwind製作「逐字稿 -> 開放編碼 -> 主軸編碼 -> 選擇編碼」的流程圖。 -> 互動: 靜態。 -> 理由: 將歸納的過程具象化。 2. 質性評估標準 (表格): 原文為文字。 -> 目標: 對比量化與質性的評估標準。 -> 視覺化: 使用HTML/Tailwind製作比較表格（可信度 vs 內在效度等）。 -> 互動: 靜態。 -> 理由: 表格是呈現多維度比較的最佳方式。 3. 常態分配 (圖解): 原文為概念。 -> 目標: 視覺化 68-95-99.7 法則。 -> 視覺化: 使用HTML/CSS製作一個簡易的、階梯狀的鐘形曲線，並標示出標準差範圍。 -> 互動: 靜態。 -> 理由: 這是統計學的核心概念，視覺化有助於記憶。 4. 假設檢定 (圖解): 原文為文字。 -> 目標: 視覺化 Type I / Type II 錯誤。 -> 視覺化: 使用HTML/Tailwind製作一個 2x2 的決策表格。 -> 互動: 靜態。 -> 理由: 這是理解 p-value 決策後果的最清晰方式。 --><!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. --><link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .nav-link {
+            display: block;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .nav-link:hover {
+            background-color: #f0f4f8;
+            color: #007bff;
+        }
+        .nav-link.active {
+            background-color: #e6f2ff;
+            color: #0056b3;
+            font-weight: 700;
+        }
+        .nav-link.sub-link {
+            padding-left: 2rem;
+            font-size: 0.9rem;
+        }
+        .nav-link.sub-link.active {
+            background-color: #e0eafc;
+        }
+        
+        .quiz-option {
+            display: block;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            text-align: left;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        .quiz-option:hover {
+            background-color: #f9fafb;
+            border-color: #6b7280;
+        }
+        .quiz-feedback {
+            margin-top: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            display: none;
+        }
+        .quiz-feedback.correct {
+            background-color: #d1fae5;
+            color: #065f46;
+            display: block;
+        }
+        .quiz-feedback.incorrect {
+            background-color: #fee2e2;
+            color: #991b1b;
+            display: block;
+        }
+        
+        /* Comparison Table */
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.5rem;
+            overflow-x: auto;
+            display: block; /* For responsiveness */
+        }
+        .comparison-table th, .comparison-table td {
+            border: 1px solid #d1d5db;
+            padding: 0.75rem 1rem;
+            text-align: left;
+            min-width: 120px; /* Ensure columns have min width */
+        }
+        .comparison-table thead th {
+            background-color: #f3f4f6;
+            font-weight: 700;
+            color: #111827;
+        }
+        .comparison-table tbody tr:nth-child(odd) {
+            background-color: #ffffff;
+        }
+        .comparison-table tbody tr:nth-child(even) {
+            background-color: #f9fafb;
+        }
+        .comparison-table td:first-child {
+            font-weight: 600;
+            background-color: #f9fafb;
+        }
+
+        /* Coding Flow */
+        .coding-flow {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .coding-step {
+            background-color: #f3f4f6;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            padding: 1rem;
+        }
+        .coding-step strong {
+            display: block;
+            font-size: 1.1rem;
+            color: #1d4ed8;
+            margin-bottom: 0.5rem;
+        }
+        .coding-arrow {
+            text-align: center;
+            font-size: 1.5rem;
+            color: #60a5fa;
+            font-weight: 700;
+        }
+
+        /* Normal Distribution Chart */
+        .normal-curve-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1rem;
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+        }
+        .curve-bars {
+            display: flex;
+            align-items: flex-end;
+            height: 150px;
+            border-bottom: 2px solid #374151;
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            justify-content: center;
+        }
+        .curve-bar {
+            background-color: #60a5fa;
+            border: 1px solid #3b82f6;
+            width: 12.5%; /* 8 bars */
+        }
+        .curve-labels {
+            display: flex;
+            width: 100%;
+            max-width: 400px;
+            justify-content: space-between;
+            padding: 0 6.25%; /* Align with centers of outer bars */
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        .curve-area-label {
+            position: absolute;
+            bottom: 30px;
+            font-weight: 700;
+            color: #1e3a8a;
+        }
+
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- Header --><header class="bg-white shadow-md sticky top-0 z-40">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <h1 class="text-xl md:text-2xl font-bold text-blue-800">質性和量化資料分析</h1>
+            <button id="mobile-menu-button" class="md:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content --><div class="container mx-auto px-4 py-6 flex flex-col md:flex-row">
+
+        <!-- Navigation Sidebar --><nav id="sidebar" class="w-full md:w-1/4 lg:w-1/5 bg-white p-4 rounded-lg shadow-sm md:sticky md:top-24 md:self-start transition-transform duration-300 ease-in-out -translate-x-full md:translate-x-0 fixed md:relative h-full md:h-auto z-30 overflow-y-auto">
+            <button id="close-menu-button" class="md:hidden p-2 absolute top-2 right-2 text-gray-600 hover:text-gray-900">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            <h2 class="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">章節導覽</h2>
+            <ul class="space-y-1">
+                <li><a href="#intro" class="nav-link active" data-section="intro">🏠 導論：分析的意義</a></li>
+                <li><a href="#qual-analysis" class="nav-link" data-section="qual-analysis">🗣️ 質性資料分析</a></li>
+                <li><a href="#qual-criteria" class="nav-link" data-section="qual-criteria">⚖️ 質性研究評估標準</a></li>
+                <li><a href="#triangulation" class="nav-link" data-section="triangulation">📐 三角檢測</a></li>
+                <li><a href="#measurement" class="nav-link" data-section="measurement">📏 量化資料測量尺度</a></li>
+                <li><a href="#stats-concepts" class="nav-link" data-section="stats-concepts">📊 統計基本概念</a></li>
+                <li><a href="#descriptive-stats" class="nav-link" data-section="descriptive-stats">📈 描述統計</a></li>
+                <li><a href="#normal-dist" class="nav-link" data-section="normal-dist">🔔 常態分配和標準分數</a></li>
+                <li><a href="#inferential-stats" class="nav-link" data-section="inferential-stats">🌍 推論統計</a></li>
+                <li><a href="#hypothesis-testing" class="nav-link" data-section="hypothesis-testing">🔍 假設檢定與統計顯著性</a></li>
+                <li><a href="#ttest" class="nav-link" data-section="ttest">🧑‍🤝‍🧑 t 檢定</a></li>
+                <li><a href="#anova" class="nav-link" data-section="anova">🧑‍🤝‍🧑...🧑‍🤝‍🧑 變異數分析 ANOVA</a></li>
+            </ul>
+        </nav>
+
+        <!-- Content Area --><main class="w-full md:w-3/4 lg:w-4/5 md:pl-8 mt-6 md:mt-0">
+
+            <!-- Section: 導論 --><section id="intro" class="content-section active bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-4">🏠 導論：分析的意義</h2>
+                <p class="mb-4 text-lg">「資料」(Data) 本身是混亂且沒有意義的。無論是數百頁的訪談逐字稿（質性資料），還是一堆問卷數字（量化資料），它們都只是「原料」。</p>
+                <p class="mb-4">「資料分析」(Data Analysis) 則是一個「提煉」的過程。它是一套系統性的程序，讓我們能從混亂的原料中，找出「模式」(Patterns)、「意義」(Meanings) 和「答案」(Answers)。</p>
+                <p class="mb-4">在社會工作研究中，分析是連接「我們蒐集到的」與「我們想知道的」之間的橋樑。質性分析幫助我們「深入理解」現象的「為什麼」和「如何」；量化分析幫助我們「客觀測量」現象的「多少」和「關聯」。</p>
+                
+                <div class="mt-6 bg-blue-50 border-l-4 border-blue-500 p-4 rounded-md">
+                    <h4 class="font-semibold text-blue-800">本章節學習重點：</h4>
+                    <p class="mt-2">本章節將同時介紹兩種典範的分析核心。前半部專注於「質性」分析的編碼過程、評估標準與三角檢測；後半部則進入「量化」分析的基石，從測量尺度、描述統計，一路介紹到推論統計（如 t 檢定與 ANOVA）的邏輯。
+                    </p>
+                </div>
+            </section>
+
+            <!-- Section: 質性資料分析 --><section id="qual-analysis" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">🗣️ 質性資料分析</h2>
+                <p class="mb-4">質性資料分析是一個「歸納」的過程，目標是從「原始資料」（如逐字稿）中，逐步發展出「概念」與「理論」。最核心的技術是「編碼」(Coding)。</p>
+                <p class="mb-6">編碼是將資料「貼標籤」、進行「分類」與「重組」的過程。常見的編碼流程（特別是在紮根理論中）包括：</p>
+                
+                <div class="coding-flow">
+                    <div class="coding-step">
+                        <strong>1. 開放編碼 (Open Coding)</strong>
+                        <p>將逐字稿「打散」，逐字逐句閱讀，找出最小的意義單元，並賦予「概念性」的標籤。</p>
+                        <p class="bg-gray-50 p-2 rounded border text-sm"><strong>範例逐字稿</strong>：「我先生過世後，我覺得...好像沒人可以說話了。孩子白天都去上學，我一個人在家，真的很孤單。」<br><strong>→ 開放編碼標籤</strong>：「孤單感」、「缺乏社交支持」、「失去傾訴對象」</g>
+                    </div>
+                    <div class="coding-arrow">↓</div>
+                    <div class="coding-step">
+                        <strong>2. 主軸編碼 (Axial Coding)</strong>
+                        <p>將「相似」的開放編碼標籤，重新「聚集」起來，形成更抽象、更高層次的「類別」(Category)。</p>
+                        <p class="bg-gray-50 p-2 rounded border text-sm"><strong>範例</strong>：「孤單感」、「缺乏社交支持」、「失去傾訴對象」...等標籤，可以被歸類到「<strong class="text-blue-600">社會孤立</strong>」這個主軸類別之下。</p>
+                    </div>
+                    <div class="coding-arrow">↓</div>
+                    <div class="coding-step">
+                        <strong>3. 選擇編碼 (Selective Coding)</strong>
+                        <p>在所有主軸類別中，找出一個「核心類別」(Core Category)，並圍繞這個核心，將其他類別「串聯」起來，發展出一個具有故事性與解釋力的「理論」或「模型」。</p>
+                        <p class="bg-gray-50 p-2 rounded border text-sm"><strong>範例</strong>：研究者可能發現「<strong class="text-blue-600">社會孤立</strong>」是影響喪偶婦女憂鬱的核心，並發展出一個模型，解釋「社會孤立」如何透過「自我效能低落」（另一類別）導致「憂鬱」（又一類別）。</g>
+                    </div>
+                </div>
+
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：質性資料分析</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一位研究者正在閱讀訪談逐字稿，他將「我一個人吃飯」、「沒人打電話給我」、「週末都待在家」這三句描述，共同歸類為「孤獨感」。</g>
+                        <p class="mb-4">這個「將相似標籤聚集起來」的過程，最接近哪一種編碼？</p>
+                        
+                        <div id="quiz-qual-analysis" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-qual-analysis', 0, 1)">A. 開放編碼 (Open Coding)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-qual-analysis', 1, 1)">B. 主軸編碼 (Axial Coding)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-qual-analysis', 2, 1)">C. 選擇編碼 (Selective Coding)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-qual-analysis', 3, 1)">D. 描述統計 (Descriptive Statistics)</button>
+                        </div>
+                        <div id="quiz-qual-analysis-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Section: 質性研究評估標準 --><section id="qual-criteria" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">⚖️ 質性研究評估標準</h2>
+                <p class="mb-4">質性研究（採「解釋論」典範）的目標不是「客觀真理」，而是「深入理解」，因此不能用量化研究的「信度」與「效度」來評估。Guba & Lincoln (1985) 提出了最著名的評估標準：「可信賴性」(Trustworthiness)。</p>
+                <p class="mb-6">這套標準與量化標準的對應關係如下：</p>
+                
+                <div class="overflow-x-auto">
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>量化標準 (實證主義)</th>
+                                <th>質性標準 (解釋主義)</th>
+                                <th>核心問題</th>
+                                <th>提升策略範例</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>內在效度 (Internal Validity)</td>
+                                <td><strong>可信度 (Credibility)</strong></td>
+                                <td>研究結果是否「真實」地反映了參與者的觀點？</td>
+                                <td><strong>成員檢核 (Member Checking)</strong>：將分析初稿拿回去給參與者看，確認是否符合他們的經驗。</td>
+                            </tr>
+                            <tr>
+                                <td>外在效度 (External Validity)</td>
+                                <td><strong>可轉移性 (Transferability)</strong></td>
+                                <td>研究結果是否可能「轉移」到其他相似情境？</td>
+                                <td><strong>厚實描述 (Thick Description)</strong>：詳細描述研究的情境、脈絡與參與者特性，讓「讀者」自行判斷能否轉移。</td>
+                            </tr>
+                            <tr>
+                                <td>信度 (Reliability)</td>
+                                <td><strong>可依賴性 (Dependability)</strong></td>
+                                <td>研究過程是否「穩定」且「一致」？</td>
+                                <td><strong>研究日誌 (Audit Trail)</strong>：詳細記錄研究的每一步決策過程，讓他人可追溯（如：為何這樣編碼）。</td>
+                            </tr>
+                            <tr>
+                                <td>客觀性 (Objectivity)</td>
+                                <td><strong>可證實性 (Confirmability)</strong></td>
+                                <td>研究結果是否「源自」資料，而非研究者的「偏見」？</td>
+                                <td><strong>三角檢測 (Triangulation)</strong>：使用多元資料來源、研究者、或方法來交叉驗證。</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：質性研究評估標準</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一位社工完成質性分析後，將初步的分析結果拿回去給受訪的案主看，並詢問案主：「請問這個分析，是否準確地抓到了您想表達的意思？」</g>
+                        <p class="mb-4">這個「成員檢核」(Member Checking) 的動作，主要是在提升研究的哪一項標準？</p>
+                        
+                        <div id="quiz-qual-criteria" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-qual-criteria', 0, 0)">A. 可信度 (Credibility)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-qual-criteria', 1, 0)">B. 可轉移性 (Transferability)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-qual-criteria', 2, 0)">C. 可依賴性 (Dependability)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-qual-criteria', 3, 0)">D. 可證實性 (Confirmability)</button>
+                        </div>
+                        <div id="quiz-qual-criteria-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Section: 三角檢測 --><section id="triangulation" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">📐 三角檢測 (Triangulation)</h2>
+                <p class="mb-6">三角檢測（或稱三角交叉驗證法）是源自測量學的概念，指「從多個不同的角度來觀看同一個事物」，以獲得更完整、更可信的圖像。這是提升質性研究（特別是「可證實性」）的重要策略。</p>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">1. 資料三角檢測 (Data Triangulation)</h3>
+                        <p class="mb-4">使用「多元的資料來源」。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">為了了解「中輟生」的議題，研究者「同時」訪談了：(1) 中輟生本人、(2) 他的家長、(3) 他的學校老師。透過比較三方的說法，得到更平衡的觀點。</p>
+                    </div>
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">2. 研究者三角檢測 (Investigator Triangulation)</h3>
+                        <p class="mb-4">由「多位研究者」組成團隊，「各自」獨立分析同一份資料，然後再「交叉比對」彼此的編碼與詮釋，以減少個人偏見。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">A 研究者和 B 研究者「各自」閱讀同一份逐字稿。A 認為核心是「經濟壓力」，B 認為是「家庭衝突」。兩人「討論」後，發現這兩者是相互關聯的。</p>
+                    </div>
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">3. 理論三角檢測 (Theory Triangulation)</h3>
+                        <p class="mb-4">使用「多種不同的理論視角」來詮釋同一份資料。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">分析一個「家暴」個案。研究者「同時」使用「女性主義理論」（權力不對等）和「社會學習理論」（暴力代間複製）兩種視角來分析，讓詮釋更豐富。</p>
+                    </div>
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">4. 方法三角檢測 (Methodological Triangulation)</h3>
+                        <p class="mb-4">「同時」使用「質性」與「量化」兩種研究方法。這也是「融合研究法」的基礎。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">為了評估一個方案，研究者 (1) 使用「量化問卷」來測量成效（有多少改變？），並 (2) 搭配「質性訪談」來深入了解案主「如何」改變的。</p>
+                    </div>
+                </div>
+
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：三角檢測</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：為了研究機構的服務品質，研究者決定 (1) 對 100 位案主發放「滿意度問卷」(量化)，並且 (2) 深度訪談其中 10 位案主 (質性)。</p>
+                        <p class="mb-4">這種結合「量化」與「質性」的方法，稱為什麼？</p>
+                        
+                        <div id="quiz-triangulation" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-triangulation', 0, 3)">A. 資料三角檢測</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-triangulation', 1, 3)">B. 研究者三角檢測</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-triangulation', 2, 3)">C. 理論三角檢測</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-triangulation', 3, 3)">D. 方法三角檢測</button>
+                        </div>
+                        <div id="quiz-triangulation-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Section: 量化資料測量尺度 --><section id="measurement" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">📏 量化資料測量尺度</h2>
+                <p class="mb-4">在量化分析中，我們如何「測量」變項，決定了我們「能使用」哪種統計方法。測量尺度 (Levels of Measurement) 分為四種，由低至高為：</p>
+                
+                <div class="overflow-x-auto">
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>尺度</th>
+                                <th>特性</th>
+                                <th>數學運算</th>
+                                <th>社工範例</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>1. 名目 (Nominal)</strong></td>
+                                <td>僅「分類」，無高低順序。</td>
+                                <td>計次數 ( = / ≠ )</td>
+                                <td>性別 (1=男, 2=女)<br>婚姻狀況 (1=未婚, 2=已婚)<br>宗教 (1=基督, 2=佛教)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>2. 次序 (Ordinal)</strong></td>
+                                <td>可「排序」，但「間距」不相等。</td>
+                                <td>排序 ( > / < )</td>
+                                <td>李克特量表 (1=非常不同意 ... 5=非常同意)<br>教育程度 (1=國中, 2=高中, 3=大學)<br>名次 (第1名, 第2名)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>3. 等距 (Interval)</strong></td>
+                                <td>可排序，且「間距」相等。<br>「沒有」絕對的零點。</td>
+                                <td>加減 ( + / - )</td>
+                                <td>溫度 (°C / °F)<br>（0°C 不代表「沒有」溫度）<br>標準化的量表分數（如：智商 IQ）</td>
+                            </tr>
+                            <tr>
+                                <td><strong>4. 等比 (Ratio)</strong></td>
+                                <td>可排序、間距相等。<br>「有」絕對的零點。</td>
+                                <td>加減乘除 ( + - * / )</td>
+                                <td>年齡 (0 歲 = 不存在)<br>收入 (0 元 = 沒有錢)<br>個案數 (0 個 = 沒有個案)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="mt-4 text-sm"><strong>註</strong>：在實務上，李克特量表（次序尺度）的「總分」，常被視為「等距尺度」來進行統計分析（如 t 檢定）。</p>
+                
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：量化資料測量尺度</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一份問卷詢問案主的「教育程度」，選項為 (A) 國中 (B) 高中 (C) 大學 (D) 研究所。</g>
+                        <p class="mb-4">這個變項的測量尺度是什麼？</p>
+                        
+                        <div id="quiz-measurement" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-measurement', 0, 1)">A. 名目 (Nominal)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-measurement', 1, 1)">B. 次序 (Ordinal)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-measurement', 2, 1)">C. 等距 (Interval)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-measurement', 3, 1)">D. 等比 (Ratio)</button>
+                        </div>
+                        <div id="quiz-measurement-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Section: 統計基本概念 --><section id="stats-concepts" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">📊 統計基本概念</h2>
+                <p class="mb-4">統計學 (Statistics) 是一門蒐集、整理、分析、詮釋資料的科學。在量化研究中，它分為兩大領域：</p>
+                
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">1. 描述統計 (Descriptive Statistics)</h3>
+                        <p class="mb-4"><strong>目的</strong>：用來「描述」和「總結」我們「手上這份樣本」的特性。</p>
+                        <p class="mb-4">它不做任何「推論」，只是忠實地呈現資料的樣貌。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">「我們機構『這 50 位』案主，平均年齡為 75 歲，其中 60% 是女性，憂鬱分數的中位數是 10 分。」<br>（只描述這 50 人，不推論到其他人）</g>
+                    </div>
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">2. 推論統計 (Inferential Statistics)</h3>
+                        <p class="mb-4"><strong>目的</strong>：使用「樣本」的資料，來「推論」和「估計」「母群體」的特性，並檢驗「假設」。</p>
+                        <p class="mb-4">這是量化研究的核心，因為我們幾乎永遠不可能測量「所有人」。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">「我們從這 50 位案主的樣本，『推論』出『本市所有』獨居老人的憂鬱分數，有 95% 的信心介於 8.5 分到 11.5 分之間。」<br>（用 50 人推論到所有人）</g>
+                    </div>
+                </div>
+                
+                <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">母群體 vs. 樣本</h3>
+                <ul class="list-disc list-inside ml-4 space-y-2">
+                    <li><strong>母群體 (Population)</strong>：你「真正」關心的「所有」對象。（例：全台灣的社工）</li>
+                    <li><strong>參數 (Parameter)</strong>：母群體的「真實」數值（通常未知）。（例：全台灣社工的「真實」平均薪資）</li>
+                    <li><strong>樣本 (Sample)</strong>：你「實際」抽樣並蒐集到資料的「一小群」對象。（例：你抽到的 500 位社工）</li>
+                    <li><strong>統計量 (Statistic)</strong>：樣本的「計算」數值。（例：這 500 位社工的「計算」平均薪資）</li>
+                </ul>
+
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：統計基本概念</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一位研究者想知道「全台灣」大學生的平均壓力。他「抽樣」了 1000 位大學生，計算出這 1000 人的「平均壓力分數為 7.2 分」。</g>
+                        <p class="mb-4">在這情境中，「平均 7.2 分」是什麼？</p>
+                        
+                        <div id="quiz-stats-concepts" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-stats-concepts', 0, 3)">A. 母群體 (Population)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-stats-concepts', 1, 3)">B. 參數 (Parameter)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-stats-concepts', 2, 3)">C. 樣本 (Sample)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-stats-concepts', 3, 3)">D. 統計量 (Statistic)</button>
+                        </div>
+                        <div id="quiz-stats-concepts-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Section: 描述統計 --><section id="descriptive-stats" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">📈 描述統計</h2>
+                <p class="mb-6">描述統計是總結資料的第一步，主要分為三類：</p>
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">1. 次數分配 (Frequency)</h3>
+                        <p class="mb-4">計算每個類別「出現了幾次」。</p>
+                        <p class="font-medium">範例 (名目尺度)：</p>
+                        <p class="bg-gray-50 p-3 rounded border">性別：<br> - 男性: 40 人 (40%)<br> - 女性: 60 人 (60%)</p>
+                    </div>
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">2. 集中趨勢 (Central Tendency)</h3>
+                        <p class="mb-4">資料「集中」在哪個點附近？</p>
+                        <ul class="list-disc list-inside ml-4 space-y-2">
+                            <li><strong>平均數 (Mean)</strong>：總和除以個數。易受「極端值」影響。</li>
+                            <li><strong>中位數 (Median)</strong>：排序後「最中間」的數值。不受極端值影響。</li>
+                            <li><strong>眾數 (Mode)</strong>：出現「最多次」的數值。</li>
+                        </ul>
+                    </div>
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">3. 離散趨勢 (Dispersion)</h3>
+                        <p class="mb-4">資料「分散」的程度如何？</p>
+                         <ul class="list-disc list-inside ml-4 space-y-2">
+                            <li><strong>全距 (Range)</strong>：最大值 - 最小值。</li>
+                            <li><strong>變異數 (Variance)</strong>：資料點與平均數的「平方」距離之平均。</li>
+                            <li><strong>標準差 (Standard Deviation)</strong>：變異數的平方根。最常用，代表資料「平均」偏離平均數的距離。</li>
+                        </ul>
+                    </div>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">範例：何時使用中位數？</h3>
+                <p class="mb-4">當資料分佈「非常歪斜」(Skewed) 時，使用「中位數」比「平均數」更能代表集中趨勢。</p>
+                <p class="bg-gray-50 p-3 rounded border"><strong>情境</strong>：一個機構有 5 位社工，月薪分別為 (3萬, 3.2萬, 3.3萬, 3.5萬, 10萬(督導))。<br>
+                - <strong>平均數</strong>：(3+3.2+3.3+3.5+10) / 5 = 4.6 萬 → 被極端值(10萬)拉高，無法代表多數人。<br>
+                - <strong>中位數</strong>：排序後最中間 → 3.3 萬 → 更能真實反映一般社工的薪資水準。</p>
+
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：描述統計</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：在分析一個社區的「家庭年收入」時，研究者發現有幾位「超級有錢」的極端值。</p>
+                        <p class="mb-4">在這種「偏態」資料中，哪一個統計量最能代表「一般家庭」的收入水準？</p>
+                        
+                        <div id="quiz-descriptive-stats" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-descriptive-stats', 0, 1)">A. 平均數 (Mean)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-descriptive-stats', 1, 1)">B. 中位數 (Median)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-descriptive-stats', 2, 1)">C. 眾數 (Mode)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-descriptive-stats', 3, 1)">D. 標準差 (Standard Deviation)</button>
+                        </div>
+                        <div id="quiz-descriptive-stats-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Section: 常態分配和標準分數 --><section id="normal-dist" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">🔔 常態分配和標準分數</h2>
+                <p class="mb-4">「常態分配」(Normal Distribution) 是一個對稱的「鐘形曲線」，是推論統計的基礎。在常態分配中：</p>
+                <ul class="list-disc list-inside ml-4 space-y-1 mb-4">
+                    <li>平均數 = 中位數 = 眾數。</li>
+                    <li>資料分佈遵循「68-95-99.7 法則」。</li>
+                </ul>
+                
+                <div class="normal-curve-container">
+                    <div class="curve-bars">
+                        <!-- -3 to -2 SD -->
+                        <div class="curve-bar" style="height: 15%;"></div>
+                        <!-- -2 to -1 SD -->
+                        <div class="curve-bar" style="height: 60%;"></div>
+                        <!-- -1 to 0 SD -->
+                        <div class="curve-bar" style="height: 95%;"></div>
+                        <!-- 0 to +1 SD -->
+                        <div class="curve-bar" style="height: 95%;"></div>
+                        <!-- +1 to +2 SD -->
+                        <div class="curve-bar" style="height: 60%;"></div>
+                        <!-- +2 to +3 SD -->
+                        <div class="curve-bar" style="height: 15%;"></div>
+                        
+                        <!-- 68% Label -->
+                        <div class="curve-area-label" style="width: 25%; left: 37.5%; bottom: 60px; font-size: 1rem;">~ 68%</div>
+                        <!-- 95% Label -->
+                        <div class="curve-area-label" style="width: 50%; left: 25%; bottom: 30px; font-size: 0.9rem;">~ 95%</div>
+                    </div>
+                    <div class="curve-labels">
+                        <span>-3σ</span>
+                        <span>-2σ</span>
+                        <span>-1σ</span>
+                        <span>μ</span>
+                        <span>+1σ</span>
+                        <span>+2σ</span>
+                        <span>+3σ</span>
+                    </div>
+                </div>
+                <p class="mt-4 text-center"><strong>經驗法則</strong>：約 68% 的資料在 ±1 個標準差內；約 95% 在 ±2 個標準差內。</p>
+
+                <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">標準分數 (Z-Score)</h3>
+                <p class="mb-4">Z-Score 是一種「標準化」分數，它告訴我們一個「原始分數」距離「平均數」有多少個「標準差」。</p>
+                <p class="mb-4"><strong>公式</strong>： Z = (原始分數 - 平均數) / 標準差</p>
+                <p class="font-medium">社工範例：</p>
+                <p class="bg-gray-50 p-3 rounded border">某機構的「憂鬱量表」平均數 (μ) 為 50，標準差 (σ) 為 10。<br>
+                - 案主 A 得了 60 分 → Z = (60 - 50) / 10 = +1.0 (比平均高 1 個標準差)<br>
+                - 案主 B 得了 30 分 → Z = (30 - 50) / 10 = -2.0 (比平均低 2 個標準差)</g>
+
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：常態分配</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：假設某測驗分數呈常態分配，平均數為 100，標準差為 15。根據 68-95-99.7 法則...</p>
+                        <p class="mb-4">大約有 95% 的人，其分數會落在哪個區間？</p>
+                        
+                        <div id="quiz-normal-dist" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-normal-dist', 0, 1)">A. 85 到 115 (± 1個標準差)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-normal-dist', 1, 1)">B. 70 到 130 (± 2個標準差)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-normal-dist', 2, 1)">C. 55 到 145 (± 3個標準差)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-normal-dist', 3, 1)">D. 95 到 105</button>
+                        </div>
+                        <div id="quiz-normal-dist-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Section: 推論統計 --><section id="inferential-stats" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">🌍 推論統計</h2>
+                <p class="mb-4">推論統計的核心，是從「樣本」的特性去「推估」母群體的特性。這個推論之所以可能，是基於「機率理論」與「中央極限定理」。</p>
+                <p class="mb-4"><strong>中央極限定理 (Central Limit Theorem, CLT)</strong>：一個非常神奇的定理。它指出，不管「母群體」長什麼樣子（就算是歪斜的），只要我們「重複」從中抽取「足夠大」的樣本（通常 n > 30），這些「樣本平均數」所形成的「抽樣分配」(Sampling Distribution)，將會趨近於「常態分配」。</p>
+                <p class="mb-4"><strong>標準誤 (Standard Error, SE)</strong>：「抽樣分配」的「標準差」，就稱為「標準誤」。它衡量了「樣本平均數」與「母群體真實平均數」之間的「平均誤差」。樣本數 (n) 越大，標準誤就越小（代表抽樣越準確）。</p>
+                <p class="font-medium">社工範例：</p>
+                <p class="bg-gray-50 p-3 rounded border">我們用「標準誤」來計算「信賴區間」(Confidence Interval)。<br>
+                - 「我們有 95% 的信心，認為『母群體』的真實平均值，會落在『樣本平均值 ± 1.96 個標準誤』的範圍內。」<br>
+                - 這句話提供了我們推論的「精確度」與「信心」。</p>
+
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：推論統計</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一位研究者想提高他研究結果的「精確度」，也就是減少「抽樣誤差」。</p>
+                        <p class="mb-4">根據標準誤的原理，他最應該做的是什麼？</p>
+                        
+                        <div id="quiz-inferential-stats" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-inferential-stats', 0, 0)">A. 增加樣本數 (n)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-inferential-stats', 1, 0)">B. 減少樣本數 (n)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-inferential-stats', 2, 0)">C. 使用中位數而非平均數</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-inferential-stats', 3, 0)">D. 使用名目尺度</button>
+                        </div>
+                        <div id="quiz-inferential-stats-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Section: 假設檢定與統計顯著性 --><section id="hypothesis-testing" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">🔍 假設檢定與統計顯著性</h2>
+                <p class="mb-4">「假設檢定」是推論統計中，用來「做決策」的標準程序。我們想知道：我們在「樣本」中看到的「差異」或「關係」，是真的，還只是「抽樣的偶然」？</p>
+                <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">檢定步驟</h3>
+                <ol class="list-decimal list-inside ml-4 space-y-2">
+                    <li><strong>建立假設</strong>：
+                        <ul>
+                            <li><strong>虛無假設 (虛無假設)</strong>：宣稱「沒有差異」、「沒有效果」、「沒有關係」。（例：新方案「無效」）</li>
+                            <li><strong>對立假設 ($H_1$)</strong>：宣稱「有差異」、「有效果」、「有關係」。（例：新方案「有效」）</li>
+                        </ul>
+                    </li>
+                    <li><strong>設定顯著水準 (α值)</strong>：我們「願意承擔的風險」（犯 Type I 錯誤的機率）。在社會科學中，α值 通常訂為 <strong>0.05</strong> (或 5%)。</li>
+                    <li><strong>計算 p-value</strong>：p-value 是「假設 虛無假設 為真時，我們觀測到『目前樣本結果』或『更極端結果』的機率」。</li>
+                    <li><strong>做出決策</strong>：
+                        <ul>
+                            <li>如果 <strong>p < α值</strong> (p < .05)：代表 虛無假設 為真的情況下，觀測到此結果的機率「非常低」（太巧了）。因此我們「<strong>拒絕 虛無假設</strong>」，接受 $H_1$，稱為「<strong>統計顯著</strong>」。</li>
+                            <li>如果 <strong>p > α值</strong> (p > .05)：代表這個結果「很可能」只是抽樣偶然，我們「<strong>無法拒絕 虛無假設</strong>」，稱為「<strong>統計不顯著</strong>」。</li>
+                        </ul>
+                    </li>
+                </ol>
+
+                <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">決策錯誤的類型</h3>
+                <div class="overflow-x-auto">
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th>母群體真實情況：虛無假設 為真 (方案無效)</th>
+                                <th>母群體真實情況：虛無假設 為偽 (方案有效)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>研究決策：<br>拒絕 虛無假設 (宣稱有效)</strong></td>
+                                <td class="bg-red-100 text-red-800"><strong>Type I 錯誤 ( α值 )</strong><br>(偽陽性：沒效的說有效)</td>
+                                <td class="bg-green-100 text-green-800"><strong>正確決策</strong><br>(抓到了！)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>研究決策：<br>無法拒絕 虛無假設 (宣稱無效)</strong></td>
+                                <td class="bg-green-100 text-green-800"><strong>正確決策</strong><br>(沒錯！)</td>
+                                <td class="bg-yellow-100 text-yellow-800"><strong>Type II 錯誤 ( β值 )</strong><br>(偽陰性：有效的說沒效)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：假設檢定</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一位社工評估一個新方案，電腦跑出的 p-value = 0.02。他設定的 α值 = 0.05。</p>
+                        <p class="mb-4">根據 (p < α值) 的原則，他應該做出什麼決策？</p>
+                        
+                        <div id="quiz-hypothesis-testing" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-hypothesis-testing', 0, 0)">A. 拒絕 虛無假設，結論是方案「有效」（統計顯著）。</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-hypothesis-testing', 1, 0)">B. 無法拒絕 虛無假設，結論是方案「無效」（統計不顯著）。</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-hypothesis-testing', 2, 0)">C. 犯了 Type I 錯誤。</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-hypothesis-testing', 3, 0)">D. 犯了 Type II 錯誤。</button>
+                        </div>
+                        <div id="quiz-hypothesis-testing-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Section: t檢定 --><section id="ttest" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">🧑‍🤝‍🧑 t 檢定 (t-test)</h2>
+                <p class="mb-6">t 檢定是假設檢定的一種，專門用來比較「兩個」平均數 (Mean) 之間是否存在「統計顯著」的差異。</p>
+                
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">1. 獨立樣本 t 檢定 (Independent-Samples)</h3>
+                        <p class="mb-4"><strong>目的</strong>：比較「兩個不同」的組別（獨立樣本），在「同一個」依變項上的平均數差異。</p>
+                        <p class="mb-4"><strong>假設 虛無假設</strong>：$\mu₁ = \mu₂$ (兩組的母群體平均數相等)</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">
+                            <strong>研究問題</strong>：比較「實驗組」（有接受方案）與「控制組」（未接受方案）的「期末」憂鬱分數平均值。<br>
+                            - 組別 1：實驗組 (n=30)<br>
+                            - 組別 2：控制組 (n=30)<br>
+                            - 依變項：憂鬱分數
+                        </g>
+                    </div>
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">2. 成對樣本 t 檢定 (Paired-Samples)</h3>
+                        <p class="mb-4"><strong>目的</strong>：比較「同一個」組別（成對樣本），在「兩個不同時間點」或「兩種不同情境」下的平均數差異。</p>
+                        <p class="mb-4"><strong>假設 虛無假設</strong>：$\mu_{\text{before}} = \mu_{\text{after}}$ (前測與後測的母群體平均數相等)</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">
+                            <strong>研究問題</strong>：評估一個方案是否有效，比較「同一群」案主在「介入前」(O₁) 與「介入後」(O₂) 的憂鬱分數平均值。<br>
+                            - 時間點 1：前測 (O₁)<br>
+                            - 時間點 2：後測 (O₂)<br>
+                            - 依變項：憂鬱分數
+                        </g>
+                    </div>
+                </div>
+
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：t 檢定</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一位研究者想知道，「男性社工」與「女性社工」的「平均薪資」是否有顯著差異。</p>
+                        <p class="mb-4">他應該使用哪一種 t 檢定？</p>
+                        
+                        <div id="quiz-ttest" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-ttest', 0, 0)">A. 獨立樣本 t 檢定</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-ttest', 1, 0)">B. 成對樣本 t 檢定</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-ttest', 2, 0)">C. ANOVA</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-ttest', 3, 0)">D. 描述統計</button>
+                        </div>
+                        <div id="quiz-ttest-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Section: 變異數分析ANOVA --><section id="anova" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">🧑‍🤝‍🧑...🧑‍🤝‍🧑 變異數分析 (ANOVA)</h2>
+                <p class="mb-4">當我們要比較的「組別」有「三個或三個以上」時，我們「不能」使用 t 檢定（例如：A vs B, B vs C, A vs C）。</p>
+                <p class="mb-4"><strong>為什麼不行？</strong>：因為每做一次 t 檢定，就有 5% (Type I) 的犯錯機率。如果做三次 t 檢定，整體的犯錯機率會被「膨脹」到 14.3%，這會讓我們更容易「誤報」有顯著差異。</p>
+                <p class="mb-4"><strong>ANOVA (Analysis of Variance)</strong> 變異數分析，就是用來「一次」比較「三個或三個以上」平均數的統計方法。它會告訴我們：「在這『所有』組別中，『至少』有兩組的平均數是不同的。」</p>
+                
+                <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">ANOVA 的邏輯</h3>
+                <p class="mb-4">ANOVA 會計算一個 F 統計量 (F-statistic)：</p>
+                <p class="mb-4 text-center font-semibold text-lg">F = (組間的變異) / (組內的變異)</p>
+                <ul class="list-disc list-inside ml-4 space-y-2">
+                    <li><strong>組間變異 (Between-Group Variance)</strong>：由「方案效果」造成的差異（我們樂見的）。</li>
+                    <li><strong>組內變異 (Within-Group Variance)</strong>：由「個體差異」或「隨機誤差」造成的差異（我們不樂見的）。</li>
+                </ul>
+                <p class="mb-4">如果 F 值「很大」（代表「方案效果」遠大於「隨機誤差」），p-value 就會很小（< .05），我們就能拒絕 虛無假設，結論是這些組別「不全相等」。</p>
+                <p class="font-medium">社工範例：</p>
+                <p class="bg-gray-50 p-3 rounded border">
+                    <strong>研究問題</strong>：比較三種不同介入方案對「案主壓力分數」的影響。<br>
+                    - 組別 1：認知行為治療 (CBT)<br>
+                    - 組別 2：正念減壓 (MBSR)<br>
+                    - 組別 3：控制組（等待名單）<br>
+                    <strong>假設 虛無假設</strong>：$\mu_{\text{CBT}} = \mu_{\text{MBSR}} = \mu_{\text{Control}}$ (三組平均數相等)<br>
+                    <strong>分析</strong>：使用 ANOVA。如果 p < .05，代表三組「不全相等」，我們還需進行「事後檢定」(Post-Hoc Test) 來找出「到底是誰跟誰」不同。
+                </g>
+
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：ANOVA</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一位研究者想比較「國中」、「高中」、「大學」三個不同教育程度群體的「平均」幸福感分數。</p>
+                        <p class="mb-4">他有「三組」要比較，最適合的統計方法是什麼？</p>
+                        
+                        <div id="quiz-anova" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-anova', 0, 2)">A. 獨立樣本 t 檢定</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-anova', 1, 2)">B. 成對樣本 t 檢定</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-anova', 2, 2)">C. 變異數分析 (ANOVA)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-anova', 3, 2)">D. 質性訪談</button>
+                        </div>
+                        <div id="quiz-anova-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Overlay for mobile menu --><div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden" onclick="toggleMenu(false)"></div>
+
+
+    <script>
+        const sections = document.querySelectorAll('.content-section');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const closeMenuButton = document.getElementById('close-menu-button');
+
+        function showSection(sectionId) {
+            sections.forEach(section => {
+                if (section.id === sectionId) {
+                    section.classList.add('active');
+                } else {
+                    section.classList.remove('active');
+                }
+            });
+
+            navLinks.forEach(link => {
+                if (link.dataset.section === sectionId) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+
+            // Auto-scroll to top of content on section change
+            document.querySelector('.md\\:w-3\\/4')?.scrollTo(0, 0);
+            
+            // Close mobile menu on navigation
+            if (window.innerWidth < 768) {
+                toggleMenu(false);
+            }
+        }
+
+        function toggleMenu(show) {
+            if (show) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const sectionId = e.target.closest('a').dataset.section;
+                showSection(sectionId);
+                // Update URL hash for better history (optional)
+                window.location.hash = e.target.closest('a').getAttribute('href');
+            });
+        });
+
+        mobileMenuButton.addEventListener('click', () => toggleMenu(true));
+        closeMenuButton.addEventListener('click', () => toggleMenu(false));
+        overlay.addEventListener('click', () => toggleMenu(false));
+
+        // Handle page load with hash
+        document.addEventListener('DOMContentLoaded', () => {
+            const hash = window.location.hash;
+            if (hash) {
+                const sectionId = hash.substring(1);
+                const sectionElement = document.getElementById(sectionId);
+                if (sectionElement) {
+                    showSection(sectionId);
+                } else {
+                    showSection('intro');
+                }
+            } else {
+                showSection('intro');
+            }
+        });
+
+        // --- Quiz Logic ---
+        const quizAnswers = {
+            'quiz-qual-analysis': {
+                correctIndex: 1,
+                responses: [
+                    "不正確。開放編碼是「打散」資料並貼上「初始」標籤。",
+                    "答對了！主軸編碼是將「相似」的開放編碼「聚集」成更高層次的「類別」（如：孤獨感）。",
+                    "不正確。選擇編碼是找出「核心」類別並建立理論。",
+                    "不正確。這是質性分析，不是量化統計。"
+                ]
+            },
+            'quiz-qual-criteria': {
+                correctIndex: 0,
+                responses: [
+                    "答對了！成員檢核（詢問參與者）是為了確保研究者的詮釋符合參與者的真實經驗，這即是「可信度」(Credibility)。",
+                    "不正確。可轉移性是透過「厚實描述」讓讀者自行判斷。",
+                    "不正確。可依賴性是透過「研究日誌」確保過程穩定。",
+                    "不正確。可證實性是確保結果源自資料，而非偏見。"
+                ]
+            },
+            'quiz-triangulation': {
+                correctIndex: 3,
+                responses: [
+                    "不正確。資料三角檢測是使用「多種來源」（如：案主、家長、老師）。",
+                    "不正確。研究者三角檢測是「多位研究者」分析同一份資料。",
+                    "不正確。理論三角檢測是使用「多種理論」詮釋資料。",
+                    "答對了！「方法三角檢測」是指同時使用「量化」（問卷）與「質性」（訪談）兩種方法。"
+                ]
+            },
+            'quiz-measurement': {
+                correctIndex: 1,
+                responses: [
+                    "不正確。名目尺度只是「分類」，不能排序。教育程度有高低之分。",
+                    "答對了！「次序尺度」可以排序（大學 > 高中），但「間距」不相等（國中到高中的差距 ≠ 高中到大學的差距）。",
+                    "不正確。等距尺度需要「間距」相等。",
+                    "不正確。等比尺度需要有「絕對零點」。"
+                ]
+            },
+            'quiz-stats-concepts': {
+                correctIndex: 3,
+                responses: [
+                    "不正確。母群體是「全台灣」的大學生。",
+                    "不正確。參數是「全台灣」大學生的「真實」平均壓力（未知）。",
+                    "不正確。樣本是「抽樣的 1000 位」大學生。",
+                    "答對了！「統計量」是從「樣本」中「計算」出來的數值（平均 7.2 分）。"
+                ]
+            },
+            'quiz-descriptive-stats': {
+                correctIndex: 1,
+                responses: [
+                    "不正確。平均數會被「超級有錢」的極端值拉高，不能代表一般家庭。",
+                    "答對了！「中位數」是排序後最中間的數值，不受極端值影響，最適合描述「偏態」資料（如收入）。",
+                    "不正確。眾數（出現最多次）在描述收入時較不穩定。",
+                    "不正確。標準差是描述「離散」程度，不是「集中」趨勢。"
+                ]
+            },
+            'quiz-normal-dist': {
+                correctIndex: 1,
+                responses: [
+                    "不正確。85 到 115 (100 ± 15) 是 ± 1 個標準差，只包含約 68% 的人。",
+                    "答對了！95% 的人落在 ± 2 個標準差內。 (100 ± 2*15) = (100 ± 30) = 70 到 130。",
+                    "不正確。55 到 145 (100 ± 45) 是 ± 3 個標準差，包含約 99.7% 的人。",
+                    "不正確。這與標準差無關。"
+                ]
+            },
+            'quiz-inferential-stats': {
+                correctIndex: 0,
+                responses: [
+                    "答對了！根據中央極限定理與標準誤的公式，樣本數 (n) 越大，標準誤 (SE) 就越小，代表抽樣越精確。",
+                    "不正確。減少樣本數會「增加」抽樣誤差。",
+                    "不正確。這與描述統計的選擇有關，與推論的精確度無直接關係。",
+                    "不正確。測量尺度與精確度無關。"
+                ]
+            },
+            'quiz-hypothesis-testing': {
+                correctIndex: 0,
+                responses: [
+                    "答對了！p-value (0.02) < α值 (0.05)，代表這個結果「不太可能」是偶然。我們「拒絕 虛無假設」，並接受 $H_1$，結論是方案有效。",
+                    "不正確。p-value 夠小，所以我們「可以」拒絕 虛無假設。",
+                    "不正確。我們「不知道」是否犯了 Type I 錯誤，因為我們永遠不知道母群體的「真相」。我們只知道，如果 虛無假設「剛好」為真，我們就有 5% 的機率犯此錯誤。",
+                    "不正確。Type II 錯誤是「無法拒絕 虛無假設」時才可能犯的。"
+                ]
+            },
+            'quiz-ttest': {
+                correctIndex: 0,
+                responses: [
+                    "答對了！「男性社工」和「女性社工」是「兩個不同」的組別（獨立樣本），我們要比較這兩組的「平均」薪資。",
+                    "不正確。成對樣本是「同一組人」的前後測比較。",
+                    "不正確。ANOVA 是用來比較「三個或三個以上」的組別。",
+                    "不正確。描述統計只能「描述」樣本，不能「檢定」差異是否顯著。"
+                ]
+            },
+            'quiz-anova': {
+                correctIndex: 2,
+                responses: [
+                    "不正確。t 檢定只能比較「兩組」。",
+                    "不正確。t 檢定只能比較「兩組」。",
+                    "答對了！ANOVA 專門用來「一次」比較「三個或三個以上」獨立組別（國中、高中、大學）的平均數差異。",
+                    "不正確。質性訪談無法檢定「平均」幸福感分數的「統計顯著」差異。"
+                ]
+            }
+        };
+
+        function checkQuiz(quizId, selectedIndex, correctIndex) {
+            // If quizAnswers object is defined, use it.
+            if (quizAnswers[quizId]) {
+                correctIndex = quizAnswers[quizId].correctIndex;
+            }
+
+            const feedbackEl = document.getElementById(`${quizId}-feedback`);
+            const options = document.getElementById(quizId).getElementsByClassName('quiz-option');
+            
+            // Reset styles
+            for (let i = 0; i < options.length; i++) {
+                options[i].classList.remove('bg-green-200', 'border-green-400', 'bg-red-200', 'border-red-400');
+                options[i].disabled = true;
+            }
+
+            if (selectedIndex === correctIndex) {
+                feedbackEl.textContent = quizAnswers[quizId].responses[selectedIndex];
+                feedbackEl.className = 'quiz-feedback correct';
+                options[selectedIndex].classList.add('bg-green-200', 'border-green-400');
+            } else {
+                feedbackEl.textContent = quizAnswers[quizId].responses[selectedIndex];
+                feedbackEl.className = 'quiz-feedback incorrect';
+                options[selectedIndex].classList.add('bg-red-200', 'border-red-400');
+                // Highlight correct answer
+                options[correctIndex].classList.add('bg-green-200', 'border-green-400');
+            }
+        }
+
+    </script>
+</body>
+</html>
+
