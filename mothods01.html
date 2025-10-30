@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>為何要學習研究方法</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Chosen Palette: Academic Blue and Warm Neutrals --><link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .nav-link {
+            display: block;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .nav-link:hover {
+            background-color: #f0f4f8;
+            color: #007bff;
+        }
+        .nav-link.active {
+            background-color: #e6f2ff;
+            color: #0056b3;
+            font-weight: 700;
+        }
+        .nav-link.sub-link {
+            padding-left: 2rem;
+            font-size: 0.9rem;
+        }
+        .nav-link.sub-link.active {
+            background-color: #e0eafc;
+        }
+        
+        .quiz-option {
+            display: block;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            text-align: left;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        .quiz-option:hover {
+            background-color: #f9fafb;
+            border-color: #6b7280;
+        }
+        .quiz-feedback {
+            margin-top: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            display: none;
+        }
+        .quiz-feedback.correct {
+            background-color: #d1fae5;
+            color: #065f46;
+            display: block;
+        }
+        .quiz-feedback.incorrect {
+            background-color: #fee2e2;
+            color: #991b1b;
+            display: block;
+        }
+
+        /* Re-designed EBP Triangle (Triangular Layout) */
+        .ebp-triangle-layout-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            height: 350px; /* Adjust height to fit the triangle */
+            margin-top: 2rem;
+            background-color: #f0f9ff; /* Lightest blue background */
+            border-radius: 1rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            padding: 1rem; /* Padding for overall container */
+        }
+        .ebp-triangle-element {
+            width: 170px; /* Size of the elements */
+            height: 170px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: white;
+            padding: 1rem;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            position: absolute; /* Absolute positioning for triangle layout */
+        }
+        .ebp-element-evidence { 
+            background-color: #3b82f6; /* Blue-500 */
+            top: 20px; /* Top of the triangle */
+        } 
+        .ebp-element-expertise { 
+            background-color: #10b981; /* Emerald-500 */
+            bottom: 20px; 
+            left: 20px; /* Bottom-left */
+        } 
+        .ebp-element-values { 
+            background-color: #ef4444; /* Red-500 */
+            bottom: 20px; 
+            right: 20px; /* Bottom-right */
+        }
+
+        .ebp-central-result {
+            position: absolute;
+            z-index: 2; /* Ensure text is on top */
+            font-weight: 800;
+            color: #1e3a8a; /* Dark blue for central text */
+            font-size: 1.3rem;
+            background-color: #ffffff; /* White background for central text for clarity */
+            padding: 0.75rem 1.25rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 0 12px rgba(0,0,0,0.15);
+            text-align: center;
+            line-height: 1.3;
+            border: 2px solid #60a5fa; /* Blue-400 border */
+        }
+
+        /* Connector Lines for EBP Triangle */
+        .ebp-connector {
+            position: absolute;
+            background-color: #93c5fd; /* Blue-300 */
+            z-index: 0; /* Behind the circles and central text */
+            opacity: 0.7;
+        }
+        /* Top to Bottom-Left */
+        .ebp-connector-1 {
+            width: 8px;
+            height: 180px; /* Adjust length */
+            top: 100px; /* Start position from top element */
+            left: calc(50% - 90px); /* Adjust position */
+            transform: rotate(-30deg); /* Angle */
+            transform-origin: top left;
+        }
+        /* Top to Bottom-Right */
+        .ebp-connector-2 {
+            width: 8px;
+            height: 180px; /* Adjust length */
+            top: 100px; /* Start position from top element */
+            right: calc(50% - 90px); /* Adjust position */
+            transform: rotate(30deg); /* Angle */
+            transform-origin: top right;
+        }
+        /* Bottom-Left to Bottom-Right */
+        .ebp-connector-3 {
+            width: 170px; /* Distance between bottom elements */
+            height: 8px;
+            bottom: 100px; /* Position at the bottom elements */
+        }
+
+        @media (max-width: 768px) {
+            .ebp-triangle-layout-container {
+                height: 400px; /* Adjust height for small screens */
+                flex-direction: column;
+            }
+            .ebp-triangle-element {
+                position: relative; /* Make them relative again for stacking if needed */
+                margin-bottom: 1rem;
+                top: auto; left: auto; right: auto; bottom: auto;
+            }
+            .ebp-element-evidence { top: 20px; }
+            .ebp-element-expertise { top: 120px; left: 20px; }
+            .ebp-element-values { top: 120px; right: 20px; }
+            /* Hide connectors on very small screens if they look bad */
+            .ebp-connector { display: none; }
+            .ebp-central-result { margin-top: 20px; position: relative; } /* Adjust position */
+        }
+
+
+        /* EBP Steps Flow (Keep previous good design) */
+        .ebp-steps-flow {
+            display: flex;
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+            justify-content: center;
+            align-items: center;
+            gap: 1.5rem; /* Increased gap */
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background-color: #f0fdfa; /* Teal-50 light background */
+            border-radius: 1rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .ebp-step-card {
+            background-color: #e0f2fe; /* Light blue */
+            border: 1px solid #90cdf4; /* Blue-300 */
+            border-radius: 0.75rem;
+            padding: 1rem 1.25rem;
+            text-align: center;
+            flex: 1 1 auto; /* Allow flexible sizing */
+            min-width: 150px; /* Minimum width for cards */
+            max-width: 200px; /* Max width for cards */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease-in-out;
+        }
+        .ebp-step-card:hover {
+            transform: translateY(-5px);
+        }
+        .ebp-step-card strong {
+            display: block;
+            font-size: 1.25rem; /* Larger step number */
+            color: #1e40af; /* Dark blue */
+            margin-bottom: 0.5rem;
+        }
+        .ebp-step-card .step-verb {
+            font-size: 1.1rem; /* Larger verb */
+            font-weight: 700;
+            color: #0369a1; /* Sky-700 */
+            line-height: 1.3;
+        }
+        .ebp-step-arrow {
+            font-size: 2rem; /* Larger arrow */
+            color: #60a5fa; /* Blue-400 */
+            font-weight: 700;
+        }
+
+        @media (max-width: 768px) {
+            .ebp-steps-flow {
+                flex-direction: column; /* Stack vertically on small screens */
+            }
+            .ebp-step-arrow {
+                transform: rotate(90deg); /* Rotate arrow for vertical flow */
+            }
+            /* Adjust positioning for EBP triangle on small screens */
+            .ebp-triangle-layout-container {
+                height: auto; /* Allow height to adjust */
+                flex-direction: column;
+                padding-bottom: 20px; /* Add some padding at the bottom */
+            }
+            .ebp-triangle-element {
+                position: static; /* Reset to static for normal flow */
+                margin: 0.5rem auto; /* Center and add margin */
+            }
+            .ebp-central-result {
+                position: static; /* Reset to static for normal flow */
+                margin-top: 1.5rem; /* Add margin above result */
+            }
+            .ebp-connector { display: none; } /* Hide connectors on mobile */
+        }
+
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- Header --><header class="bg-white shadow-md sticky top-0 z-40">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <h1 class="text-xl md:text-2xl font-bold text-blue-800">為何要學習研究方法</h1>
+            <button id="mobile-menu-button" class="md:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content --><div class="container mx-auto px-4 py-6 flex flex-col md:flex-row">
+
+        <!-- Navigation Sidebar --><nav id="sidebar" class="w-full md:w-1/4 lg:w-1/5 bg-white p-4 rounded-lg shadow-sm md:sticky md:top-24 md:self-start transition-transform duration-300 ease-in-out -translate-x-full md:translate-x-0 fixed md:relative h-full md:h-auto z-30 overflow-y-auto">
+            <button id="close-menu-button" class="md:hidden p-2 absolute top-2 right-2 text-gray-600 hover:text-gray-900">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            <h2 class="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">章節導覽</h2>
+            <ul>
+                <li><a href="#intro" class="nav-link active" data-section="intro">🏠 導論：為何要學習研究方法？</a></li>
+                <li><a href="#science" class="nav-link" data-section="science">🧪 科學方法的特性</a></li>
+                <li><a href="#errors" class="nav-link" data-section="errors">🧐 常見的觀察謬誤</a></li>
+                <li><a href="#ebp" class="nav-link" data-section="ebp">💡 證據本位的社會工作實務(EBP)</a></li>
+            </ul>
+        </nav>
+
+        <!-- Content Area --><main class="w-full md:w-3/4 lg:w-4/5 md:pl-8 mt-6 md:mt-0">
+
+            <!-- Section: 導論 --><section id="intro" class="content-section active bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-4">🏠 導論：為何要學習研究方法？</h2>
+                <p class="mb-4 text-lg">許多社會工作系學生會問：「我未來是要當助人者，又不是要當科學家，為什麼要學研究方法？」</p>
+                <p class="mb-4">這個問題的答案很簡單：因為「熱情」與「善意」不足以保證我們的服務是「有效」的。在資源有限的情況下，如果我們投入大量人力物力，卻執行了一個沒有效果、甚至有害的方案，這不僅浪費資源，更可能違背了社工的專業倫理。</p>
+                <p class="mb-4">學習研究方法，能幫助我們：</p>
+                <ul class="list-disc list-inside mt-2 ml-4 space-y-2">
+                    <li><strong>超越直覺</strong>：區分「我以為有效」和「證據顯示有效」。</li>
+                    <li><strong>評估成效</strong>：用系統性的方式證明我們的服務「真的」幫助了案主。</li>
+                    <li><strong>負責與課責</strong>：向政府、捐款人、案主證明，我們的專業是有「證據」支持的。</li>
+                    <li><strong>避免傷害</strong>：辨識出那些看似合理，但實際上可能對案主造成傷害的介入方式。</li>
+                </ul>
+                
+                <div class="mt-6 bg-blue-50 border-l-4 border-blue-500 p-4 rounded-md">
+                    <h4 class="font-semibold text-blue-800">本章節學習重點：</h4>
+                    <p class="mt-2">本章節將帶您了解「科學」如何作為社工實務的基石。我們將探討科學方法的特性、人類天生容易犯的觀察謬誤，以及如何透過「證據本位實務」(EBP) 將研究與實務結合，成為一個更專業、更有效的助人者。</p>
+                </div>
+            </section>
+
+            <!-- Section: 科學方法的特性 --><section id="science" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">🧪 科學方法的特性</h2>
+                <p class="mb-6">「科學」並不是指特定的學科（如物理或化學），而是指一種「追求知識的態度與程序」。它具備以下幾個重要特性：</p>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">1. 系統性 (Systematic)</h3>
+                        <p class="mb-4">科學探究是有計畫、有步驟、有邏輯的過程，而非隨意的猜測。研究者必須遵循嚴謹的研究設計，從提出問題、蒐集資料到分析解釋，每一步都有其依據。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">不能只憑「感覺」覺得方案有效，而是必須「系統性」地使用前測、後測問卷，並設立控制組來進行比較。</p>
+                    </div>
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">2. 經驗性 (Empirical)</h3>
+                        <p class="mb-4">科學的結論必須建立在「可被觀察」或「可被測量」的證據之上，也就是「經驗證據」，而非僅僅基於個人信念、傳統或權威。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">「我相信這個方案對案主有幫助」(信念) vs. 「數據顯示，參與方案的案主，其憂鬱量表分數平均下降了5分」(經驗證據)。</p>
+                    </div>
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">3. 可驗證性 / 可複製性 (Verifiable / Replicable)</h3>
+                        <p class="mb-4">研究者必須清楚說明其研究方法，讓其他研究者可以在相同條件下「複製」這份研究，並得到相似的結果。這能確保研究結果不是一次性的偶然。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">一份研究聲稱其「A療法」非常有效。其他機構的研究者應能依照其公布的「A療法操作手冊」與「測量工具」重複實驗，看看是否也能得到同樣的效果。</p>
+                    </div>
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">4. 暫定性 (Tentative)</h3>
+                        <p class="mb-4">科學知識是「暫時的」，而非「絕對的真理」。所有的研究發現都是在「目前最好的證據下」所做的最佳結論，並且永遠對新的、更強的證據保持開放態度。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">過去（例如1950年代）可能認為「機構化」是對待失依兒少的最佳方式。但隨著新的「依附理論」研究證據出現，我們現在知道「家庭式」的安置（如寄養家庭）是更佳的選擇。</p>
+                    </div>
+                </div>
+
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：科學方法的特性</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一位社工在期刊上讀到一篇研究，聲稱某個新療法對焦慮症非常有效。他依照該研究的步驟與手冊，在自己的機構中執行了完全相同的研究，也得到了相似的結果。</p>
+                        <p class="mb-4">這個過程展現了科學方法的哪一項特性？</p>
+                        
+                        <div id="quiz-science" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-science', 0, 1)">A. 經驗性 (Empirical)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-science', 1, 1)">B. 可驗證性 / 可複製性 (Verifiable)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-science', 2, 1)">C. 暫定性 (Tentative)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-science', 3, 1)">D. 系統性 (Systematic)</button>
+                        </div>
+                        <div id="quiz-science-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section: 觀察謬誤 --><section id="errors" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">🧐 常見的觀察謬誤</h2>
+                <p class="mb-6">人類的日常觀察充滿了偏誤。學習研究方法的重要目的之一，就是幫助我們辨識並克服這些根深蒂固的思考陷阱：</p>
+
+                <div class="space-y-6">
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">1. 過度概化 (Overgeneralization)</h3>
+                        <p class="mb-4">我們傾向於僅根據少數幾個「特例」，就草率地對「全體」下結論。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <ul class="list-disc list-inside ml-4 space-y-2">
+                            <li><strong>錯誤範例</strong>：「我上週輔導的2個中輟生都來自單親家庭，可見『所有』中輟問題都是單親造成的。」</li>
+                            <li><strong>正確觀念</strong>：這2個個案不具代表性。我需要查看「大樣本」的統計資料，才能了解單親與中輟的「相關性」，並了解還有其他更多元的成因。</li>
+                        </ul>
+                    </div>
+
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">2. 選擇性觀察 (Selective Observation)</h3>
+                        <p class="mb-4">當我們心中已經有了一個「預設的信念」時，我們會不自覺地「只看見」支持我們信念的證據，並「自動忽略」所有反駁的證據。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <ul class="list-disc list-inside ml-4 space-y-2">
+                            <li><strong>錯誤範例</strong>：一位社工堅信「A療法」有效。當他看團體紀錄時，他只注意到那些表達「有收穫」的成員，卻忽略了那些表示「沒幫助」或「中途退出」的成員。</li>
+                            <li><strong>正確觀念</strong>：必須「同時」且「平等」地蒐集正面與負面回饋。使用標準化問卷是避免選擇性觀察的好方法。</li>
+                        </ul>
+                    </div>
+
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">3. 月暈效應 (Halo Effect)</h3>
+                        <p class="mb-4">我們傾向於讓某個「單一的正面特質」（如：外表、口才、學歷）「暈開」來，錯誤地推論此人在其他不相關的方面也很優秀。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <ul class="list-disc list-inside ml-4 space-y-2">
+                            <li><strong>錯誤範例</strong>：「這位家長每次來機構都穿著整潔、談吐得體（月暈），他一定也是個有耐心、充滿關愛的父親。」</li>
+                            <li><strong>正確觀念</strong>：穿著談吐與教養能力是兩回事。我必須「分開」評估，並蒐集關於「親職互動」的具體證據（如：家庭訪視、學校訪談）。</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">4. 非邏輯的推論 (Illogical Reasoning)</h3>
+                        <p class="mb-4">使用錯誤的邏輯或迷信來解釋事件。例如「賭徒的謬誤」。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <ul class="list-disc list-inside ml-4 space-y-2">
+                            <li><strong>錯誤範例</strong>：「我的戒酒方案已經連續失敗了五期，運氣有夠差。第六期『一定』會轉運，會大成功！」</li>
+                            <li><strong>正確觀念</strong>：前五期的失敗是「獨立事件」，並不會影響第六期的成功機率。理性的做法是去「檢討」前五期失敗的原因，而不是期待轉運。</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：常見的觀察謬誤</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一位資深社工非常相信自己推動的「A方案」。在期末報告中，他只呈現了那些「進步顯著」的個案故事，對於那些「中途退出」或「沒有改變」的數據則輕描淡寫。</p>
+                        <p class="mb-4">這最符合哪一種觀察謬誤？</p>
+                        
+                        <div id="quiz-errors" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-errors', 0, 1)">A. 過度概化 (Overgeneralization)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-errors', 1, 1)">B. 選擇性觀察 (Selective Observation)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-errors', 2, 1)">C. 月暈效應 (Halo Effect)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-errors', 3, 1)">D. 非邏輯的推論 (Illogical Reasoning)</button>
+                        </div>
+                        <div id="quiz-errors-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section: EBP --><section id="ebp" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">💡 以證據本位的社會工作實務(EBP)</h2>
+                <p class="mb-4">EBP (Evidence-Based Practice) 是一個整合性的決策過程，它回答了「社工如何在實務中運用研究」這個關鍵問題。</p>
+                <p class="mb-6">EBP 強調，一位專業社工的「最佳決策」，應該是「三種知識」的交集：</p>
+                
+                <!-- Re-designed EBP Intersection Visualization (Triangular Layout) --><div class="ebp-triangle-layout-container">
+                    <!-- Connectors (behind elements) --><div class="ebp-connector ebp-connector-1"></div>
+                    <div class="ebp-connector ebp-connector-2"></div>
+                    <div class="ebp-connector ebp-connector-3"></div>
+
+                    <!-- Elements --><div class="ebp-triangle-element ebp-element-evidence">
+                        最佳研究證據<br>(Best Research Evidence)
+                    </div>
+                    <div class="ebp-triangle-element ebp-element-expertise">
+                        實務專業與經驗<br>(Practitioner Expertise)
+                    </div>
+                    <div class="ebp-triangle-element ebp-element-values">
+                        案主價值與偏好<br>(Client Values & Preferences)
+                    </div>
+
+                    <!-- Central Result --><div class="ebp-central-result">
+                        最佳的<br>實務決策
+                    </div>
+                </div>
+                
+                <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">EBP 的執行五步驟 (The 5 'A's)</h3>
+                <p class="mb-4">EBP 不只是「讀論文」，更是一個動態的實踐循環：</p>
+                
+                <!-- EBP Steps Flow (Keep previous good design) --><div class="ebp-steps-flow">
+                    <div class="ebp-step-card">
+                        <strong>1. <span class="step-verb">提問</span></strong> (Ask)
+                        <br><small>將實務問題轉化為可查證問題 (PICO)</small>
+                    </div>
+                    <div class="ebp-step-arrow">➔</div>
+                    <div class="ebp-step-card">
+                        <strong>2. <span class="step-verb">尋找</span></strong> (Acquire)
+                        <br><small>系統性搜尋最佳證據</small>
+                    </div>
+                    <div class="ebp-step-arrow">➔</div>
+                    <div class="ebp-step-card">
+                        <strong>3. <span class="step-verb">評估</span></strong> (Appraise)
+                        <br><small>嚴格評估證據的效度與可信度</small>
+                    </div>
+                    <div class="ebp-step-arrow">➔</div>
+                    <div class="ebp-step-card">
+                        <strong>4. <span class="step-verb">應用</span></strong> (Apply)
+                        <br><small>整合證據、專業與案主偏好，做出決策</small>
+                    </div>
+                    <div class="ebp-step-arrow">➔</div>
+                    <div class="ebp-step-card">
+                        <strong>5. <span class="step-verb">評鑑</span></strong> (Assess)
+                        <br><small>評估執行後的成效，並反思</small>
+                    </div>
+                </div>
+
+                <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">社工範例</h3>
+                <p class="bg-gray-50 p-3 rounded border">
+                    一位社工面對一名有「創傷後壓力症候群」(PTSD) 的青少年案主。<br>
+                    <strong>(Ask) 提問</strong>：對於有PTSD的青少年，是「認知行為治療(CBT)」還是「眼動減敏療法(EMDR)」更有效？<br>
+                    <strong>(Acquire) 尋找</strong>：上資料庫（如 Cochrane Library）搜尋相關的系統性回顧(SR)或隨機對照試驗(RCT)。<br>
+                    <strong>(Appraise) 評估</strong>：發現證據顯示 CBT 有最強、最穩定的支持。<br>
+                    <strong>(Apply) 應用</strong>：社工與案主討論，案主也「偏好」CBT 的做法。於是社工決定採用 CBT，並運用自己的「實務專業」來調整CBT手冊，使其更符合案主的文化背景。<br>
+                    <strong>(Assess) 評鑑</strong>：在介入後，定期使用PTSD量表評估案主的症狀是否有改善。
+                </p>
+
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：EBP</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一位社工找到了許多高品質的研究證據，顯示「A療法」是處理某問題最有效的方法。但在與案主討論後，案主表示他過去有不好的經驗，強烈「不偏好」A療法，而是希望能嘗試B療法。</p>
+                        <p class="mb-4">根據 EBP 的三角模型，這位社工「不應該」怎麼做？</p>
+                        
+                        <div id="quiz-ebp" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-ebp', 0, 0)">A. 強迫案主接受 A 療法，因為「證據說」它是最好的。</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-ebp', 1, 0)">B. 尊重案主價值，與他討論 B 療法的證據強度與風險。</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-ebp', 2, 0)">C. 運用實務專業，評估是否能修改 A 療法，使其更能被案主接受。</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-ebp', 3, 0)">D. 重新尋找證據，看看 B 療法是否也是一個合理的選項。</button>
+                        </div>
+                        <div id="quiz-ebp-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Overlay for mobile menu --><div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden" onclick="toggleMenu(false)"></div>
+
+
+    <script>
+        const sections = document.querySelectorAll('.content-section');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const closeMenuButton = document.getElementById('close-menu-button');
+
+        function showSection(sectionId) {
+            sections.forEach(section => {
+                if (section.id === sectionId) {
+                    section.classList.add('active');
+                } else {
+                    section.classList.remove('active');
+                }
+            });
+
+            navLinks.forEach(link => {
+                if (link.dataset.section === sectionId) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+
+            // Auto-scroll to top of content on section change
+            document.querySelector('.md\\:w-3\\/4')?.scrollTo(0, 0);
+            
+            // Close mobile menu on navigation
+            if (window.innerWidth < 768) {
+                toggleMenu(false);
+            }
+        }
+
+        function toggleMenu(show) {
+            if (show) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const sectionId = e.target.closest('a').dataset.section;
+                showSection(sectionId);
+                // Update URL hash for better history (optional)
+                window.location.hash = e.target.closest('a').getAttribute('href');
+            });
+        });
+
+        mobileMenuButton.addEventListener('click', () => toggleMenu(true));
+        closeMenuButton.addEventListener('click', () => toggleMenu(false));
+        overlay.addEventListener('click', () => toggleMenu(false));
+
+        // Handle page load with hash
+        document.addEventListener('DOMContentLoaded', () => {
+            const hash = window.location.hash;
+            if (hash) {
+                const sectionId = hash.substring(1);
+                const sectionElement = document.getElementById(sectionId);
+                if (sectionElement) {
+                    showSection(sectionId);
+                } else {
+                    showSection('intro');
+                }
+            } else {
+                showSection('intro');
+            }
+        });
+
+        // --- Quiz Logic ---
+        const quizAnswers = {
+            'quiz-science': {
+                correctIndex: 1,
+                responses: [
+                    "不正確。經驗性是指研究是基於「可測量」的證據。",
+                    "答對了！可複製性（或可驗證性）是指其他研究者能重複該研究，以驗證其結果。",
+                    "不正確。暫定性是指科學知識是「可被推翻的」。",
+                    "不正確。系統性是指研究是「有步驟、有計畫的」。"
+                ]
+            },
+            'quiz-errors': {
+                correctIndex: 1,
+                responses: [
+                    "不正確。過度概化是從「少數特例」推論「全體」。",
+                    "答對了！選擇性觀察是指「只看見」自己想看的證據，來支持既有信念。",
+                    "不正確。月暈效應是從「單一優點」推論「全盤皆優」。",
+                    "不正確。非邏輯推論是使用錯誤的邏輯（如賭徒謬誤）。"
+                ]
+            },
+            'quiz-ebp': {
+                correctIndex: 0,
+                responses: [
+                    "答對了！這是不正確的做法。EBP 強調「案主價值與偏好」是決策的三大基石之一，強迫案主違背其意願，是違反 EBP 精神與社工倫理的。",
+                    "正確做法。這尊重了案主自決，並提供了專業資訊。",
+                    "正確做法。這展現了實務專業，試圖在證據與案主偏好中找到平衡。",
+                    "正確做法。EBP 是一個循環，回頭再尋找關於 B 療法的證據是合理的步驟。"
+                ]
+            }
+        };
+
+        function checkQuiz(quizId, selectedIndex, correctIndex) {
+            // If quizAnswers object is defined, use it.
+            if (quizAnswers[quizId]) {
+                correctIndex = quizAnswers[quizId].correctIndex;
+            }
+
+            const feedbackEl = document.getElementById(`${quizId}-feedback`);
+            const options = document.getElementById(quizId).getElementsByClassName('quiz-option');
+            
+            // Reset styles
+            for (let i = 0; i < options.length; i++) {
+                options[i].classList.remove('bg-green-200', 'border-green-400', 'bg-red-200', 'border-red-400');
+                options[i].disabled = true;
+            }
+
+            if (selectedIndex === correctIndex) {
+                feedbackEl.textContent = quizAnswers[quizId].responses[selectedIndex];
+                feedbackEl.className = 'quiz-feedback correct';
+                options[selectedIndex].classList.add('bg-green-200', 'border-green-400');
+            } else {
+                feedbackEl.textContent = quizAnswers[quizId].responses[selectedIndex];
+                feedbackEl.className = 'quiz-feedback incorrect';
+                options[selectedIndex].classList.add('bg-red-200', 'border-red-400');
+                // Highlight correct answer
+                options[correctIndex].classList.add('bg-green-200', 'border-green-400');
+            }
+        }
+
+    </script>
+</body>
+</html>
+
