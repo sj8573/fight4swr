@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>準實驗設計</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chosen Palette: Academic Blue and Warm Neutrals --><!-- Application Structure Plan: 本SPA採用固定側邊導覽列（行動裝置為漢堡選單）結構。使用者可點選任一主題（如準實驗設計類型、其它效度威脅），主內容區會動態顯示對應的<section>。此結構的優點是讓使用者能以非線性的方式自由探索、複習特定概念。 --><!-- Visualization & Content Choices: 1. 準實驗設計 (圖解): 原文為文字。 -> 目標: 視覺化不同準實驗設計的結構。 -> 視覺化: 使用HTML/Tailwind和符號（O=觀察, X=介入, N=非隨機分派）製作示意圖。 -> 互動: 靜態。 -> 理由: 這是學界標準表示法，最直觀易懂。 2. 效度威脅 (列表/卡片): 原文為文字。 -> 目標: 清晰列舉多種與「意識」相關的效度威脅。 -> 視覺化: 使用卡片式佈局，每種威脅一個卡片，包含定義與範例。 -> 互動: 靜態。 -> 理由: 結構清晰，易於查閱。 3. 實驗與準實驗比較 (表格): 原文為文字。 -> 目標: 視覺化比較兩種設計的關鍵差異。 -> 視覺化: 使用HTML/Tailwind製作比較表格，從「隨機分派」、「內在效度」、「實務可行性」等面向比較。 -> 互動: 靜態。 -> 理由: 表格是呈現多維度比較的最佳方式。 --><!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. --><link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .nav-link {
+            display: block;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .nav-link:hover {
+            background-color: #f0f4f8;
+            color: #007bff;
+        }
+        .nav-link.active {
+            background-color: #e6f2ff;
+            color: #0056b3;
+            font-weight: 700;
+        }
+        .nav-link.sub-link {
+            padding-left: 2rem;
+            font-size: 0.9rem;
+        }
+        .nav-link.sub-link.active {
+            background-color: #e0eafc;
+        }
+        
+        .quiz-option {
+            display: block;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            text-align: left;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        .quiz-option:hover {
+            background-color: #f9fafb;
+            border-color: #6b7280;
+        }
+        .quiz-feedback {
+            margin-top: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            display: none;
+        }
+        .quiz-feedback.correct {
+            background-color: #d1fae5;
+            color: #065f46;
+            display: block;
+        }
+        .quiz-feedback.incorrect {
+            background-color: #fee2e2;
+            color: #991b1b;
+            display: block;
+        }
+
+        /* Experimental Design Notation */
+        .design-notation {
+            font-family: monospace;
+            font-size: 1.1rem;
+            background-color: #f3f4f6;
+            padding: 0.75rem 1rem;
+            border-radius: 0.375rem;
+            border: 1px solid #d1d5db;
+            margin-top: 0.5rem;
+            margin-bottom: 1rem;
+            overflow-x: auto; /* Handle potential overflow on small screens */
+            white-space: pre; /* Preserve spacing */
+        }
+        .design-notation strong {
+            font-weight: bold;
+            color: #1d4ed8; /* Blue for key elements */
+        }
+        .design-notation .no-r {
+            font-weight: bold;
+            color: #b91c1c; /* Red for No Randomization */
+        }
+        .design-group {
+             margin-bottom: 0.5rem;
+        }
+        
+        /* Comparison Table */
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.5rem;
+        }
+        .comparison-table th, .comparison-table td {
+            border: 1px solid #d1d5db;
+            padding: 0.75rem 1rem;
+            text-align: left;
+        }
+        .comparison-table thead th {
+            background-color: #f3f4f6;
+            font-weight: 700;
+            color: #111827;
+        }
+        .comparison-table tbody tr:nth-child(odd) {
+            background-color: #ffffff;
+        }
+        .comparison-table tbody tr:nth-child(even) {
+            background-color: #f9fafb;
+        }
+        .comparison-table td:first-child {
+            font-weight: 600;
+            background-color: #f9fafb;
+        }
+
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- Header --><header class="bg-white shadow-md sticky top-0 z-40">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <h1 class="text-xl md:text-2xl font-bold text-blue-800">準實驗設計</h1>
+            <button id="mobile-menu-button" class="md:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content --><div class="container mx-auto px-4 py-6 flex flex-col md:flex-row">
+
+        <!-- Navigation Sidebar --><nav id="sidebar" class="w-full md:w-1/4 lg:w-1/5 bg-white p-4 rounded-lg shadow-sm md:sticky md:top-24 md:self-start transition-transform duration-300 ease-in-out -translate-x-full md:translate-x-0 fixed md:relative h-full md:h-auto z-30 overflow-y-auto">
+            <button id="close-menu-button" class="md:hidden p-2 absolute top-2 right-2 text-gray-600 hover:text-gray-900">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            <h2 class="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">章節導覽</h2>
+            <ul>
+                <li><a href="#intro" class="nav-link active" data-section="intro">🏠 導論：準實驗設計</a></li>
+                <li><a href="#quasi-designs" class="nav-link" data-section="quasi-designs">⚖️ 準實驗設計類型</a></li>
+                <li><a href="#other-threats" class="nav-link" data-section="other-threats">🔬 其它對效度的威脅</a></li>
+                <li><a href="#comparison" class="nav-link" data-section="comparison">📊 實驗與準實驗的比較</a></li>
+            </ul>
+        </nav>
+
+        <!-- Content Area --><main class="w-full md:w-3/4 lg:w-4/5 md:pl-8 mt-6 md:mt-0">
+
+            <!-- Section: 導論 --><section id="intro" class="content-section active bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-4">🏠 導論：準實驗設計 (Quasi-Experimental Design)</h2>
+                <p class="mb-4 text-lg">在真實的社會工作實務現場，我們很難做到像實驗室一樣的「隨機分派」(Random Assignment)。</p>
+                <p class="mb-4">例如：</p>
+                <ul class="list-disc list-inside ml-4 space-y-1 mb-4">
+                    <li><strong>倫理問題</strong>：你不能「隨機」指派一半的家暴受害者「不准」接受服務（作為控制組）。</li>
+                    <li><strong>實務問題</strong>：你不能「隨機」告訴一半的案主「你不能」參加這個方案，因為他們是控制組。</li>
+                    <li><strong>行政問題</strong>：機構的服務對象通常是「自行上門」或「轉介而來」，而不是隨機分派的。</li>
+                </ul>
+                <p class="mb-4">當「隨機分派」不可行時，「真實驗設計」就無法使用。這時，「準實驗設計」就成了我們在實務現場評估方案成效、建立「近似」因果關係的最佳選擇。</p>
+                <p class="mb-4">「準」(Quasi) 的意思就是「近似」、「好像」。準實驗設計就是「近似」真實驗的設計，它通常具備「介入 (X)」和「控制組」，但最大的特徵就是**缺乏「隨機分派 (R)」**。</p>
+                
+                <div class="mt-6 bg-blue-50 border-l-4 border-blue-500 p-4 rounded-md">
+                    <h4 class="font-semibold text-blue-800">本章節學習重點：</h4>
+                    <p class="mt-2">本章節將介紹幾種最強大、最常見的準實驗設計，並探討當我們「無法」隨機分派時，會面臨哪些「額外」的效度威脅，以及我們該如何補強我們的因果推論。
+                    </p>
+                </div>
+            </section>
+
+            <!-- Section: 準實驗設計類型 --><section id="quasi-designs" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">⚖️ 準實驗設計類型</h2>
+                <p class="mb-6">準實驗設計的目標，就是試圖在「不能隨機分派」的限制下，盡可能地「模擬」出一個嚴謹的比較基礎，以排除「選擇偏誤」等威脅。</p>
+                <p class="mb-4"><strong>符號說明</strong>：</p>
+                <ul class="list-disc list-inside ml-4 space-y-1 mb-6">
+                    <li><strong>O</strong>: 觀察 / 測量 (Observation)</li>
+                    <li><strong>X</strong>: 介入 / 實驗處理 (Treatment)</li>
+                    <li><strong class="text-red-600">N</strong>: 非隨機分派的組別 (Nonequivalent Groups)</li>
+                    <li><i>(時間由左至右)</i></li>
+                </ul>
+
+                <div class="space-y-8">
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">1. 不等控制組前後測設計 (Nonequivalent Control Group Design)</h3>
+                        <div class="design-notation">
+<div class="design-group"><strong class="no-r">N</strong>   <strong>O₁</strong>  <strong>X</strong>   <strong>O₂</strong></div>
+                            <div class="design-group"><strong class="no-r">N</strong>   <strong>O₁</strong>      <strong>O₂</strong></div>
+                        </div>
+                        <p class="mb-4">這是「最常見」也「最強大」的準實驗設計。它看起來和「真實驗」的前後測控制組設計一模一樣，唯一的差別就是「沒有 R」（隨機分派）。</p>
+                        <p class="mb-4">研究者使用「既有的」兩組人（如：A 學校的學生、B 學校的學生），一組當實驗組，一組當控制組。兩組都做前測 (O₁) 和後測 (O₂)。</p>
+                        <p class="mb-4"><strong>關鍵</strong>：雖然沒有隨機分派，但「前測 (O₁)」非常重要。我們可以比較兩組的「前測分數」，如果 O₁ 分數「相近」，我們就能「更有信心」地說兩組在後測 (O₂) 的差異是「介入 (X)」造成的。如果 O₁ 分數「差異很大」，則因果推論就非常薄弱。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">
+                            <strong>研究問題</strong>：評估「方案 A」對提升 A 學校學生的「情緒控管能力」是否有效。<br>
+                            <strong>設計</strong>：A 學校（實驗組）接受方案 A (X)，B 學校（控制組）沒有。在方案開始前 (O₁)，先測量「兩間學校」學生的情緒控管能力；結束後 (O₂)，再測一次。<br>
+                            <strong>分析</strong>：比較兩校的「進步幅度」(O₂ - O₁)。
+                        </p>
+                    </div>
+
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">2. 時間序列設計 (Time-Series Design)</h3>
+                        <div class="design-notation">
+<div class="design-group"><strong>O₁</strong>  <strong>O₂</strong>  <strong>O₃</strong>  <strong>X</strong>   <strong>O₄</strong>  <strong>O₅</strong>  <strong>O₆</strong></div>
+                        </div>
+                        <p class="mb-4">當「找不到」控制組時，可以使用這種設計。研究者對「同一組」對象，在「介入 (X) 之前」進行「多次」的觀察（O₁, O₂, O₃），在「介入 (X) 之後」也進行「多次」的觀察（O₄, O₅, O₆）。</p>
+                        <p class="mb-4"><strong>關鍵</strong>：多次的前測可以建立一個「基準線」(Baseline)。如果介入「真的有效」，我們應該會看到在 X 發生之後，趨勢線發生了「明顯的轉折」。</button>
+                        <p class="mb-4"><strong>優點</strong>：能有效排除「成熟」或「統計迴歸」（因為基準線會顯示出原本的趨勢）。 <strong>缺點</strong>：無法排除「歷史事件」（如果剛好在 X 和 O₄ 之間發生了某個大事）。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">
+                            <strong>研究問題</strong>：評估一個「新的社區警示系統 (X)」是否能「降低」社區的「犯罪率」。<br>
+                            <strong>設計</strong>：不找控制組。而是去調閱該社區「過去三年」每個月的犯罪率 (O₁, O₂...O₃₆)。在「裝設系統 (X)」之後，繼續追蹤「未來三年」每個月的犯罪率 (O₃₇...O₇₂)。<br>
+                            <strong>分析</strong>：觀察裝設 (X) 之後的犯罪率，是否「顯著低於」原本的趨勢線。
+                        </g>
+                    </div>
+                </div>
+
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：準實驗設計類型</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一位社工想評估「A 方案」對提升 A 班學童的「人際技巧」是否有效。他讓 A 班（實驗組）接受方案，B 班（控制組）照常上課。他只在學期末「同時」測量 A 班和 B 班的人際技巧分數。</p>
+                        <p class="mb-4">這個設計 (N X O / N O) 缺乏了什麼關鍵元素，導致其內在效度比「不等控制組前後測設計」更低？</p>
+                        
+                        <div id="quiz-quasi-designs" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-quasi-designs', 0, 1)">A. 介入 (X)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-quasi-designs', 1, 1)">B. 前測 (O₁)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-quasi-designs', 2, 1)">C. 後測 (O₂)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-quasi-designs', 3, 1)">D. 隨機分派 (R)</button>
+                        </div>
+                        <div id="quiz-quasi-designs-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Section: 其它對效度的威脅 --><section id="other-threats" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-red-700 mb-6">🔬 其它對效度的威脅</h2>
+                <p class="mb-6">當研究「缺乏隨機分派」（如準實驗設計）或參與者「知道自己正在被研究」時，會產生一些額外的內在效度威脅，這些威脅大多與「人的心理」有關：</p>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">1. 霍桑效應 (Hawthorne Effect)</h3>
+                        <p class="mb-4"><strong>定義</strong>：當參與者「知道」自己正在「被觀察」或「被研究」時，他們的行為會「自動」變得更積極、更正向，無論介入 (X) 本身是否有效。</p>
+                        <p class="mb-4"><strong>威脅</strong>：你會誤以為是「介入 (X)」有效，但實際上只是「被關注」的效果。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">社工想測試一個「新督導方法 (X)」。實驗組的社工「知道」自己正在參與研究，因此「特別努力」工作，導致績效提升。但這可能不是新方法有效，而是「霍桑效應」造成的。</p>
+                    </div>
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">2. 安慰劑效應 (Placebo Effect)</h3>
+                        <p class="mb-4"><strong>定義</strong>：參與者因為「相信」自己正在接受一個「有效」的治療，僅憑此「信念」就導致了症狀的改善，即使他們拿到的只是「無效」的安慰劑（如糖果）。</p>
+                        <p class="mb-4"><strong>威脅</strong>：你會誤以為是「介入 (X)」有效，但實際上只是「心理預期」的效果。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">在評估一個「減壓團體」時，實驗組的成員因為「相信」這個團體很有名、很有效，光是「參加」這件事就讓他們覺得壓力減輕了。</p>
+                    </div>
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">3. 約翰亨利效應 (John Henry Effect)</h3>
+                        <p class="mb-4"><strong>定義</strong>：「控制組」的成員「知道」自己正在和「實驗組」比較，為了「不認輸」或「證明自己不差」，他們反而「異常努力」表現，導致其表現高於平常水準。</p>
+                        <p class="mb-4"><strong>威脅</strong>：控制組的表現「異常地好」，會導致你「低估」介入 (X) 的真實效果（因為兩組差距變小了）。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">A 班（實驗組）接受新教學法，B 班（控制組）沒有。B 班學生「得知」此事後，為了「證明」自己不比 A 班差，反而「更拚命」讀書，導致期末兩班成績「沒有顯著差異」。</g>
+                    </div>
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">4. 研究對象士氣低落 (Demoralization)</h3>
+                        <p class="mb-4"><strong>定義</strong>：「控制組」的成員「知道」自己「沒有」被分到「比較好」的實驗組，感到「失望」、「被剝奪」或「放棄」，因此表現得「比平常更差」。</p>
+                        <p class="mb-4"><strong>威脅</strong>：控制組的表現「異常地差」，會導致你「高估」介入 (X) 的真實效果（因為兩組差距變大了）。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">研究一個「新的」戒癮藥物。控制組的成員得知自己拿到的是「安慰劑」後，感到「絕望」，於是「放棄」戒癮，導致其復發率「異常地高」。</p>
+                    </div>
+                </div>
+
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-red-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：其它對效度的威脅</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：在一個方案評估中，控制組的成員發現實驗組「每週」都可以拿到「很棒的」新資源，而自己什麼都沒有，因此感到非常「失望」，並放棄了原本的努力。</p>
+                        <p class="mb-4">這會導致研究者「高估」方案的效果。這種威脅稱為什麼？</p>
+                        
+                        <div id="quiz-other-threats" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-other-threats', 0, 3)">A. 霍桑效應 (Hawthorne Effect)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-other-threats', 1, 3)">B. 安慰劑效應 (Placebo Effect)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-other-threats', 2, 3)">C. 約翰亨利效應 (John Henry Effect)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-other-threats', 3, 3)">D. 研究對象士氣低落 (Demoralization)</button>
+                        </div>
+                        <div id="quiz-other-threats-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Section: 比較 --><section id="comparison" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">📊 實驗與準實驗的比較</h2>
+                <p class="mb-6">真實驗設計與準實驗設計是社工研究中，最常用於「評估方案成效」的兩種「量化」途徑。它們的核心差異在於「隨機分派」：</p>
+                
+                <div class="overflow-x-auto">
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>比較面向</th>
+                                <th>🔬 (真)實驗設計</th>
+                                <th>⚖️ 準實驗設計</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>關鍵特徵</td>
+                                <td class="text-green-700 font-bold">✅ 必須有「隨機分派」(R)</td>
+                                <td class="text-red-700 font-bold">❌ 缺乏「隨機分派」(R)</td>
+                            </tr>
+                            <tr>
+                                <td>控制組</td>
+                                <td>必須有（或多個）控制組</td>
+                                <td>「通常」有控制組（或使用基準線）</td>
+                            </tr>
+                            <tr>
+                                <td>內在效度</td>
+                                <td><strong class="text-green-700">高</strong><br>（能有效排除「選擇偏誤」等威脅）</td>
+                                <td><strong class="text-yellow-700">中等</strong><br>（「選擇偏誤」是最大的威脅）</td>
+                            </tr>
+                            <tr>
+                                <td>外在效度</td>
+                                <td><strong class="text-red-700">低</strong><br>（實驗室情境、嚴格控制，可能不貼近真實世界）</td>
+                                <td><strong class="text-green-700">較高</strong><br>（在「真實實務現場」進行，情境較自然）</td>
+                            </tr>
+                            <tr>
+                                <td>因果推論</td>
+                                <td><strong class="text-green-700">強</strong><br>（建立因果關係的黃金標準）</td>
+                                <td><strong class="text-yellow-700">中等</strong><br>（只能提供「近似」的因果證據）</td>
+                            </tr>
+                            <tr>
+                                <td>實務可行性</td>
+                                <td><strong class="text-red-700">低</strong><br>（倫理和實務上通常不可行）</td>
+                                <td><strong class="text-green-700">高</strong><br>（符合實務現場的限制，最常被使用）</td>
+                            </tr>
+                            <tr>
+                                <td>社工範例</td>
+                                <td>隨機指派案主接受 A 療法或 B 療法。</td>
+                                <td>比較 A 機構（有執行方案）與 B 機構（沒執行）的案主差異。</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：實驗與準實驗的比較</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：在真實世界的社工實務中，我們經常因為「倫理」或「行政」因素，而「無法」將案主隨機分派到實驗組或控制組。</p>
+                        <p class="mb-4">在這種情況下，研究者最常採用下列哪一種設計來評估方案成效？</p>
+                        
+                        <div id="quiz-comparison" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-comparison', 0, 1)">A. (真)實驗設計</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-comparison', 1, 1)">B. 準實驗設計</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-comparison', 2, 1)">C. 前實驗設計</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-comparison', 3, 1)">D. 質性個案研究</button>
+                        </div>
+                        <div id="quiz-comparison-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Overlay for mobile menu --><div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden" onclick="toggleMenu(false)"></div>
+
+
+    <script>
+        const sections = document.querySelectorAll('.content-section');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const closeMenuButton = document.getElementById('close-menu-button');
+
+        function showSection(sectionId) {
+            sections.forEach(section => {
+                if (section.id === sectionId) {
+                    section.classList.add('active');
+                } else {
+                    section.classList.remove('active');
+                }
+            });
+
+            navLinks.forEach(link => {
+                if (link.dataset.section === sectionId) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+
+            // Auto-scroll to top of content on section change
+            document.querySelector('.md\\:w-3\\/4')?.scrollTo(0, 0);
+            
+            // Close mobile menu on navigation
+            if (window.innerWidth < 768) {
+                toggleMenu(false);
+            }
+        }
+
+        function toggleMenu(show) {
+            if (show) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const sectionId = e.target.closest('a').dataset.section;
+                showSection(sectionId);
+                // Update URL hash for better history (optional)
+                window.location.hash = e.target.closest('a').getAttribute('href');
+            });
+        });
+
+        mobileMenuButton.addEventListener('click', () => toggleMenu(true));
+        closeMenuButton.addEventListener('click', () => toggleMenu(false));
+        overlay.addEventListener('click', () => toggleMenu(false));
+
+        // Handle page load with hash
+        document.addEventListener('DOMContentLoaded', () => {
+            const hash = window.location.hash;
+            if (hash) {
+                const sectionId = hash.substring(1);
+                const sectionElement = document.getElementById(sectionId);
+                if (sectionElement) {
+                    showSection(sectionId);
+                } else {
+                    showSection('intro');
+                }
+            } else {
+                showSection('intro');
+            }
+        });
+
+        // --- Quiz Logic ---
+        const quizAnswers = {
+            'quiz-quasi-designs': {
+                correctIndex: 1,
+                responses: [
+                    "不正確。它有介入 (X)，A 班接受了方案。",
+                    "答對了！它缺乏「前測 (O₁)」。如果 A 班和 B 班在「期初」的人際技巧分數就「已經」不同（選擇偏誤），那麼期末的比較就沒有意義。這其實是「靜態組比較設計」。",
+                    "不正確。它有後測 (O)，在期末測量了分數。",
+                    "不正確。「隨機分派」是「真」實驗設計才有的，準實驗設計本來就沒有。"
+                ]
+            },
+            'quiz-other-threats': {
+                correctIndex: 3,
+                responses: [
+                    "不正確。霍桑效應是實驗組因為「被關注」而表現更好。",
+                    "不正確。安慰劑效應是實驗組因為「預期」而改善。",
+                    "不正確。約翰亨利效應是控制組為了「不認輸」而表現更好。",
+                    "答對了！研究對象士氣低落 (Demoralization) 指的就是控制組因為感到「被剝奪」或失望，而表現得「比平常更差」。"
+                ]
+            },
+            'quiz-comparison': {
+                correctIndex: 1,
+                responses: [
+                    "不正確。真實驗設計需要「隨機分派」，這在實務現場通常不可行。",
+                    "答對了！準實驗設計（如：不等控制組前後測）是專門用在「無法」隨機分派的「真實實務現場」，因此是社工方案評估最常使用的方法。",
+                    "不正確。前實驗設計（如：單組後測）內在效度太低，通常不被接受為嚴謹的評估。",
+                    "不正確。質性研究是用於「探索」而非「驗證」因果關係。"
+                ]
+            }
+        };
+
+        function checkQuiz(quizId, selectedIndex, correctIndex) {
+            // If quizAnswers object is defined, use it.
+            if (quizAnswers[quizId]) {
+                correctIndex = quizAnswers[quizId].correctIndex;
+            }
+
+            const feedbackEl = document.getElementById(`${quizId}-feedback`);
+            const options = document.getElementById(quizId).getElementsByClassName('quiz-option');
+            
+            // Reset styles
+            for (let i = 0; i < options.length; i++) {
+                options[i].classList.remove('bg-green-200', 'border-green-400', 'bg-red-200', 'border-red-400');
+                options[i].disabled = true;
+            }
+
+            if (selectedIndex === correctIndex) {
+                feedbackEl.textContent = quizAnswers[quizId].responses[selectedIndex];
+                feedbackEl.className = 'quiz-feedback correct';
+                options[selectedIndex].classList.add('bg-green-200', 'border-green-400');
+            } else {
+                feedbackEl.textContent = quizAnswers[quizId].responses[selectedIndex];
+                feedbackEl.className = 'quiz-feedback incorrect';
+                options[selectedIndex].classList.add('bg-red-200', 'border-red-400');
+                // Highlight correct answer
+                options[correctIndex].classList.add('bg-green-200', 'border-green-400');
+            }
+        }
+
+    </script>
+</body>
+</html>
