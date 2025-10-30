@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>單案評估設計</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chosen Palette: Academic Blue and Warm Neutrals --><!-- Application Structure Plan: 本SPA採用固定側邊導覽列（行動裝置為漢堡選單）結構。使用者可點選任一主題（如設計原理、設計類型），主內容區會動態顯示對應的<section>。此結構的優點是讓使用者能以非線性的方式自由探索、複習特定概念。 --><!-- Visualization & Content Choices: 1. 設計原理 (圖解): 原文為文字。 -> 目標: 視覺化基準線與介入期的比較。 -> 視覺化: 使用HTML/Tailwind製作一個簡易的A-B圖表，顯示「水平」與「趨勢」的改變。 -> 互動: 靜態。 -> 理由: 將視覺分析的核心概念具象化。 2. 設計類型 (圖解): 原文為文字。 -> 目標: 視覺化不同設計的結構（AB, ABAB, 多重基準線）。 -> 視覺化: 使用HTML/Tailwind和符號（A=基準線, B=介入期）製作不同設計的示意圖。 -> 互動: 靜態。 -> 理由: 這是學界標準表示法，最直觀易懂。 3. 多重基準線 (圖解): 原文為文字。 -> 目標: 視覺化「交錯」介入的邏輯。 -> 視覺化: 使用HTML/Tailwind製作三條平行的A-B圖，顯示B階段在不同時間點開始。 -> 互動: 靜態。 -> 理由: 這是理解多重基準線設計的最關鍵圖示。 --><!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. --><link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .nav-link {
+            display: block;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .nav-link:hover {
+            background-color: #f0f4f8;
+            color: #007bff;
+        }
+        .nav-link.active {
+            background-color: #e6f2ff;
+            color: #0056b3;
+            font-weight: 700;
+        }
+        .nav-link.sub-link {
+            padding-left: 2rem;
+            font-size: 0.9rem;
+        }
+        .nav-link.sub-link.active {
+            background-color: #e0eafc;
+        }
+        
+        .quiz-option {
+            display: block;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            text-align: left;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        .quiz-option:hover {
+            background-color: #f9fafb;
+            border-color: #6b7280;
+        }
+        .quiz-feedback {
+            margin-top: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            display: none;
+        }
+        .quiz-feedback.correct {
+            background-color: #d1fae5;
+            color: #065f46;
+            display: block;
+        }
+        .quiz-feedback.incorrect {
+            background-color: #fee2e2;
+            color: #991b1b;
+            display: block;
+        }
+
+        /* SCD Design Notation */
+        .design-notation {
+            font-family: monospace;
+            font-size: 1.5rem; /* Larger font for A-B */
+            font-weight: bold;
+            text-align: center;
+            background-color: #f3f4f6;
+            padding: 1rem;
+            border-radius: 0.375rem;
+            border: 1px solid #d1d5db;
+            margin-top: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .design-notation-a {
+            color: #b91c1c; /* Red for Baseline */
+        }
+        .design-notation-b {
+            color: #1d4ed8; /* Blue for Intervention */
+        }
+        
+        /* Visual Analysis Chart */
+        .scd-chart-container {
+            width: 100%;
+            max-width: 500px;
+            height: 200px;
+            background-color: #f9fafb;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            position: relative;
+            margin-top: 1rem;
+            overflow: hidden;
+        }
+        .scd-phase-line {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background-color: #1f2937;
+            left: 50%;
+        }
+        .scd-phase-label {
+            position: absolute;
+            top: 5px;
+            font-weight: bold;
+            font-size: 1.25rem;
+        }
+        .scd-label-a { left: 25%; transform: translateX(-50%); color: #b91c1c; }
+        .scd-label-b { right: 25%; transform: translateX(50%); color: #1d4ed8; }
+        .scd-data-line {
+            position: absolute;
+            border-top: 3px solid #6b7280;
+        }
+        /* Example line for Level change */
+        .scd-line-level-a {
+            width: 50%;
+            top: 70%;
+            left: 0;
+            border-top-style: dashed;
+        }
+        .scd-line-level-b {
+            width: 50%;
+            top: 30%;
+            right: 0;
+        }
+         /* Example line for Trend change */
+        .scd-line-trend-a {
+            width: 50%;
+            top: 40%;
+            left: 0;
+            transform: rotate(-10deg);
+            transform-origin: left center;
+        }
+        .scd-line-trend-b {
+            width: 50%;
+            top: 80%;
+            right: 0;
+            transform: rotate(20deg);
+            transform-origin: right center;
+        }
+        
+        /* Multiple Baseline Notation */
+        .multiple-baseline-chart {
+            background-color: #f3f4f6;
+            padding: 1rem;
+            border-radius: 0.375rem;
+            border: 1px solid #d1d5db;
+            space-y-2;
+        }
+        .baseline-bar {
+            width: 100%;
+            height: 2rem;
+            border: 1px solid #9ca3af;
+            border-radius: 0.25rem;
+            display: flex;
+            font-weight: 500;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+        .bar-phase-a {
+            background-color: #fee2e2; /* Red-100 */
+            color: #991b1b; /* Red-800 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .bar-phase-b {
+            background-color: #dbeafe; /* Blue-100 */
+            color: #1e40af; /* Blue-800 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-grow: 1;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- Header --><header class="bg-white shadow-md sticky top-0 z-40">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <h1 class="text-xl md:text-2xl font-bold text-blue-800">單案評估設計 (Single-Case Design)</h1>
+            <button id="mobile-menu-button" class="md:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content --><div class="container mx-auto px-4 py-6 flex flex-col md:flex-row">
+
+        <!-- Navigation Sidebar --><nav id="sidebar" class="w-full md:w-1/4 lg:w-1/5 bg-white p-4 rounded-lg shadow-sm md:sticky md:top-24 md:self-start transition-transform duration-300 ease-in-out -translate-x-full md:translate-x-0 fixed md:relative h-full md:h-auto z-30 overflow-y-auto">
+            <button id="close-menu-button" class="md:hidden p-2 absolute top-2 right-2 text-gray-600 hover:text-gray-900">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            <h2 class="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">章節導覽</h2>
+            <ul>
+                <li><a href="#intro" class="nav-link active" data-section="intro">🏠 導論：單案評估設計</a></li>
+                <li><a href="#principles" class="nav-link" data-section="principles">🔬 單案設計原理</a></li>
+                <li><a href="#types" class="nav-link" data-section="types">📈 單案設計類型</a></li>
+            </ul>
+        </nav>
+
+        <!-- Content Area --><main class="w-full md:w-3/4 lg:w-4/5 md:pl-8 mt-6 md:mt-0">
+
+            <!-- Section: 導論 --><section id="intro" class="content-section active bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-4">🏠 導論：單案評估設計 (Single-Case Evaluation Design)</h2>
+                <p class="mb-4 text-lg">「單案設計」（或稱單一受試者設計, Single-Subject Design）是社會工作實務者最重要、最實用的研究工具之一。它完美地橋接了「研究」與「實務」的鴻溝。</p>
+                <p class="mb-4">
+                    <strong>關鍵區別</strong>：單案設計「不是」質性的「個案研究」(Case Study)。單案設計是**量化**的、**準實驗**的設計，其目的在於「評估」介入對「單一個案」是否「有效」。
+                </p>
+                <p class="mb-4">「個案」可以是一個：</p>
+                <ul class="list-disc list-inside ml-4 space-y-1 mb-4">
+                    <li><strong>個人</strong>（如：一位案主）</li>
+                    <li><strong>家庭</strong>（如：一個家庭）</li>
+                    <li><strong>團體</strong>（如：一個治療團體）</li>
+                    <li><strong>組織或社區</strong>（如：一個機構、一個社區）</li>
+                </ul>
+                <p class="mb-4">單案設計能幫助第一線的社工，用「科學」且「系統性」的方式回答這個最關鍵的實務問題：「我為『這位』案主所做的介入，『真的』有效嗎？」</p>
+                
+                <div class="mt-6 bg-blue-50 border-l-4 border-blue-500 p-4 rounded-md">
+                    <h4 class="font-semibold text-blue-800">本章節學習重點：</h4>
+                    <p class="mt-2">本章節將介紹單案設計的「核心邏輯」（基準線與介入期），以及幾種最常用來評估實務成效的設計類型（如 AB、ABAB、多重基準線）。
+                    </p>
+                </div>
+            </section>
+
+            <!-- Section: 單案設計原理 --><section id="principles" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">🔬 單案設計原理</h2>
+                <p class="mb-6">單案設計的邏輯基礎，是利用「重複測量」來讓「案主自己」作為「自己的控制組」。我們透過比較「介入前」與「介入後」的資料模式，來推論因果關係。</p>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">1. 基準線期 (Baseline Phase - A)</h3>
+                        <p class="mb-4"><strong>定義</strong>：在「介入 (X)」開始「之前」，對案主的「目標問題」（依變項）進行「重複」且「穩定」的測量。</p>
+                        <p class="mb-4"><strong>目的</strong>：建立一個「基準」。這能告訴我們，如果「沒有」介入，案主的狀況「原本」會是怎樣。這是單案設計中的「控制」階段。</p>
+                        <p class="mb-4"><strong>關鍵</strong>：測量次數通常至少 3-5 次，且資料點必須呈現「穩定」或「惡化」的趨勢。如果基準線的資料顯示案主「已經在進步」，那你就不能開始介入，因為你無法證明之後的進步是你的功勞。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">
+                            <strong>目標問題</strong>：案主的「憂鬱分數」。<br>
+                            <strong>基準線 (A)</strong>：在開始治療前，「連續五週」，「每週」都請案主填寫一次憂鬱量表 (O₁, O₂, O₃, O₄, O₅)。
+                        </g>
+                    </div>
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">2. 介入期 (Intervention Phase - B)</h3>
+                        <p class="mb-4"><strong>定義</strong>：在「介入 (X)」開始「之後」，「持續」使用「相同」的測量工具，對目標問題進行「重複」測量。</p>
+                        <p class="mb-4"><strong>目的</strong>：觀察「介入 (X)」是否「導致」了目標問題的「改變」。這是單案設計中的「實驗」階段。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">
+                            <strong>介入 (X)</strong>：開始進行「認知行為治療」。<br>
+                            <strong>介入期 (B)</strong>：在治療期間，「每週」都請案主填寫「同一份」憂鬱量表 (O₆, O₇, O₈, O₉, O₁₀)。
+                        </g>
+                    </div>
+                </div>
+
+                <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">3. 視覺化分析 (Visual Analysis)</h3>
+                <p class="mb-4">單案設計的結果「不」常用複雜統計，而是用「眼睛」來分析圖表。我們比較 A 期和 B 期的資料，看是否有「明顯」且「立即」的改變：</p>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <p class="font-medium">A. 水平的改變 (Change in Level)：</p>
+                        <div class="scd-chart-container">
+                            <div class="scd-phase-line"></div>
+                            <div class="scd-phase-label scd-label-a">A (基準線)</div>
+                            <div class="scd-phase-label scd-label-b">B (介入期)</div>
+                            <div class="scd-data-line scd-line-level-a"></div>
+                            <div class="scd-data-line scd-line-level-b"></div>
+                        </div>
+                        <p class="mt-2 text-sm">（例如：憂鬱分數從「高」水平，「立即跳」到「低」水平）</g>
+                    </div>
+                    <div>
+                        <p class="font-medium">B. 趨勢的改變 (Change in Trend)：</p>
+                        <div class="scd-chart-container">
+                            <div class="scd-phase-line"></div>
+                            <div class="scd-phase-label scd-label-a">A (基準線)</div>
+                            <div class="scd-phase-label scd-label-b">B (介入期)</div>
+                            <div class="scd-data-line scd-line-trend-a" style="top: 70%; transform: rotate(10deg);"></div>
+                            <div class="scd-data-line scd-line-trend-b" style="top: 60%; transform: rotate(-20deg);"></div>
+                        </div>
+                         <p class="mt-2 text-sm">（例如：攻擊行為的趨勢，從「持續上升」，轉變為「持續下降」）</g>
+                    </div>
+                </div>
+
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：單案設計原理</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一位社工在評估介入成效時，比較了案主在「介入前」的平均憂鬱分數（基準線 A）和「介入後」的平均憂鬱分數（介入期 B）。</p>
+                        <p class="mb-4">在單案設計中，「基準線期 (A)」最重要的功能是什麼？</p>
+                        
+                        <div id="quiz-principles" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-principles', 0, 1)">A. 立即開始治療，避免延誤。</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-principles', 1, 1)">B. 建立一個「比較」的基礎，作為「控制組」。</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-principles', 2, 1)">C. 測試案主是否願意配合填寫問卷。</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-principles', 3, 1)">D. 建立專業的治療關係。</button>
+                        </div>
+                        <div id="quiz-principles-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Section: 單案設計類型 --><section id="types" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">📈 單案設計類型</h2>
+                <p class="mb-6">根據「基準線 (A)」和「介入期 (B)」的組合方式，單案設計有多種類型，它們的「內在效度」（因果推論的強度）各不相同。</p>
+
+                <div class="space-y-8">
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">1. AB 設計 (The Basic Design)</h3>
+                        <div class="design-notation"><span class="design-notation-a">A</span> → <span class="design-notation-b">B</span></div>
+                        <p class="mb-4">最基本、最簡單，但也「最弱」的設計。就是「基準線期 (A)」接著「介入期 (B)」。</t>
+                        <p class="mb-4"><strong>優點</strong>：簡單、直觀、符合實務邏輯。</p>
+                        <p class="mb-4"><strong>缺點</strong>：內在效度「極低」。我們無法排除「歷史事件」的威脅。如果案主的進步剛好是由「介入 (B)」之外的「其他事件」（如：找到工作、交了朋友）造成的，AB 設計無法辨識出來。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">社工測量一位兒童的「暴力行為」4 週 (A)，然後開始「遊戲治療」 (B) 並持續測量 4 週。雖然行為改善了，但可能剛好在這時，他班上「轉來一位好友」（歷史事件），不一定是治療的效果。</p>
+                    </div>
+
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">2. 撤回/反轉設計 (Withdrawal / Reversal Design)</h3>
+                        <div class="design-notation"><span class="design-notation-a">A₁</span> → <span class="design-notation-b">B₁</span> → <span class="design-notation-a">A₂</span> (→ <span class="design-notation-b">B₂</span>)</div>
+                        <p class="mb-4">為了「強化」AB 設計的因果推論，研究者在「介入 (B₁)」並看到成效後，嘗試「暫時撤回」介入，回到「基準線狀態 (A₂)」。</p>
+                        <p class="mb-4"><strong>邏輯</strong>：如果介入「真的」有效，那麼在 B₁ 期的改善，應該會在 A₂ 期「反轉」惡化。如果之後再重新介入 (B₂)，應該會「再次」改善。如果資料模式如此吻合，我們就能「非常有信心」地說，是 B 造成了改變。</p>
+                        <p class="mb-4"><strong>優點</strong>：內在效度「高」。 <strong>缺點</strong>：(1) <strong>倫理問題</strong>：撤回一個「有效」的治療（如：戒斷藥物、停止輔導）可能是不道德的。(2) <strong>實務問題</strong>：很多介入是「不可逆」的（如：學會的「技巧」），就算撤回介入，案主也不會「忘記」技巧，因此行為不會反轉。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">在 A₁ 期，兒童很吵鬧。在 B₁ 期，老師使用「代幣制度」，兒童變安靜。在 A₂ 期，老師「停止」代幣制度，兒童「又」變吵鬧。（證實代幣有效）。此設計適用於「外在獎勵」，但不適用於「已內化的技巧」。</p>
+                    </div>
+
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">3. 多重基準線設計 (Multiple-Baseline Design)</h3>
+                        <p class="mb-4">這是「最常用」且「最實用」的強設計，它「不需要」撤回介入，因此「沒有」倫理問題。</p>
+                        <p class="mb-4"><strong>邏輯</strong>：在「不同」的基準線（跨個案、跨情境、或跨問題）上，「交錯」開始「同一個」介入。如果「每一個」基準線都是在「介入開始後」才「立即」改變，那我們就能排除「歷史事件」的威脅。</p>
+                        <p class="mb-4"><strong>(A) 跨個案 (Across Subjects)</strong>：最常見。對 3 位案主「同時」開始測量基準線 (A)，但在「不同時間點」開始介入 (B)。</p>
+                        
+                        <div class="multiple-baseline-chart">
+                            <div class="font-medium mb-2">個案 1：</div>
+                            <div class="baseline-bar">
+                                <div class="bar-phase-a" style="width: 25%;">A</div>
+                                <div class="bar-phase-b" style="width: 75%;">B (開始介入)</div>
+                            </div>
+                            <div class="font-medium mb-2">個案 2：</div>
+                            <div class="baseline-bar">
+                                <div class="bar-phase-a" style="width: 50%;">A</div>
+                                <div class="bar-phase-b" style="width: 50%;">B (開始介入)</div>
+                            </div>
+                            <div class="font-medium mb-2">個案 3：</div>
+                            <div class="baseline-bar">
+                                <div class="bar-phase-a" style="width: 75%;">A</div>
+                                <div class="bar-phase-b" style="width: 25%;">B (開始介入)</div>
+                            </div>
+                        </div>
+                        <p class="bg-gray-50 p-3 rounded border mt-4"><strong>範例</strong>：社工若觀察到 3 位案主的進步，都「剛好」發生在他們各自「開始介入」的那一週，就能強烈證明介入有效。</p>
+                        
+                        <p class="mb-4 mt-4"><strong>(B) 跨情境 (Across Settings)</strong>：對「同一個案」的「不同情境」（如：家中、學校、安親班）交錯開始介入。</p>
+                        <p class="mb-4"><strong>(C) 跨問題 (Across Behaviors)</strong>：對「同一個案」的「不同問題」（如：不做功課、不洗澡、說髒話）交錯開始介入。</p>
+                    </div>
+                </div>
+
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：單案設計類型</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一位社工想評估某個「溝通技巧」訓練是否有效，但他認為一旦案主「學會」了技巧，就算「停止」訓練（撤回），案主也「不會」退回原狀。同時，他基於「倫理」考量，也「不想」撤回治療。</p>
+                        <p class="mb-4">在這種情況下，下列哪一種設計最適合他？</p>
+                        
+                        <div id="quiz-types" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-types', 0, 1)">A. AB 設計</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-types', 1, 1)">B. 多重基準線設計 (Multiple-Baseline)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-types', 2, 1)">C. ABAB 撤回設計 (Withdrawal)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-types', 3, 1)">D. 質性個案研究 (Case Study)</button>
+                        </div>
+                        <div id="quiz-types-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Overlay for mobile menu --><div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden" onclick="toggleMenu(false)"></div>
+
+
+    <script>
+        const sections = document.querySelectorAll('.content-section');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const closeMenuButton = document.getElementById('close-menu-button');
+
+        function showSection(sectionId) {
+            sections.forEach(section => {
+                if (section.id === sectionId) {
+                    section.classList.add('active');
+                } else {
+                    section.classList.remove('active');
+                }
+            });
+
+            navLinks.forEach(link => {
+                if (link.dataset.section === sectionId) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+
+            // Auto-scroll to top of content on section change
+            document.querySelector('.md\\:w-3\\/4')?.scrollTo(0, 0);
+            
+            // Close mobile menu on navigation
+            if (window.innerWidth < 768) {
+                toggleMenu(false);
+            }
+        }
+
+        function toggleMenu(show) {
+            if (show) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const sectionId = e.target.closest('a').dataset.section;
+                showSection(sectionId);
+                // Update URL hash for better history (optional)
+                window.location.hash = e.target.closest('a').getAttribute('href');
+            });
+        });
+
+        mobileMenuButton.addEventListener('click', () => toggleMenu(true));
+        closeMenuButton.addEventListener('click', () => toggleMenu(false));
+        overlay.addEventListener('click', () => toggleMenu(false));
+
+        // Handle page load with hash
+        document.addEventListener('DOMContentLoaded', () => {
+            const hash = window.location.hash;
+            if (hash) {
+                const sectionId = hash.substring(1);
+                const sectionElement = document.getElementById(sectionId);
+                if (sectionElement) {
+                    showSection(sectionId);
+                } else {
+                    showSection('intro');
+                }
+            } else {
+                showSection('intro');
+            }
+        });
+
+        // --- Quiz Logic ---
+        const quizAnswers = {
+            'quiz-principles': {
+                correctIndex: 1,
+                responses: [
+                    "不正確。基準線期是在治療「開始前」的測量。",
+                    "答對了！基準線 (A) 的功能就是作為「對照組」，讓我們知道在「沒有」介入的情況下，案主的自然狀況是怎樣的。",
+                    "不正確。雖然可以順便測試，但這不是它的「主要」功能。",
+                    "不正確。治療關係通常是在「介入期 (B)」才開始建立的。"
+                ]
+            },
+            'quiz-types': {
+                correctIndex: 1,
+                responses: [
+                    "不正確。AB 設計的內在效度太低，無法排除歷史事件的威脅。",
+                    "答對了！多重基準線設計 (Multiple-Baseline) 是最強的單案設計之一，它「不需要」撤回治療，因此沒有倫理或實務上的困難。",
+                    "不正確。ABAB 撤回設計在此情境下「不適用」，因為案主的技巧「不可逆」（無法撤回），且社工也認為「不該」撤回（倫理考量）。",
+                    "不正確。質性個案研究是用於「探索」而非「量化評估」。"
+                ]
+            }
+        };
+
+        function checkQuiz(quizId, selectedIndex, correctIndex) {
+            // If quizAnswers object is defined, use it.
+            if (quizAnswers[quizId]) {
+                correctIndex = quizAnswers[quizId].correctIndex;
+            }
+
+            const feedbackEl = document.getElementById(`${quizId}-feedback`);
+            const options = document.getElementById(quizId).getElementsByClassName('quiz-option');
+            
+            // Reset styles
+            for (let i = 0; i < options.length; i++) {
+                options[i].classList.remove('bg-green-200', 'border-green-400', 'bg-red-200', 'border-red-400');
+                options[i].disabled = true;
+            }
+
+            if (selectedIndex === correctIndex) {
+                feedbackEl.textContent = quizAnswers[quizId].responses[selectedIndex];
+                feedbackEl.className = 'quiz-feedback correct';
+                options[selectedIndex].classList.add('bg-green-200', 'border-green-400');
+            } else {
+                feedbackEl.textContent = quizAnswers[quizId].responses[selectedIndex];
+                feedbackEl.className = 'quiz-feedback incorrect';
+                options[selectedIndex].classList.add('bg-red-200', 'border-red-400');
+                // Highlight correct answer
+                options[correctIndex].classList.add('bg-green-200', 'border-green-400');
+            }
+        }
+
+    </script>
+</body>
+</html>
