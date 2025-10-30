@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>因果推論與實驗設計</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chosen Palette: Academic Blue and Warm Neutrals --><!-- Application Structure Plan: 本SPA採用固定側邊導覽列（行動裝置為漢堡選單）結構。使用者可點選任一主題（如因果條件、效度威脅、實驗設計），主內容區會動態顯示對應的<section>。此結構的優點是讓使用者能以非線性的方式自由探索、複習特定概念。 --><!-- Visualization & Content Choices: 1. 因果條件 (圖解): 原文為文字。 -> 目標: 視覺化三條件的關係。 -> 視覺化: 使用HTML/Tailwind製作簡單的流程圖或並列卡片。 -> 互動: 靜態。 -> 理由: 強化記憶。 2. 效度威脅 (列表/卡片): 原文為文字。 -> 目標: 清晰列舉多種威脅。 -> 視覺化: 使用卡片式佈局，每種威脅一個卡片，包含定義與範例。 -> 互動: 靜態。 -> 理由: 結構清晰，易於查閱。 3. 實驗設計 (圖解): 原文為文字。 -> 目標: 視覺化不同設計的結構（觀察、介入、分組、隨機化）。 -> 視覺化: 使用HTML/Tailwind和符號（O=觀察, X=介入, R=隨機分派）製作不同實驗設計的示意圖。 -> 互動: 靜態。 -> 理由: 這是學界標準表示法，最直觀易懂。 --><!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. --><link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .nav-link {
+            display: block;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .nav-link:hover {
+            background-color: #f0f4f8;
+            color: #007bff;
+        }
+        .nav-link.active {
+            background-color: #e6f2ff;
+            color: #0056b3;
+            font-weight: 700;
+        }
+        .nav-link.sub-link {
+            padding-left: 2rem;
+            font-size: 0.9rem;
+        }
+        .nav-link.sub-link.active {
+            background-color: #e0eafc;
+        }
+        
+        .quiz-option {
+            display: block;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            text-align: left;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        .quiz-option:hover {
+            background-color: #f9fafb;
+            border-color: #6b7280;
+        }
+        .quiz-feedback {
+            margin-top: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            display: none;
+        }
+        .quiz-feedback.correct {
+            background-color: #d1fae5;
+            color: #065f46;
+            display: block;
+        }
+        .quiz-feedback.incorrect {
+            background-color: #fee2e2;
+            color: #991b1b;
+            display: block;
+        }
+
+        /* Experimental Design Notation */
+        .design-notation {
+            font-family: monospace;
+            font-size: 1.1rem;
+            background-color: #f3f4f6;
+            padding: 0.75rem 1rem;
+            border-radius: 0.375rem;
+            border: 1px solid #d1d5db;
+            margin-top: 0.5rem;
+            margin-bottom: 1rem;
+            overflow-x: auto; /* Handle potential overflow on small screens */
+            white-space: pre; /* Preserve spacing */
+        }
+        .design-notation strong {
+            font-weight: bold;
+            color: #1d4ed8; /* Blue for key elements */
+        }
+        .design-group {
+             margin-bottom: 0.5rem;
+        }
+
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- Header --><header class="bg-white shadow-md sticky top-0 z-40">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <h1 class="text-xl md:text-2xl font-bold text-blue-800">因果推論與實驗設計</h1>
+            <button id="mobile-menu-button" class="md:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content --><div class="container mx-auto px-4 py-6 flex flex-col md:flex-row">
+
+        <!-- Navigation Sidebar --><nav id="sidebar" class="w-full md:w-1/4 lg:w-1/5 bg-white p-4 rounded-lg shadow-sm md:sticky md:top-24 md:self-start transition-transform duration-300 ease-in-out -translate-x-full md:translate-x-0 fixed md:relative h-full md:h-auto z-30 overflow-y-auto">
+            <button id="close-menu-button" class="md:hidden p-2 absolute top-2 right-2 text-gray-600 hover:text-gray-900">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            <h2 class="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">章節導覽</h2>
+            <ul>
+                <li><a href="#intro" class="nav-link active" data-section="intro">🏠 導論：尋找因果</a></li>
+                <li><a href="#conditions" class="nav-link" data-section="conditions">🔑 因果關係的條件</a></li>
+                <li><a href="#validity" class="nav-link" data-section="validity">🎯 內在 vs. 外在效度</a></li>
+                <li><a href="#threats" class="nav-link" data-section="threats">⚠️ 威脅內在效度的因素</a></li>
+                <li><a href="#pre-exp" class="nav-link" data-section="pre-exp">🧪 前實驗設計</a></li>
+                <li><a href="#true-exp" class="nav-link" data-section="true-exp">🔬 (真)實驗設計</a></li>
+            </ul>
+        </nav>
+
+        <!-- Content Area --><main class="w-full md:w-3/4 lg:w-4/5 md:pl-8 mt-6 md:mt-0">
+
+            <!-- Section: 導論 --><section id="intro" class="content-section active bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-4">🏠 導論：尋找因果</h2>
+                <p class="mb-4 text-lg">在社會工作中，我們最關心的問題之一就是：「我的介入『是否』真的『造成』了案主的改變？」換句話說，我們渴望建立「因果關係」(Causality)。</p>
+                <p class="mb-4">例如，我們想知道：</p>
+                <ul class="list-disc list-inside ml-4 space-y-1 mb-4">
+                    <li>「親職教育團體」是否「導致」家長管教技巧的提升？</li>
+                    <li>「就業輔導方案」是否「造成」失業者找到工作的機率增加？</li>
+                    <li>「某種心理治療」是否「引起」案主憂鬱症狀的減輕？</li>
+                </ul>
+                <p class="mb-4">然而，「建立因果關係」遠比「描述相關性」要困難得多。僅僅觀察到 A 和 B 一起發生，並不代表 A 就是 B 的原因。例如，冰淇淋銷量和溺水人數高度相關，但不是吃冰淇淋「導致」溺水，而是因為夏天（第三變項）同時導致了兩者。</p>
+                <p class="mb-4">「實驗設計」(Experimental Design) 被認為是建立因果關係「最強而有力」的方法，因為它透過「操弄」自變項與「隨機分派」，最大限度地排除了其他可能的解釋。</p>
+                
+                <div class="mt-6 bg-blue-50 border-l-4 border-blue-500 p-4 rounded-md">
+                    <h4 class="font-semibold text-blue-800">本章節學習重點：</h4>
+                    <p class="mt-2">本章節將帶您了解建立因果關係的「三大必要條件」，區分研究的「內在效度」與「外在效度」，認識「威脅」因果推論的常見因素，並介紹幾種常用（但強度不同）的實驗設計類型。
+                    </p>
+                </div>
+            </section>
+
+            <!-- Section: 因果關係的條件 --><section id="conditions" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">🔑 因果關係的條件</h2>
+                <p class="mb-6">要宣稱「X 導致了 Y」，必須「同時」滿足以下三個條件：</p>
+
+                <div class="space-y-6">
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                            <span class="text-2xl mr-2">1️⃣</span> 相關性 (Correlation / Association)
+                        </h3>
+                        <p class="mb-4">X 的變化必須與 Y 的變化「有所關聯」。當 X 改變時，Y 也會跟著改變（無論是正相關或負相關）。如果 X 和 Y 之間完全沒有統計上的關聯，那就不可能存在因果關係。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">如果你想證明「參與讀書會 (X)」能「提升學業成績 (Y)」，你必須先證明「參與時數」和「成績分數」之間，確實存在「正相關」。如果兩者根本沒關聯，那讀書會就不可能是原因。</p>
+                    </div>
+
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                            <span class="text-2xl mr-2">2️⃣</span> 時間順序 (Time Order / Temporal Precedence)
+                        </h3>
+                        <p class="mb-4">「原因」必須發生在「結果」之前。X 必須先於 Y 發生。這是最直觀但也最關鍵的條件。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">要證明「接受心理治療 (X)」能「減輕憂鬱 (Y)」，你必須證明案主是「先」接受了治療，「之後」憂鬱才減輕。如果是憂鬱「先」自己好轉，案主「才」去接受治療，那就不是治療的效果了。</p>
+                    </div>
+
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                            <span class="text-2xl mr-2">3️⃣</span> 非虛假關係 (Non-spuriousness)
+                        </h3>
+                        <p class="mb-4">X 與 Y 之間的「觀察到的相關性」，不能是由「第三個變項 Z」(Lurking Variable) 所「同時導致」的「假象」。必須排除掉所有「其他可能的解釋」。這是最難達成的條件。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">
+                            <strong>觀察</strong>：研究發現「居住在擁擠社區 (X)」與「青少年犯罪率 (Y)」呈現正相關。<br>
+                            <strong>可能的虛假關係</strong>：也許不是「擁擠」本身導致犯罪，而是因為「貧窮 (Z)」同時導致了人們「只能住在擁擠社區」和「犯罪率較高」。<br>
+                            <strong>如何排除</strong>：研究者必須在統計上「控制」貧窮這個變項，看看在「相同貧窮程度」下，擁擠與犯罪是否「仍然」相關。
+                        </g>
+                    </div>
+                </div>
+
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：因果關係的條件</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：研究發現，夏天時「冰淇淋的銷量」和「溺水死亡人數」都同步上升，呈現高度正相關。有人因此推論「吃冰淇淋會導致溺水」。</p>
+                        <p class="mb-4">這個推論最可能違反了因果關係的哪一個條件？</p>
+                        
+                        <div id="quiz-conditions" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-conditions', 0, 2)">A. 相關性</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-conditions', 1, 2)">B. 時間順序</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-conditions', 2, 2)">C. 非虛假關係</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-conditions', 3, 2)">D. 以上皆非</button>
+                        </div>
+                        <div id="quiz-conditions-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Section: 內在 vs. 外在效度 --><section id="validity" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">🎯 內在效度 vs. 外在效度 (Internal vs. External Validity)</h2>
+                <p class="mb-6">在評估一個研究（尤其是因果研究）的品質時，我們最關心兩種效度：</p>
+                
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="border-4 border-blue-200 rounded-lg p-4 bg-blue-50">
+                        <h3 class="text-lg font-semibold text-blue-800 mb-3">1. 內在效度 (Internal Validity)</h3>
+                        <p class="mb-4"><strong>定義</strong>：指研究結果的「可信度」。我們有多大的「信心」可以說，觀察到的「結果 Y」（如：憂鬱減輕）「真的」是由我們的「介入 X」（如：心理治療）所「導致」的，而不是由「其他無關因素 Z」造成的？</p>
+                        <p class="mb-4"><strong>關鍵問題</strong>：研究設計是否「嚴謹」到足以「排除」其他可能的解釋？</p>
+                        <p class="font-medium">如何提升：</p>
+                        <ul class="list-disc list-inside ml-4 space-y-1">
+                            <li>使用「隨機分派」(Random Assignment)。</li>
+                            <li>設立「控制組」(Control Group)。</li>
+                            <li>控制環境因素。</li>
+                        </ul>
+                        <p class="font-medium mt-2">社工範例：</p>
+                        <p class="bg-white p-3 rounded border">一個設計「嚴謹」的藥物實驗（有隨機分派、雙盲、安慰劑控制組），其「內在效度」通常很高。我們可以很有信心地說，療效是藥物造成的。</p>
+                    </div>
+                    <div class="border-4 border-green-200 rounded-lg p-4 bg-green-50">
+                        <h3 class="text-lg font-semibold text-green-800 mb-3">2. 外在效度 (External Validity)</h3>
+                        <p class="mb-4"><strong>定義</strong>：指研究結果的「可推論性」或「普遍性」(Generalizability)。我們有多大的「信心」可以將這個研究的發現，「推論」到「研究樣本以外」的「其他群體」、「其他情境」或「其他時間」？</p>
+                        <p class="mb-4"><strong>關鍵問題</strong>：研究的「樣本」是否具有「代表性」？研究的「情境」是否「貼近真實世界」？</p>
+                        <p class="font-medium">如何提升：</p>
+                        <ul class="list-disc list-inside ml-4 space-y-1">
+                            <li>使用「隨機抽樣」(Random Sampling)。</li>
+                            <li>確保樣本能代表母群體。</li>
+                            <li>在「真實世界」（而非實驗室）進行研究。</li>
+                        </ul>
+                        <p class="font-medium mt-2">社工範例：</p>
+                        <p class="bg-white p-3 rounded border">一個只在「某間大學」對「心理系學生」進行的實驗，其「外在效度」可能很低。我們很難將結果推論到「所有大學生」，更不用說「社會大眾」。</p>
+                    </div>
+                </div>
+
+                <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">效度的權衡 (Trade-off)</h3>
+                <p class="mb-4">內在效度與外在效度之間，常常存在「權衡關係」。</p>
+                <ul class="list-disc list-inside ml-4 space-y-2">
+                    <li><strong>實驗室實驗</strong>：通常「內在效度」很高（控制嚴謹），但「外在效度」可能很低（情境不真實、樣本特殊）。</li>
+                    <li><strong>真實世界調查</strong>：通常「外在效度」較高（樣本代表性好、情境真實），但「內在效度」較低（難以控制變項、建立因果）。</li>
+                </ul>
+                <p class="mt-4">研究者必須根據「研究目的」，來決定要優先確保哪種效度。</p>
+
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：內在 vs. 外在效度</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一位研究者想知道某個「新設計的網站介面」是否真的比較好用。他只找了 10 位「自己系上的同學」來實驗室「模擬操作」，並比較新舊介面的差異。</p>
+                        <p class="mb-4">雖然他在實驗室中控制得很好（內在效度可能不錯），但我們很難將這個結果「推論」到「一般的網路使用者」。這主要是因為這個研究在哪方面的效度可能較低？</p>
+                        
+                        <div id="quiz-validity" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-validity', 0, 1)">A. 內在效度 (Internal Validity)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-validity', 1, 1)">B. 外在效度 (External Validity)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-validity', 2, 1)">C. 表面效度 (Face Validity)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-validity', 3, 1)">D. 建構效度 (Construct Validity)</button>
+                        </div>
+                        <div id="quiz-validity-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Section: 威脅內在效度的因素 --><section id="threats" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-red-700 mb-6">⚠️ 威脅內在效度的因素 (Threats to Internal Validity)</h2>
+                <p class="mb-6">當我們觀察到一個「改變」（如：方案介入後案主進步了）時，除了我們的「介入」之外，還有許多「其他的可能性」也可能造成這個改變。這些「其他可能性」就是「內在效度的威脅」，我們必須盡力排除它們：</p>
+
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">1. 歷史事件 (History)</h3>
+                        <p class="mb-4">在研究進行期間（前測到後測之間），發生了「外部的重大事件」，影響了結果。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">你正在進行一個為期半年的「社區減壓方案」。期間，社區發生了「重大天災」。期末測量發現大家壓力都「升高」了，這可能不是你的方案「無效」，而是「歷史事件」造成的。</p>
+                    </div>
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">2. 成熟 (Maturation)</h3>
+                        <p class="mb-4">參與者隨著「時間自然推移」，生理或心理上產生了「自然的」變化。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">你對一群「青少年」進行為期一年的「情緒管理團體」。一年後發現他們情緒穩定度「提升」了，這可能只是因為他們「自然長大成熟」了，不一定是團體的效果。</p>
+                    </div>
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">3. 測試 (Testing)</h3>
+                        <p class="mb-4">「前測」本身就影響了「後測」的表現（如：練習效應、回憶起答案）。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">你用同一份「親職壓力量表」做前測和後測。家長在後測時分數「降低」了，可能只是因為他們「熟悉」了題目，而不是壓力真的減輕。</p>
+                    </div>
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">4. 工具衰變 (Instrumentation)</h3>
+                        <p class="mb-4">測量「工具」或「程序」在前測和後測之間發生了「改變」。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">(1) 前測用 A 量表，後測改用 B 量表。(2) 前測是 A 訪員，後測換成 B 訪員（訪談風格不同）。(3) 觀察者（如：評估兒童行為）的「評分標準」隨時間改變（疲勞或學習）。</p>
+                    </div>
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">5. 統計迴歸 (Statistical Regression)</h3>
+                        <p class="mb-4">如果只挑選「極端分數」（非常高或非常低）的參與者，他們在下一次測量時，分數會傾向於「自然地」向「平均數」靠近，即使沒有任何介入。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">你只挑選了全校「憂鬱分數最高」的 10% 學生來參加減壓團體。後測發現他們分數「顯著下降」了，這可能部分是因為「統計迴歸」效應，而不是團體真的那麼有效。</p>
+                    </div>
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">6. 選擇偏誤 (Selection Bias)</h3>
+                        <p class="mb-4">實驗組和控制組在「研究開始前」就已經存在「系統性差異」。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">你比較「自願參加」親職團體的家長（實驗組）和「沒空參加」的家長（控制組）。結果發現實驗組進步較多，但這可能是因為他們「原本就比較有動機」，而不是團體的效果。</p>
+                    </div>
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">7. 樣本流失 (Mortality / Attrition)</h3>
+                        <p class="mb-4">在縱貫研究中，實驗組和控制組的「中途退出率」或「退出者的特質」有「系統性差異」。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">在戒酒方案研究中，實驗組中「狀況最差」的人都中途退出了，只剩下狀況好的；而控制組都留下來了。期末比較時，實驗組看起來「效果很好」，但這是因為「樣本流失」造成的假象。</p>
+                    </div>
+                     <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">8. 介入擴散 (Diffusion / Imitation)</h3>
+                        <p class="mb-4">「控制組」的成員意外地接觸到了「實驗組」的介入內容。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">實驗組的家長學到了新的教養技巧，回去跟控制組的朋友「分享」。結果控制組也進步了，導致兩組的「差異變小」，低估了方案的真實效果。</p>
+                    </div>
+                </div>
+
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-red-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：威脅內在效度的因素</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一個研究者想評估「新藥物」對改善老人憂鬱的效果。他將安養院中「自願」服用新藥的老人當作實驗組，將「不願意」服藥的老人當作控制組。期末發現實驗組憂鬱分數改善較多。</p>
+                        <p class="mb-4">這個研究設計最可能受到哪一種內在效度威脅的影響？</p>
+                        
+                        <div id="quiz-threats" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-threats', 0, 2)">A. 歷史事件 (History)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-threats', 1, 2)">B. 成熟 (Maturation)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-threats', 2, 2)">C. 選擇偏誤 (Selection Bias)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-threats', 3, 2)">D. 工具衰變 (Instrumentation)</button>
+                        </div>
+                        <div id="quiz-threats-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Section: 前實驗設計 --><section id="pre-exp" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-yellow-700 mb-6">🧪 前實驗設計 (Pre-experimental Designs)</h2>
+                <p class="mb-6">前實驗設計是一些「常見」但「內在效度很低」的研究設計。它們通常缺乏「隨機分派」或「控制組」（或兩者皆無），因此很難排除內在效度的威脅，無法有效建立因果關係。</p>
+                <p class="mb-4">雖然它們不嚴謹，但在「資源有限」或「初步探索」時，仍可能被使用。</p>
+                <p class="mb-4"><strong>符號說明</strong>：</p>
+                <ul class="list-disc list-inside ml-4 space-y-1 mb-6">
+                    <li><strong>O</strong>: 觀察 / 測量 (Observation)</li>
+                    <li><strong>X</strong>: 介入 / 實驗處理 (Treatment)</li>
+                    <li><strong>R</strong>: 隨機分派 (Random Assignment)</li>
+                    <li><i>(時間由左至右)</i></li>
+                </ul>
+
+                <div class="space-y-6">
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">1. 單組後測設計 (One-Shot Case Study)</h3>
+                        <div class="design-notation"><strong>X</strong>   <strong>O</strong></div>
+                        <p class="mb-4">只對「一組」人進行「介入 (X)」，然後進行「一次後測 (O)」。</p>
+                        <p class="mb-4"><strong>問題</strong>：完全沒有「比較」的基準。你不知道如果「沒有」介入，結果會是怎樣？</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">辦了一場「親職講座 (X)」，結束後發問卷問家長「滿意度 (O)」。就算滿意度很高，你也不知道講座是否「真的」改變了什麼。</p>
+                    </div>
+
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">2. 單組前後測設計 (One-Group Pretest-Posttest Design)</h3>
+                        <div class="design-notation"><strong>O₁</strong>  <strong>X</strong>   <strong>O₂</strong></div>
+                        <p class="mb-4">對「一組」人進行「前測 (O₁)」，然後「介入 (X)」，再進行「後測 (O₂)」。比較 O₁ 和 O₂ 的差異。</p>
+                        <p class="mb-4"><strong>問題</strong>：雖然有了「比較」（自己跟自己比），但「無法排除」歷史事件、成熟、測試、工具衰變、統計迴歸等「所有」時間相關的威脅。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">對一群學生進行「憂鬱前測 (O₁)」，然後執行「減壓方案 (X)」，再進行「憂鬱後測 (O₂)」。就算 O₂ 分數低於 O₁，也可能是因為「期末考結束」（歷史事件）或「學生長大了」（成熟），不一定是方案的效果。</p>
+                    </div>
+
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">3. 靜態組比較設計 (Static-Group Comparison)</h3>
+                        <div class="design-notation">
+<div class="design-group"><strong>X</strong>   <strong>O</strong></div>
+                            <div class="design-group">    <strong>O</strong></div>
+                        </div>
+                        <p class="mb-4">找「兩組」人，一組接受「介入 (X)」，另一組「沒有」。然後「同時」對兩組進行「後測 (O)」，比較兩組差異。</p>
+                        <p class="mb-4"><strong>問題</strong>：沒有「前測」，且通常「不是」隨機分派。我們「無法確定」兩組在「一開始」是否就不同（選擇偏誤）。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">比較「有參加」課後輔導班的學生 (X+O) 和「沒參加」的學生 (O) 的「學業成績」。就算有參加的成績較好，也可能是因為他們「原本就比較積極」想學習。</p>
+                    </div>
+                </div>
+
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-yellow-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：前實驗設計</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：社工為一群新住民舉辦了一系列適應課程 (X)，並在課程「結束後」測量他們的社區參與度 (O)。</p>
+                        <p class="mb-4">這種只有「介入」和「後測」的設計 (X O)，稱為什麼？</p>
+                        
+                        <div id="quiz-pre-exp" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-pre-exp', 0, 0)">A. 單組後測設計</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-pre-exp', 1, 0)">B. 單組前後測設計</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-pre-exp', 2, 0)">C. 靜態組比較設計</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-pre-exp', 3, 0)">D. 真實驗設計</button>
+                        </div>
+                        <div id="quiz-pre-exp-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section: (真)實驗設計 --><section id="true-exp" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-green-700 mb-6">🔬 (真)實驗設計 (True Experimental Designs)</h2>
+                <p class="mb-6">真實驗設計被視為建立因果關係的「黃金標準」(Gold Standard)。它們之所以強大，是因為具備兩個關鍵要素：</p>
+                <ul class="list-disc list-inside ml-4 space-y-2 mb-6">
+                    <li><strong>1. 控制組 (Control Group)</strong>：有一組「沒有」接受實驗介入的對象，作為「比較」的基準。</li>
+                    <li><strong>2. 隨機分派 (Random Assignment)</strong>：參與者被分配到「實驗組」或「控制組」是「完全隨機」的，這能確保兩組在「研究開始前」的各種特質（已知的和未知的）都是「大致相等」的，最大限度地排除了「選擇偏誤」。</li>
+                </ul>
+                <p class="mb-4"><strong>注意</strong>：「隨機分派」(Random Assignment) ≠ 「隨機抽樣」(Random Sampling)。前者是為了「內在效度」（確保組別相等），後者是為了「外在效度」（確保樣本代表性）。</p>
+
+                <div class="space-y-8">
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">1. 前後測控制組設計 (Pretest-Posttest Control Group Design)</h3>
+                        <div class="design-notation">
+<div class="design-group"><strong>R</strong>   <strong>O₁</strong>  <strong>X</strong>   <strong>O₂</strong></div>
+                            <div class="design-group"><strong>R</strong>   <strong>O₁</strong>      <strong>O₂</strong></div>
+                        </div>
+                        <p class="mb-4">最經典的設計。參與者被「隨機分派 (R)」到實驗組或控制組。兩組都接受「前測 (O₁)」。實驗組接受「介入 (X)」，控制組則無（或接受安慰劑/常規服務）。最後兩組都接受「後測 (O₂)」。</p>
+                        <p class="mb-4"><strong>分析</strong>：比較兩組在「後測分數 (O₂)」上的差異，或比較兩組「進步幅度」(O₂ - O₁) 的差異。</p>
+                        <p class="mb-4"><strong>優點</strong>：能有效排除大部分內在效度威脅（歷史、成熟、統計迴歸等，因為兩組都會經歷）。 <strong>缺點</strong>：前測本身可能產生「測試」效應，影響外在效度。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">想評估「方案 A」對降低青少年攻擊行為是否有效。隨機將 100 位青少年分派到「方案 A 組」或「常規服務組」。兩組都先測攻擊行為 (O₁)。A 組接受方案 (X)，常規組照舊。三個月後再測兩組的攻擊行為 (O₂)。比較兩組 O₂ 或 (O₂-O₁) 的差異。</p>
+                    </div>
+
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">2. 後測控制組設計 (Posttest-Only Control Group Design)</h3>
+                        <div class="design-notation">
+<div class="design-group"><strong>R</strong>       <strong>X</strong>   <strong>O</strong></div>
+                            <div class="design-group"><strong>R</strong>           <strong>O</strong></div>
+                        </div>
+                        <p class="mb-4">與前者類似，但「省略」了「前測 (O₁)」。參與者被「隨機分派 (R)」。實驗組接受「介入 (X)」，控制組則無。最後兩組都只接受「後測 (O)」。</p>
+                        <p class="mb-4"><strong>分析</strong>：直接比較兩組在「後測分數 (O)」上的差異。</p>
+                        <p class="mb-4"><strong>假設</strong>：因為有「隨機分派 (R)」，我們可以「假設」兩組在「研究開始前」是相等的，所以省略前測也沒關係。</p>
+                        <p class="mb-4"><strong>優點</strong>：排除了「測試」效應的干擾；有時前測不可行或太貴。 <strong>缺點</strong>：無法確知兩組「起始點」是否真的完全相等；無法分析「進步幅度」。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">想評估一個「新的」預防自殺宣導短片 (X) 是否有效。隨機將觀眾分派去看「新短片」或「無關短片」。看完後，「立刻」測量他們對求助資源的認知程度 (O)。比較兩組 O 的差異。</p>
+                    </div>
+
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">3. 所羅門四組設計 (Solomon Four-Group Design)</h3>
+                        <div class="design-notation">
+<div class="design-group">組1: <strong>R</strong>   <strong>O₁</strong>  <strong>X</strong>   <strong>O₂</strong></div>
+                            <div class="design-group">組2: <strong>R</strong>   <strong>O₁</strong>      <strong>O₂</strong></div>
+                            <div class="design-group">組3: <strong>R</strong>       <strong>X</strong>   <strong>O₂</strong></div>
+                            <div class="design-group">組4: <strong>R</strong>           <strong>O₂</strong></div>
+                        </div>
+                        <p class="mb-4">最嚴謹但也最複雜的設計。它結合了「前後測控制組」和「後測控制組」兩種設計，共有「四組」。</p>
+                        <p class="mb-4"><strong>分析</strong>：可以同時比較：<br>
+                            - 介入效果 (組1 vs 組2；組3 vs 組4)<br>
+                            - 前測的影響 (組1 vs 組3；組2 vs 組4)</p>
+                        <p class="mb-4"><strong>優點</strong>：能最完整地評估「介入效果」以及「前測本身」可能造成的干擾。內在與外在效度都最高。 <strong>缺點</strong>：非常昂貴、耗時、需要大量樣本。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">極少在社工實務中使用，通常只在資源充足的「大型研究計畫」中才會考慮。</p>
+                    </div>
+                </div>
+
+                <!-- Quiz --><div class="mt-8 pt-6 border-t-2 border-green-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：(真)實驗設計</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一個研究者想驗證「新療法 X」是否比「舊療法」更有效。他將 100 位案主「隨機」分配到 A 組（接受新療法）或 B 組（接受舊療法）。三個月後，比較兩組的改善程度。</p>
+                        <p class="mb-4">這個設計中，「隨機分配」這個步驟，最主要的目的在於提升研究的哪一種效度？</p>
+                        
+                        <div id="quiz-true-exp" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-true-exp', 0, 0)">A. 內在效度 (Internal Validity)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-true-exp', 1, 0)">B. 外在效度 (External Validity)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-true-exp', 2, 0)">C. 表面效度 (Face Validity)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-true-exp', 3, 0)">D. 內容效度 (Content Validity)</button>
+                        </div>
+                        <div id="quiz-true-exp-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Overlay for mobile menu --><div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden" onclick="toggleMenu(false)"></div>
+
+
+    <script>
+        const sections = document.querySelectorAll('.content-section');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const closeMenuButton = document.getElementById('close-menu-button');
+
+        function showSection(sectionId) {
+            sections.forEach(section => {
+                if (section.id === sectionId) {
+                    section.classList.add('active');
+                } else {
+                    section.classList.remove('active');
+                }
+            });
+
+            navLinks.forEach(link => {
+                if (link.dataset.section === sectionId) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+
+            // Auto-scroll to top of content on section change
+            document.querySelector('.md\\:w-3\\/4')?.scrollTo(0, 0);
+            
+            // Close mobile menu on navigation
+            if (window.innerWidth < 768) {
+                toggleMenu(false);
+            }
+        }
+
+        function toggleMenu(show) {
+            if (show) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const sectionId = e.target.closest('a').dataset.section;
+                showSection(sectionId);
+                // Update URL hash for better history (optional)
+                window.location.hash = e.target.closest('a').getAttribute('href');
+            });
+        });
+
+        mobileMenuButton.addEventListener('click', () => toggleMenu(true));
+        closeMenuButton.addEventListener('click', () => toggleMenu(false));
+        overlay.addEventListener('click', () => toggleMenu(false));
+
+        // Handle page load with hash
+        document.addEventListener('DOMContentLoaded', () => {
+            const hash = window.location.hash;
+            if (hash) {
+                const sectionId = hash.substring(1);
+                const sectionElement = document.getElementById(sectionId);
+                if (sectionElement) {
+                    showSection(sectionId);
+                } else {
+                    showSection('intro');
+                }
+            } else {
+                showSection('intro');
+            }
+        });
+
+        // --- Quiz Logic ---
+        const quizAnswers = {
+            'quiz-conditions': {
+                correctIndex: 2,
+                responses: [
+                    "不正確。冰淇淋銷量和溺水人數「確實」有相關性。",
+                    "不正確。時間順序也可能滿足（夏天先到，然後才有銷量和溺水）。",
+                    "答對了！這個推論最大的問題是忽略了「夏天氣溫」(Z) 這個第三變項，它同時導致了冰淇淋銷量增加和去游泳/溺水的人數增加。冰淇淋和溺水之間是「虛假關係」。",
+                    "不正確。"
+                ]
+            },
+            'quiz-validity': {
+                correctIndex: 1,
+                responses: [
+                    "不正確。內在效度是指實驗結果的可信度，實驗室控制通常能提高內在效度。",
+                    "答對了！外在效度 (External Validity) 關心的是研究結果能否「推論」到「樣本之外」的群體。只用自己系上同學做樣本，其「代表性」不足，因此外在效度堪憂。",
+                    "不正確。表面效度是指測量工具「看起來」像在測量目標概念。",
+                    "不正確。建構效度是指測量工具「實際」測量到目標理論概念的程度。"
+                ]
+            },
+            'quiz-threats': {
+                correctIndex: 2,
+                responses: [
+                    "不正確。歷史事件是指研究期間發生的「外部」事件。",
+                    "不正確。成熟是指參與者「自然」的變化。",
+                    "答對了！選擇偏誤 (Selection Bias) 指的是實驗組和控制組在「研究開始前」就存在「系統性差異」。此例中，「自願」與「不願意」服藥的老人可能原本在健康狀況、動機等方面就不同。",
+                    "不正確。工具衰變是指測量「工具」的改變。"
+                ]
+            },
+             'quiz-pre-exp': {
+                correctIndex: 0,
+                responses: [
+                    "答對了！單組後測設計 (One-Shot Case Study) 的定義就是只有介入 (X) 和後測 (O)。",
+                    "不正確。單組前後測設計需要有「前測」(O₁)。",
+                    "不正確。靜態組比較設計需要有「兩組」（一組有X，一組沒有）。",
+                    "不正確。真實驗設計需要有「隨機分派」和「控制組」。"
+                ]
+            },
+             'quiz-true-exp': {
+                correctIndex: 0,
+                responses: [
+                    "答對了！隨機分派 (Random Assignment) 的主要目的，就是確保實驗組和控制組在「研究開始前」是「大致相等」的，藉此排除「選擇偏誤」等因素，提升研究的「內在效度」，讓我們更有信心說結果是「介入」造成的。",
+                    "不正確。提升外在效度（推論性）主要靠「隨機抽樣」(Random Sampling)。",
+                    "不正確。表面效度與測量工具有關。",
+                    "不正確。內容效度與測量工具有關。"
+                ]
+            }
+        };
+
+        function checkQuiz(quizId, selectedIndex, correctIndex) {
+            // If quizAnswers object is defined, use it.
+            if (quizAnswers[quizId]) {
+                correctIndex = quizAnswers[quizId].correctIndex;
+            }
+
+            const feedbackEl = document.getElementById(`${quizId}-feedback`);
+            const options = document.getElementById(quizId).getElementsByClassName('quiz-option');
+            
+            // Reset styles
+            for (let i = 0; i < options.length; i++) {
+                options[i].classList.remove('bg-green-200', 'border-green-400', 'bg-red-200', 'border-red-400');
+                options[i].disabled = true;
+            }
+
+            if (selectedIndex === correctIndex) {
+                feedbackEl.textContent = quizAnswers[quizId].responses[selectedIndex];
+                feedbackEl.className = 'quiz-feedback correct';
+                options[selectedIndex].classList.add('bg-green-200', 'border-green-400');
+            } else {
+                feedbackEl.textContent = quizAnswers[quizId].responses[selectedIndex];
+                feedbackEl.className = 'quiz-feedback incorrect';
+                options[selectedIndex].classList.add('bg-red-200', 'border-red-400');
+                // Highlight correct answer
+                options[correctIndex].classList.add('bg-green-200', 'border-green-400');
+            }
+        }
+
+    </script>
+</body>
+</html>
