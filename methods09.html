@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>抽樣：理論與實務</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Chosen Palette: Academic Blue and Warm Neutrals --><!-- Application Structure Plan: 採用與之前檔案一致的單頁應用程式(SPA)結構。左側為固定導覽列（行動裝置為漢堡選單），點擊後在右側主內容區動態顯示對應的<section>。此結構能讓學生在「抽樣架構」、「誤差」與「各種類型」之間自由切換，符合非線性學習。 --><!-- Visualization & Content Choices: 1. 抽樣流程 (圖解): 報告原文為文字定義。 -> 目標: 視覺化從母體到樣本的過程。 -> 視覺化: 使用HTML/Tailwind和Unicode箭頭製作「母體 → 抽樣架構 → 樣本」的流程圖。 -> 互動: 靜態圖解。 -> 理由: 將抽象的流程具象化。 2. 四種機率抽樣 (圖解): 報告原文為文字定義。 -> 目標: 視覺化比較四種機率抽樣。 -> 視覺化: 使用HTML/CSS製作2x2網格圖塊，分別展示Simple Random(隨機選點)、Systematic(間隔選點)、Stratified(分層後每層都選)、Cluster(選中整塊)。 -> 互動: 靜態圖解。 -> 理由: 視覺化是區分這四種方法的最佳途徑，特別是分層與部落的差異。 3. 機率 vs 非機率 (表格): 報告原文為文字。 -> 目標: 系統性比較兩大類抽樣。 -> 視覺化: 使用HTML <table> 進行多維度比較 (推論性、成本、誤差估計等)。 -> 互動: 靜態表格。 -> 理由: 表格是進行多點比較的最佳工具。 4. 互動測驗 (測驗): 報告原文無此內容。 -> 目標: 鞏固學習成果。 -> 視覺化: 在每個子題末尾加入HTML/JS按鈕測驗。 -> 互動: 點擊按鈕檢查答案，並顯示回饋。 -> 理由: 即時回饋能有效強化學習記憶點。 --><!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. --><link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .nav-link {
+            display: block;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .nav-link:hover {
+            background-color: #f0f4f8;
+            color: #007bff;
+        }
+        .nav-link.active {
+            background-color: #e6f2ff;
+            color: #0056b3;
+            font-weight: 700;
+        }
+        .nav-link.sub-link {
+            padding-left: 2rem;
+            font-size: 0.9rem;
+        }
+        .nav-link.sub-link.active {
+            background-color: #e0eafc;
+        }
+        
+        .quiz-option {
+            display: block;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            text-align: left;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        .quiz-option:hover {
+            background-color: #f9fafb;
+            border-color: #6b7280;
+        }
+        .quiz-feedback {
+            margin-top: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            display: none;
+        }
+        .quiz-feedback.correct {
+            background-color: #d1fae5;
+            color: #065f46;
+            display: block;
+        }
+        .quiz-feedback.incorrect {
+            background-color: #fee2e2;
+            color: #991b1b;
+            display: block;
+        }
+        
+        .sampling-diagram {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 1rem;
+            background-color: #f9fafb;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+        }
+        .sampling-diagram-box {
+            padding: 1rem;
+            border: 2px solid #60a5fa;
+            border-radius: 0.375rem;
+            background-color: #eff6ff;
+            text-align: center;
+            font-weight: 500;
+        }
+        .sampling-diagram-arrow {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #3b82f6;
+        }
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        .comparison-table th, .comparison-table td {
+            border: 1px solid #d1d5db;
+            padding: 0.75rem;
+            text-align: left;
+        }
+        .comparison-table th {
+            background-color: #f3f4f6;
+            font-weight: 600;
+        }
+        .comparison-table tr:nth-child(even) {
+            background-color: #f9fafb;
+        }
+        .sampling-viz {
+            display: grid;
+            grid-template-columns: repeat(1, 1fr);
+            gap: 1.5rem;
+        }
+        @media (min-width: 1024px) {
+            .sampling-viz {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        .viz-box {
+            border: 2px solid #ccc;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            background: #fafafa;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .viz-title {
+            font-weight: 600;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+            width: 100%;
+        }
+        .viz-population {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0.5rem;
+            width: 150px;
+            height: 150px;
+            padding: 0.5rem;
+            border: 1px solid #9ca3af;
+            background: #fff;
+            border-radius: 0.25rem;
+        }
+        .viz-pop-unit {
+            width: 1.25rem;
+            height: 1.25rem;
+            background-color: #d1d5db;
+            border-radius: 50%;
+        }
+        .viz-pop-unit.selected-random {
+            background-color: #3b82f6; /* Blue-500 */
+        }
+        .viz-pop-unit.selected-systematic {
+            background-color: #10b981; /* Emerald-500 */
+        }
+        
+        .viz-population-stratified {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            width: 150px;
+            padding: 0.5rem;
+            border: 1px solid #9ca3af;
+            background: #fff;
+            border-radius: 0.25rem;
+        }
+        .viz-stratum {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.25rem;
+            border: 1px dashed #f97316; /* Orange-500 */
+            border-radius: 0.25rem;
+        }
+        .viz-stratum .viz-pop-unit { background-color: #fed7aa; } /* Orange-200 */
+        .viz-stratum .viz-pop-unit.selected { background-color: #f97316; } /* Orange-500 */
+        
+        .viz-population-cluster {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+            width: 150px;
+            padding: 0.5rem;
+            border: 1px solid #9ca3af;
+            background: #fff;
+            border-radius: 0.25rem;
+        }
+        .viz-cluster {
+            border: 1px dashed #0891b2; /* Cyan-500 */
+            border-radius: 0.25rem;
+            padding: 0.25rem;
+        }
+        .viz-cluster .viz-pop-unit { background-color: #a5f3fc; } /* Cyan-200 */
+        .viz-cluster.selected-cluster {
+            background-color: #155e75; /* Cyan-900 */
+        }
+        .viz-cluster.selected-cluster .viz-pop-unit {
+            background-color: #ecfeff; /* Cyan-50 */
+        }
+        
+        .viz-description {
+            text-align: center;
+            font-size: 0.875rem;
+            margin-top: 0.75rem;
+            color: #4b5563;
+        }
+
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- Header -->
+    <header class="bg-white shadow-md sticky top-0 z-40">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <h1 class="text-xl md:text-2xl font-bold text-blue-800">抽樣：理論與實務</h1>
+            <button id="mobile-menu-button" class="md:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-6 flex flex-col md:flex-row">
+
+        <!-- Navigation Sidebar -->
+        <nav id="sidebar" class="w-full md:w-1/4 lg:w-1/5 bg-white p-4 rounded-lg shadow-sm md:sticky md:top-24 md:self-start transition-transform duration-300 ease-in-out -translate-x-full md:translate-x-0 fixed md:relative h-full md:h-auto z-30 overflow-y-auto">
+            <button id="close-menu-button" class="md:hidden p-2 absolute top-2 right-2 text-gray-600 hover:text-gray-900">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            <h2 class="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">章節導覽</h2>
+            <ul>
+                <li><a href="#intro" class="nav-link active" data-section="intro">🏠 導論：為何要抽樣？</a></li>
+                <li><a href="#frame" class="nav-link" data-section="frame">📋 機率抽樣與抽樣架構</a></li>
+                <li><a href="#error" class="nav-link" data-section="error">🎯 抽樣誤差與樣本大小</a></li>
+                <li><a href="#prob_types" class="nav-link" data-section="prob_types">🎲 機率抽樣類型</a></li>
+                <li><a href="#nonprob_types" class="nav-link" data-section="nonprob_types">🚶 非機率抽樣類型</a></li>
+                <li><a href="#comparison" class="nav-link" data-section="comparison">⚖️ 機率 vs 非機率抽樣比較</a></li>
+            </ul>
+        </nav>
+
+        <!-- Content Area -->
+        <main class="w-full md:w-3/4 lg:w-4/5 md:pl-8 mt-6 md:mt-0">
+
+            <!-- Section: 導論 -->
+            <section id="intro" class="content-section active bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-4">🏠 導論：為何要抽樣？</h2>
+                <p class="mb-4 text-lg">在理想情況下，研究者會希望調查「所有」相關的人，以獲得最完整的答案。這個「所有」相關的人，我們稱為**母體 (Population)**。</p>
+                <p class="mb-4">例如，若想了解「台灣所有社工的執業壓力」，母體就是「全台灣每一位現職社工」。</POST>
+                <p class="mb-4">然而，普查 (Census) 整個母體通常是不切實際的，因為它極度耗費時間、金錢與人力。因此，研究者會從母體中抽取一小部分人，稱為**樣本 (Sample)**，來代表母體。</p>
+                
+                <div class="mt-6 bg-blue-50 border-l-4 border-blue-500 p-4 rounded-md">
+                    <h4 class="font-semibold text-blue-800">本章節學習重點：</h4>
+                    <p class="mt-2">「抽樣」(Sampling) 是一套科學的程序，用以選出具代表性的樣本。本章節將介紹兩大類的抽樣方法：</p>
+                    <ul class="list-disc list-inside mt-2 ml-4 space-y-1">
+                        <li><strong>機率抽樣 (Probability Sampling)</strong>：基於隨機原則，樣本中的每個人都有已知且不為零的被選中機率。其結果可用來科學地推論母體。</li>
+                        <li><strong>非機率抽樣 (Non-probability Sampling)</strong>：不基於隨機原則，而是基於方便性或研究者的判斷。其結果通常不能用來推論母體。</li>
+                    </ul>
+                    <p class="mt-2">選擇正確的抽樣方法，是決定研究結果是否可信、可推論的關鍵第一步。</p>
+                </div>
+            </section>
+
+            <!-- Section: 抽樣架構 -->
+            <section id="frame" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">📋 機率抽樣與抽樣架構</h2>
+                <p class="mb-4">**機率抽樣 (Probability Sampling)** 的核心前提是「隨機」。為了實現隨機，我們必須要有一個清單，這個清單就叫做「抽樣架構」。</p>
+                
+                <h3 class="text-xl font-semibold text-gray-900 mb-3">什麼是抽樣架構 (Sampling Frame)？</h3>
+                <p class="mb-4">抽樣架構是母體中所有元素的「具體名冊」。它是我們實際執行抽樣操作的依據。</p>
+                
+                <div class="sampling-diagram mb-6">
+                    <div class="sampling-diagram-box bg-gray-200 border-gray-400">理論上的母體<br><small>(例如：全台灣的社工)</small></div>
+                    <div class="sampling-diagram-arrow">➔</div>
+                    <div class="sampling-diagram-box">抽樣架構<br><small>(例如：衛福部社工人力資料庫名冊)</small></div>
+                    <div class="sampling-diagram-arrow">➔</div>
+                    <div class="sampling-diagram-box bg-blue-100 border-blue-400">抽出的樣本<br><small>(例如：500位被抽中的社工)</small></div>
+                </div>
+
+                <h3 class="text-xl font-semibold text-gray-900 mb-3">抽樣架構的重要性與問題</h3>
+                <p class="mb-4">理想上，抽樣架構應該「完全等於」母體，但現實中常有落差，這會導致「涵蓋誤差」(Coverage Error)：</p>
+                <ul class="list-disc list-inside ml-4 space-y-2">
+                    <li><strong>範例1（良好）</strong>：研究「某大學全體學生」，使用「該校該學期的完整註冊學籍名單」。這是一個良好的抽樣架構。</li>
+                    <li><strong>範例2（遺漏）</strong>：研究「某市所有長者」，使用「電話黃頁」。這會遺漏掉許多只用手機或未登錄的長者。</li>
+                    <li><strong>範例3（不符）</strong>：研究「某機構的現任案主」，使用「去年的服務名單」。這會包含已結案的人（過度涵蓋），並遺漏新進案主（涵蓋不足）。</li>
+                </ul>
+                <p class="mt-4 font-medium">一個有缺陷的抽樣架構，會使後續的機率抽樣失去代表性。</p>
+
+                <!-- Quiz -->
+                <div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：抽樣架構</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一位研究者想研究「A市所有領有身心障礙手冊的居民」的需求。</p>
+                        <p class="mb-4">他向市政府取得了一份「A市所有領有身心障礙手冊者的完整名冊」來進行抽樣。這份名冊在研究中被稱為什麼？</p>
+                        
+                        <div id="quiz-frame" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-frame', 0, 1)">A. 母體 (Population)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-frame', 1, 1)">B. 抽樣架構 (Sampling Frame)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-frame', 2, 1)">C. 樣本 (Sample)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-frame', 3, 1)">D. 部落 (Cluster)</button>
+                        </div>
+                        <div id="quiz-frame-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section: 抽樣誤差與樣本大小 -->
+            <section id="error" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">🎯 抽樣誤差與樣本大小</h2>
+                
+                <h3 class="text-xl font-semibold text-gray-900 mb-3">抽樣誤差 (Sampling Error)</h3>
+                <p class="mb-4">由於我們只研究「樣本」而非「母體」，樣本的統計結果（例如：樣本平均值）與母體的真實參數（例如：母體平均值）之間，幾乎必定會存在一個「自然的差距」，這就稱為抽樣誤差。</p>
+                <p class="mb-4">這「不是」研究者犯的錯誤，而是抽樣過程的必然結果。機率抽樣的優點，就是能讓我們「估計」這個誤差有多大。</p>
+                <div class="bg-gray-50 p-4 rounded-lg border">
+                    <h4 class="font-semibold text-gray-800">信心水準 (Confidence Level) 與 信賴區間 (Confidence Interval)</h4>
+                    <p class="mt-2">我們常在民調中聽到：「本次調查在95%的信心水準下，抽樣誤差為正負3%。」</p>
+                    <ul class="list-disc list-inside ml-4 mt-2 space-y-1">
+                        <li><strong>95%信心水準</strong>：意思是，如果我們用同樣的方法重複抽樣100次，有95次的結果會包含母體的真實數值。</li>
+                        <li><strong>±3%信賴區間</strong>：意思是，如果樣本結果顯示「40%的社工有職業倦怠」，我們有95%的信心推論，母體中「真正」有職業倦怠的社工比例，落在 37% 到 43% 之間 (40% ± 3%)。</li>
+                    </ul>
+                </div>
+
+                <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">樣本大小 (Sample Size)</h3>
+                <p class="mb-4">樣本「不是」越大越好（例如：訪問5萬人來代表2300萬人，成本太高），也不是用「母體的固定比例」（例如：10%）來決定的。</p>
+                <p class="mb-4">樣本大小主要取決於以下因素：</p>
+                <ul class="list-disc list-inside ml-4 space-y-2">
+                    <li><strong>期望的精確度</strong>：您能接受多大的信賴區間（誤差）？誤差要求越小（例如±1%），樣本就需要越大。</li>
+                    <li><strong>母體的異質性</strong>：如果母體成員的看法非常分歧（異質性高），就需要更大的樣本才能捕捉到全貌。</li>
+                    <li><strong>信心水準</strong>：您需要多大的信心？99%的信心水準會比95%需要更大的樣本。</li>
+                </ul>
+                <p class="mt-4 font-medium">在實務上，研究者常使用「樣本數估計公式」或參考「G*Power」等軟體來決定最適當的樣本數，以在精確度與成本之間取得平衡。</p>
+
+                <!-- Quiz -->
+                <div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：抽樣誤差</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一份針對某機構1000名案主的抽樣研究（樣本n=100）發現，案主平均滿意度為8.5分。而若普查所有案主，真實的平均滿意度是8.2分。</p>
+                        <p class="mb-4">这 0.3 分的差距 (8.5 vs 8.2)，在統計上稱為什麼？</p>
+                        
+                        <div id="quiz-error" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-error', 0, 2)">A. 研究者犯的計算錯誤</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-error', 1, 2)">B. 涵蓋誤差 (Coverage Error)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-error', 2, 2)">C. 抽樣誤差 (Sampling Error)</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-error', 3, 2)">D. 非機率誤差</button>
+                        </div>
+                        <div id="quiz-error-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section: 機率抽樣類型 -->
+            <section id="prob_types" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">🎲 機率抽樣類型</h2>
+                <p class="mb-6">所有機率抽樣都基於「隨機」原則，確保每個元素都有已知的被抽中機率。</p>
+                
+                <div class="space-y-6">
+                    <!-- Type 1: Simple Random -->
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">1. 簡單隨機抽樣 (Simple Random Sampling)</h3>
+                        <p class="mb-4">最純粹的隨機。母體中「每個人被抽中的機率完全相等」，就像抽籤一樣。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">從500位結案案主的名冊中，使用電腦亂數抽出50位，進行結案後追蹤訪談。</p>
+                        <p class="text-sm mt-2 text-gray-600"><strong>限制</strong>：需要有完整的名冊；如果母體很大，執行上可能很昂貴。</p>
+                    </div>
+
+                    <!-- Type 2: Systematic -->
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">2. 系統抽樣 (Systematic Sampling)</h3>
+                        <p class="mb-4">選定一個「隨機起點」，然後依據一個固定的「間隔」(k) 來選取樣本。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">名冊中有3000位案主，研究需要300人。計算 k = 3000/300 = 10。隨機選一個1到10之間的數字（例如：7）當起點，然後選取第7、17、27、37...位案主。</p>
+                        <p class="text-sm mt-2 text-gray-600"><strong>限制</strong>：如果名冊本身有「週期性」規律（例如：名單是夫妻交錯排列），可能會導致樣本產生系統性偏差。</p>
+                    </div>
+
+                    <!-- Type 3: Stratified -->
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">3. 分層抽樣 (Stratified Sampling)</h3>
+                        <p class="mb-4">先將母體依照「重要特徵」（如性別、年級、服務類型）分成數個「層」(Strata)，層與層之間互斥（組間異質）。然後，再從「每一層」中隨機抽出一定比例的樣本。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">研究機構案主的滿意度。先將案主分為「兒少服務」、「長者服務」、「家庭服務」三層。然後「從這三層中，各自」隨機抽取30%的案主進行調查。這能確保三種服務類型的案主都被充分代表。</p>
+                    </div>
+                    
+                    <!-- Type 4: Cluster -->
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">4. 部落抽樣 (Cluster Sampling)</h3>
+                        <p class="mb-4">當母體非常分散時使用。先將母體分成數個「部落」(Cluster)（通常是地理區域，如里、鄰、學校），部落內部是異質的。然後「隨機抽取數個部落」，並調查「部落中所有」的成員。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">研究「台北市」國中生的霸凌情況。先取得台北市所有國中的名單（每一所學校是一個部落）。隨機抽出10所國中。然後「普查」這10所國中的所有學生。</p>
+                    </div>
+                    
+                    <!-- Viz Comparison -->
+                    <div class="border rounded-lg p-6 shadow-sm bg-blue-50">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4 text-center">視覺化比較：四種機率抽樣</h3>
+                        <div class="sampling-viz">
+                            
+                            <!-- Simple Random Viz -->
+                            <div class="viz-box">
+                                <div class="viz-title">1. 簡單隨機抽樣</div>
+                                <div class="viz-population">
+                                    <div class="viz-pop-unit"></div><div class="viz-pop-unit selected-random"></div><div class="viz-pop-unit"></div><div class="viz-pop-unit"></div><div class="viz-pop-unit selected-random"></div>
+                                    <div class="viz-pop-unit"></div><div class="viz-pop-unit"></div><div class="viz-pop-unit"></div><div class="viz-pop-unit selected-random"></div><div class="viz-pop-unit"></div>
+                                    <div class="viz-pop-unit selected-random"></div><div class="viz-pop-unit"></div><div class="viz-pop-unit"></div><div class="viz-pop-unit"></div><div class="viz-pop-unit"></div>
+                                    <div class="viz-pop-unit"></div><div class="viz-pop-unit"></div><div class="viz-pop-unit selected-random"></div><div class="viz-pop-unit"></div><div class="viz-pop-unit selected-random"></div>
+                                    <div class="viz-pop-unit"></div><div class="viz-pop-unit"></div><div class="viz-pop-unit"></div><div class="viz-pop-unit selected-random"></div><div class="viz-pop-unit"></div>
+                                </div>
+                                <div class="viz-description">從全體中隨機抽籤。</div>
+                            </div>
+                            
+                            <!-- Systematic Viz -->
+                            <div class="viz-box">
+                                <div class="viz-title">2. 系統抽樣</div>
+                                <div class="viz-population">
+                                    <div class="viz-pop-unit"></div><div class="viz-pop-unit"></div><div class="viz-pop-unit selected-systematic"></div><div class="viz-pop-unit"></div><div class="viz-pop-unit"></div>
+                                    <div class="viz-pop-unit selected-systematic"></div><div class="viz-pop-unit"></div><div class="viz-pop-unit"></div><div class="viz-pop-unit selected-systematic"></div><div class="viz-pop-unit"></div>
+                                    <div class="viz-pop-unit"></div><div class="viz-pop-unit selected-systematic"></div><div class="viz-pop-unit"></div><div class="viz-pop-unit"></div><div class="viz-pop-unit selected-systematic"></div>
+                                    <div class="viz-pop-unit"></div><div class="viz-pop-unit"></div><div class="viz-pop-unit selected-systematic"></div><div class="viz-pop-unit"></div><div class="viz-pop-unit"></div>
+                                    <div class="viz-pop-unit selected-systematic"></div><div class="viz-pop-unit"></div><div class="viz-pop-unit"></div><div class="viz-pop-unit selected-systematic"></div><div class="viz-pop-unit"></div>
+                                </div>
+                                <div class="viz-description">隨機起點，固定間隔 (k=3)。</div>
+                            </div>
+
+                            <!-- Stratified Viz -->
+                            <div class="viz-box">
+                                <div class="viz-title">3. 分層抽樣</div>
+                                <div class="viz-population-stratified">
+                                    <div class="viz-stratum">
+                                        <div class="viz-pop-unit selected"></div><div class="viz-pop-unit"></div><div class="viz-pop-unit selected"></div><div class="viz-pop-unit"></div>
+                                    </div>
+                                    <div class="viz-stratum" style="border-color: #10b981; background: #f0fdf4;">
+                                        <div class="viz-pop-unit" style="background: #a7f3d0;"></div><div class="viz-pop-unit selected" style="background: #10b981;"></div><div class="viz-pop-unit" style="background: #a7f3d0;"></div><div class="viz-pop-unit selected" style="background: #10b981;"></div>
+                                    </div>
+                                    <div class="viz-stratum" style="border-color: #60a5fa; background: #eff6ff;">
+                                        <div class="viz-pop-unit" style="background: #bfdbfe;"></div><div class="viz-pop-unit selected" style="background: #3b82f6;"></div><div class="viz-pop-unit" style="background: #bfdbfe;"></div><div class="viz-pop-unit selected" style="background: #3b82f6;"></div>
+                                    </div>
+                                </div>
+                                <div class="viz-description">先分層，再從「每一層」中都抽出樣本。</div>
+                            </div>
+                            
+                            <!-- Cluster Viz -->
+                            <div class="viz-box">
+                                <div class="viz-title">4. 部落抽樣</div>
+                                <div class="viz-population-cluster">
+                                    <div class="viz-cluster selected-cluster">
+                                        <div class="viz-pop-unit"></div><div class="viz-pop-unit"></div>
+                                        <div class="viz-pop-unit"></div><div class="viz-pop-unit"></div>
+                                    </div>
+                                    <div class="viz-cluster">
+                                        <div class="viz-pop-unit"></div><div class="viz-pop-unit"></div>
+                                        <div class="viz-pop-unit"></div><div class="viz-pop-unit"></div>
+                                    </div>
+                                    <div class="viz-cluster">
+                                        <div class="viz-pop-unit"></div><div class="viz-pop-unit"></div>
+                                        <div class="viz-pop-unit"></div><div class="viz-pop-unit"></div>
+                                    </div>
+                                    <div class="viz-cluster selected-cluster">
+                                        <div class="viz-pop-unit"></div><div class="viz-pop-unit"></div>
+                                        <div class="viz-pop-unit"></div><div class="viz-pop-unit"></div>
+                                    </div>
+                                </div>
+                                <div class="viz-description">隨機抽「整包部落」，再普查部落內所有人。</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quiz -->
+                <div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：機率抽樣類型</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：研究者想了解某大型機構的員工（共5000人）對新政策的看法。他先將員工依「部門」分為：行政部、社工部、方案部、財務部。</p>
+                        <p class="mb-4">然後，他從這四個部門中「各自」隨機抽取20%的員工進行訪問。這屬於哪種抽樣？</p>
+                        
+                        <div id="quiz-prob" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-prob', 0, 1)">A. 簡單隨機抽樣</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-prob', 1, 1)">B. 分層抽樣</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-prob', 2, 1)">C. 部落抽樣</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-prob', 3, 1)">D. 系統抽樣</button>
+                        </div>
+                        <div id="quiz-prob-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section: 非機率抽樣類型 -->
+            <section id="nonprob_types" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">🚶 非機率抽樣類型</h2>
+                <p class="mb-6">非機率抽樣不依賴隨機，而是基於方便性、研究者判斷或特定目的。這類抽樣「無法」科學地推論到母體，但常用於質性研究或探索性研究。</p>
+                
+                <div class="grid md:grid-cols-2 gap-6">
+                    <!-- Type 1: Convenience -->
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">1. 方便抽樣 (Convenience Sampling)</h3>
+                        <p class="mb-4">研究者選取「最容易接觸到」的對象。這是最省力但代表性也最低的方法。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">社工想了解民眾對某項社會福利的看法，於是在機構門口訪問「剛好走進來」的前50位民眾。</p>
+                    </div>
+
+                    <!-- Type 2: Purposive -->
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">2. 立意抽樣 (Purposive Sampling)</h3>
+                        <p class="mb-4">研究者使用其「專業判斷」，刻意挑選最符合研究目的、資訊最豐富的「特定人士」。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">研究「資深社工如何應對職業倦怠」。研究者刻意只去訪談那些「服務年資超過15年」且「仍在第一線」的社工。</p>
+                    </div>
+
+                    <!-- Type 3: Snowball -->
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">3. 雪球抽樣 (Snowball Sampling)</h3>
+                        <p class="mb-4">適用於「隱藏性」或「難以接觸」的群體。研究者先找到少數幾位受訪者，再請他們轉介認識的其他符合條件者，像滾雪球一樣。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">研究「無證移工」在台灣的生活適應。研究者透過NGO找到2位受訪者，訪談結束後，請他們協助介紹其他也願意受訪的同鄉。</p>
+                    </div>
+
+                    <!-- Type 4: Quota -->
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">4. 配額抽樣 (Quota Sampling)</h3>
+                        <p class="mb-4">非機率版本的「分層抽樣」。研究者先設定好不同特徵群體（如：男/女、老/中/青）的「配額」，然後用「方便抽樣」的方式在街上填滿這些配額。</p>
+                        <p class="font-medium">社工範例：</p>
+                        <p class="bg-gray-50 p-3 rounded border">研究者想訪問100位民眾，設定配額為「50位男性、50位女性」。於是他在公園「隨意」訪問，直到訪滿50位男性與50位女性為止。</p>
+                    </div>
+                </div>
+
+                <!-- Quiz -->
+                <div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：非機率抽樣類型</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：一位研究者想了解「青少年藥物濫用者」的經驗。由於這是一個隱藏群體，他透過中途之家找到一位受訪者，並在訪談後請他轉介其他朋友。</p>
+                        <p class="mb-4">這種「一個拉一個」的抽樣方式稱為什麼？</p>
+                        
+                        <div id="quiz-nonprob" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-nonprob', 0, 2)">A. 立意抽樣</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-nonprob', 1, 2)">B. 方便抽樣</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-nonprob', 2, 2)">C. 雪球抽樣</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-nonprob', 3, 2)">D. 配額抽樣</button>
+                        </div>
+                        <div id="quiz-nonprob-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section: 比較 -->
+            <section id="comparison" class="content-section bg-white p-6 rounded-lg shadow-sm">
+                <h2 class="text-2xl font-bold text-blue-700 mb-6">⚖️ 機率 vs 非機率抽樣比較</h2>
+                <p class="mb-4">沒有「最好」的抽樣方法，只有「最適合」研究目的的方法。以下是兩大類抽樣的關鍵差異：</p>
+                
+                <div class="overflow-x-auto">
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>比較面向</th>
+                                <th class="text-blue-600">機率抽樣 (Probability)</th>
+                                <th class="text-gray-700">非機率抽樣 (Non-probability)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>核心原則</strong></td>
+                                <td class="text-blue-600">隨機 (Randomness)</td>
+                                <td class="text-gray-700">方便 (Convenience) 或 立意 (Purpose)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>被抽中機率</strong></td>
+                                <td class="text-blue-600">已知，且不為零</td>
+                                <td class="text-gray-700">未知，或為零</td>
+                            </tr>
+                            <tr>
+                                <td><strong>抽樣誤差</strong></td>
+                                <td class="text-blue-600">可科學估計</td>
+                                <td class="text-gray-700">無法估計</td>
+                            </tr>
+                            <tr>
+                                <td><strong>結果推論性</strong></td>
+                                <td class="text-blue-600"><strong>可</strong>推論至母體 (具代表性)</td>
+                                <td class="text-gray-700"><strong>不可</strong>推論至母體 (不具代表性)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>主要研究目的</strong></td>
+                                <td class="text-blue-600">驗證性研究、量化研究</td>
+                                <td class="text-gray-700">探索性研究、質性研究</td>
+                            </tr>
+                            <tr>
+                                <td><strong>成本與時間</strong></td>
+                                <td class="text-blue-600">通常較高、較耗時</td>
+                                <td class="text-gray-700">通常較低、較快速</td>
+                            </tr>
+                            <tr>
+                                <td><strong>需要抽樣架構？</strong></td>
+                                <td class="text-blue-600"><strong>是</strong> (大多情況)</td>
+                                <td class="text-gray-700"><strong>否</strong></td>
+                            </tr>
+                            <tr>
+                                <td><strong>範例</strong></td>
+                                <td class="text-blue-600">分層抽樣、部落抽樣</td>
+                                <td class="text-gray-700">方便抽樣、雪球抽樣</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Quiz -->
+                <div class="mt-8 pt-6 border-t-2 border-blue-100">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">📚 隨堂測驗：綜合比較</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-medium mb-3">情境：如果一份研究的主要目的是希望將研究結果「推論到全國的母體」，並且「科學地估計誤差範圍」。</p>
+                        <p class="mb-4">研究者「最應該」選擇哪一類型的抽樣方法？</p>
+                        
+                        <div id="quiz-comparison" class="space-y-2">
+                            <button class="quiz-option" onclick="checkQuiz('quiz-comparison', 0, 0)">A. 機率抽樣</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-comparison', 1, 0)">B. 非機率抽樣</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-comparison', 2, 0)">C. 質性抽樣</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-comparison', 3, 0)">D. 方便抽樣</button>
+                        </div>
+                        <div id="quiz-comparison-feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Overlay for mobile menu -->
+    <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden" onclick="toggleMenu(false)"></div>
+
+
+    <script>
+        const sections = document.querySelectorAll('.content-section');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const closeMenuButton = document.getElementById('close-menu-button');
+
+        function showSection(sectionId) {
+            sections.forEach(section => {
+                if (section.id === sectionId) {
+                    section.classList.add('active');
+                } else {
+                    section.classList.remove('active');
+                }
+            });
+
+            navLinks.forEach(link => {
+                if (link.dataset.section === sectionId) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+
+            // Auto-scroll to top of content on section change
+            document.querySelector('.md\\:w-3\\/4')?.scrollTo(0, 0);
+            
+            // Close mobile menu on navigation
+            if (window.innerWidth < 768) {
+                toggleMenu(false);
+            }
+        }
+
+        function toggleMenu(show) {
+            if (show) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const sectionId = e.target.closest('a').dataset.section;
+                showSection(sectionId);
+                // Update URL hash for better history (optional)
+                window.location.hash = e.target.closest('a').getAttribute('href');
+            });
+        });
+
+        mobileMenuButton.addEventListener('click', () => toggleMenu(true));
+        closeMenuButton.addEventListener('click', () => toggleMenu(false));
+        overlay.addEventListener('click', () => toggleMenu(false));
+
+        // Handle page load with hash
+        document.addEventListener('DOMContentLoaded', () => {
+            const hash = window.location.hash;
+            if (hash) {
+                const sectionId = hash.substring(1);
+                const sectionElement = document.getElementById(sectionId);
+                if (sectionElement) {
+                    showSection(sectionId);
+                } else {
+                    showSection('intro');
+                }
+            } else {
+                showSection('intro');
+            }
+        });
+
+        // --- Quiz Logic ---
+        const quizAnswers = {
+            'quiz-frame': {
+                correctIndex: 1,
+                responses: [
+                    "不正確。母體是「理論上」的全體，是抽象的；這份名冊是「具體」的。",
+                    "答對了！抽樣架構是執行抽樣所依據的具體名冊。",
+                    "不正確。樣本是從這份名冊中「被抽出」的那群人。",
+                    "不正確。部落是一種抽樣「方法」，不是名冊。"
+                ]
+            },
+            'quiz-error': {
+                correctIndex: 2,
+                responses: [
+                    "不正確。抽樣誤差是隨機抽樣的自然結果，不是計算錯誤。",
+                    "不正確。涵蓋誤差是「抽樣架構」不等於「母體」時發生的。",
+                    "答對了！樣本統計值(8.5)與母體參數(8.2)之間的自然差距，稱為抽樣誤差。",
+                    "不正確。這份研究是抽樣研究，抽樣誤差是核心概念。"
+                ]
+            },
+            'quiz-prob': {
+                correctIndex: 1,
+                responses: [
+                    "不正確。簡單隨機抽樣是從「全體」中一次抽出，不會先分類。",
+                    "答對了！先將母體依特徵分成數「層」(部門)，再從「每一層」都抽出樣本，這是分層抽樣。",
+                    "不正確。部落抽樣是隨機抽「其中幾個」部落(部門)，然後「普查」被抽中的部門。",
+                    "不正確。系統抽樣是依固定「間隔」(k) 抽樣。"
+                ]
+            },
+            'quiz-nonprob': {
+                correctIndex: 2,
+                responses: [
+                    "不正確。立意抽樣是研究者「刻意挑選」特定人士，而非轉介。",
+                    "不正確。方便抽樣是找「最容易接觸」的，但也非轉介。",
+                    "答對了！利用受訪者轉介受訪者，像滾雪球般擴大樣本，適用於隱藏群體。",
+                    "不正確。配額抽樣是設定好不同群體的「人數」，然後用方便抽樣填滿。"
+                ]
+            },
+            'quiz-comparison': {
+                correctIndex: 0,
+                responses: [
+                    "答對了！只有機率抽樣才能將結果科學地推論至母體，並估計抽樣誤差。",
+                    "不正確。非機率抽樣的結果不能推論至母體。",
+                    "不正確。質性抽樣通常使用非機率抽樣，目的在於深度理解而非推論。",
+                    "不正確。方便抽樣是非機K率抽樣的一種，代表性最低。"
+                ]
+            }
+        };
+
+        function checkQuiz(quizId, selectedIndex, correctIndex) {
+            // If quizAnswers object is defined, use it.
+            if (quizAnswers[quizId]) {
+                correctIndex = quizAnswers[quizId].correctIndex;
+            }
+
+            const feedbackEl = document.getElementById(`${quizId}-feedback`);
+            const options = document.getElementById(quizId).getElementsByClassName('quiz-option');
+            
+            // Reset styles
+            for (let i = 0; i < options.length; i++) {
+                options[i].classList.remove('bg-green-200', 'border-green-400', 'bg-red-200', 'border-red-400');
+                options[i].disabled = true;
+            }
+
+            if (selectedIndex === correctIndex) {
+                feedbackEl.textContent = quizAnswers[quizId].responses[selectedIndex];
+                feedbackEl.className = 'quiz-feedback correct';
+                options[selectedIndex].classList.add('bg-green-200', 'border-green-400');
+            } else {
+                feedbackEl.textContent = quizAnswers[quizId].responses[selectedIndex];
+                feedbackEl.className = 'quiz-feedback incorrect';
+                options[selectedIndex].classList.add('bg-red-200', 'border-red-400');
+                // Highlight correct answer
+                options[correctIndex].classList.add('bg-green-200', 'border-green-400');
+            }
+        }
+
+    </script>
+</body>
+</html>
+
