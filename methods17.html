@@ -644,15 +644,15 @@
                 <ol class="list-decimal list-inside ml-4 space-y-2">
                     <li><strong>建立假設</strong>：
                         <ul>
-                            <li><strong>虛無假設 (虛無假設)</strong>：宣稱「沒有差異」、「沒有效果」、「沒有關係」。（例：新方案「無效」）</li>
-                            <li><strong>對立假設 ($H_1$)</strong>：宣稱「有差異」、「有效果」、「有關係」。（例：新方案「有效」）</li>
+                            <li><strong>虛無假設 (H0)</strong>：宣稱「沒有差異」、「沒有效果」、「沒有關係」。（例：新方案「無效」）</li>
+                            <li><strong>對立假設 (H1)</strong>：宣稱「有差異」、「有效果」、「有關係」。（例：新方案「有效」）</li>
                         </ul>
                     </li>
                     <li><strong>設定顯著水準 (α值)</strong>：我們「願意承擔的風險」（犯 Type I 錯誤的機率）。在社會科學中，α值 通常訂為 <strong>0.05</strong> (或 5%)。</li>
                     <li><strong>計算 p-value</strong>：p-value 是「假設 虛無假設 為真時，我們觀測到『目前樣本結果』或『更極端結果』的機率」。</li>
                     <li><strong>做出決策</strong>：
                         <ul>
-                            <li>如果 <strong>p < α值</strong> (p < .05)：代表 虛無假設 為真的情況下，觀測到此結果的機率「非常低」（太巧了）。因此我們「<strong>拒絕 虛無假設</strong>」，接受 $H_1$，稱為「<strong>統計顯著</strong>」。</li>
+                            <li>如果 <strong>p < α值</strong> (p < .05)：代表 虛無假設H0 為真的情況下，觀測到此結果的機率「非常低」（太巧了）。因此我們「<strong>拒絕 虛無假設H0</strong>」，接受 對立假設H1，稱為「<strong>統計顯著</strong>」。</li>
                             <li>如果 <strong>p > α值</strong> (p > .05)：代表這個結果「很可能」只是抽樣偶然，我們「<strong>無法拒絕 虛無假設</strong>」，稱為「<strong>統計不顯著</strong>」。</li>
                         </ul>
                     </li>
@@ -664,18 +664,18 @@
                         <thead>
                             <tr>
                                 <th></th>
-                                <th>母群體真實情況：虛無假設 為真 (方案無效)</th>
-                                <th>母群體真實情況：虛無假設 為偽 (方案有效)</th>
+                                <th>母群體真實情況：虛無假設H0 為真 (方案無效)</th>
+                                <th>母群體真實情況：虛無假設H0 為偽 (方案有效)</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td><strong>研究決策：<br>拒絕 虛無假設 (宣稱有效)</strong></td>
+                                <td><strong>研究決策：<br>拒絕 虛無假設H0 (宣稱有效)</strong></td>
                                 <td class="bg-red-100 text-red-800"><strong>Type I 錯誤 ( α值 )</strong><br>(偽陽性：沒效的說有效)</td>
                                 <td class="bg-green-100 text-green-800"><strong>正確決策</strong><br>(抓到了！)</td>
                             </tr>
                             <tr>
-                                <td><strong>研究決策：<br>無法拒絕 虛無假設 (宣稱無效)</strong></td>
+                                <td><strong>研究決策：<br>無法拒絕 虛無假設H0 (宣稱無效)</strong></td>
                                 <td class="bg-green-100 text-green-800"><strong>正確決策</strong><br>(沒錯！)</td>
                                 <td class="bg-yellow-100 text-yellow-800"><strong>Type II 錯誤 ( β值 )</strong><br>(偽陰性：有效的說沒效)</td>
                             </tr>
@@ -690,8 +690,8 @@
                         <p class="mb-4">根據 (p < α值) 的原則，他應該做出什麼決策？</p>
                         
                         <div id="quiz-hypothesis-testing" class="space-y-2">
-                            <button class="quiz-option" onclick="checkQuiz('quiz-hypothesis-testing', 0, 0)">A. 拒絕 虛無假設，結論是方案「有效」（統計顯著）。</button>
-                            <button class="quiz-option" onclick="checkQuiz('quiz-hypothesis-testing', 1, 0)">B. 無法拒絕 虛無假設，結論是方案「無效」（統計不顯著）。</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-hypothesis-testing', 0, 0)">A. 拒絕 虛無假設H0，結論是方案「有效」（統計顯著）。</button>
+                            <button class="quiz-option" onclick="checkQuiz('quiz-hypothesis-testing', 1, 0)">B. 無法拒絕 虛無假設H0，結論是方案「無效」（統計不顯著）。</button>
                             <button class="quiz-option" onclick="checkQuiz('quiz-hypothesis-testing', 2, 0)">C. 犯了 Type I 錯誤。</button>
                             <button class="quiz-option" onclick="checkQuiz('quiz-hypothesis-testing', 3, 0)">D. 犯了 Type II 錯誤。</button>
                         </div>
@@ -708,7 +708,7 @@
                     <div class="border rounded-lg p-4 shadow-sm">
                         <h3 class="text-lg font-semibold text-gray-900 mb-3">1. 獨立樣本 t 檢定 (Independent-Samples)</h3>
                         <p class="mb-4"><strong>目的</strong>：比較「兩個不同」的組別（獨立樣本），在「同一個」依變項上的平均數差異。</p>
-                        <p class="mb-4"><strong>假設 虛無假設</strong>：$\mu₁ = \mu₂$ (兩組的母群體平均數相等)</p>
+                        <p class="mb-4"><strong>假設 虛無假設H0</strong>：$\mu₁ = \mu₂$ (兩組的母群體平均數相等)</p>
                         <p class="font-medium">社工範例：</p>
                         <p class="bg-gray-50 p-3 rounded border">
                             <strong>研究問題</strong>：比較「實驗組」（有接受方案）與「控制組」（未接受方案）的「期末」憂鬱分數平均值。<br>
@@ -720,7 +720,7 @@
                     <div class="border rounded-lg p-4 shadow-sm">
                         <h3 class="text-lg font-semibold text-gray-900 mb-3">2. 成對樣本 t 檢定 (Paired-Samples)</h3>
                         <p class="mb-4"><strong>目的</strong>：比較「同一個」組別（成對樣本），在「兩個不同時間點」或「兩種不同情境」下的平均數差異。</p>
-                        <p class="mb-4"><strong>假設 虛無假設</strong>：$\mu_{\text{before}} = \mu_{\text{after}}$ (前測與後測的母群體平均數相等)</p>
+                        <p class="mb-4"><strong>假設 虛無假設H0</strong>：$\mu_{\text{before}} = \mu_{\text{after}}$ (前測與後測的母群體平均數相等)</p>
                         <p class="font-medium">社工範例：</p>
                         <p class="bg-gray-50 p-3 rounded border">
                             <strong>研究問題</strong>：評估一個方案是否有效，比較「同一群」案主在「介入前」(O₁) 與「介入後」(O₂) 的憂鬱分數平均值。<br>
