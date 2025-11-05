@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>社會工作研究方法(二) 題庫測驗</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Include jsPDF and html2canvas for PDF export functionality -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles for the macaron color theme and overall look */
+        body {
+            background-color: #FEFBF6; /* Creamy background */
+            font-family: 'Noto Sans TC', sans-serif;
+            color: #5C5470; /* Muted purple text */
+        }
+        .macaron-card {
+            background-color: #FAF0E4; /* Soft peach card */
+            border: 1px solid #E4D5C7;
+        }
+        .macaron-btn {
+            background-color: #B2D8B2; /* Pistachio green */
+            color: #354F52;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        .macaron-btn:hover {
+            background-color: #A1C7A1; /* Darker pistachio */
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .macaron-option {
+            background-color: #FFFFFF;
+            border: 2px solid #EAD7D7; /* Soft pink border */
+            transition: all 0.3s ease;
+        }
+        .macaron-option:hover {
+            border-color: #B2D8B2; /* Pistachio green on hover */
+            background-color: #F7FDF7;
+        }
+        .macaron-option input:checked + label {
+            border-color: #79A379;
+            background-color: #E9F5E9;
+            font-weight: 500;
+        }
+        .correct-answer {
+            background-color: #D4EDDA !important; /* Light green for correct */
+            border-color: #C3E6CB !important;
+        }
+        .incorrect-answer {
+            background-color: #F8D7DA !important; /* Light red for incorrect */
+            border-color: #F5C6CB !important;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <div id="app-container" class="w-full max-w-4xl mx-auto">
+        <!-- Start Screen: Visible by default -->
+        <div id="start-screen" class="text-center p-8 sm:p-12 macaron-card rounded-2xl shadow-lg">
+            <h1 class="text-4xl sm:text-5xl font-bold mb-2 text-[#354F52]">社會工作研究方法(二)</h1>
+            <p class="text-lg sm:text-xl mb-8 text-[#5C5470]">(從總題庫抽出120題)</p>
+            <p class="text-xl mb-6">請選擇測驗題數：</p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <button onclick="startQuiz(5)" class="macaron-btn text-2xl py-4 px-10 rounded-full shadow-md">5 題</button>
+                <button onclick="startQuiz(10)" class="macaron-btn text-2xl py-4 px-10 rounded-full shadow-md">10 題</button>
+            </div>
+        </div>
+
+        <!-- Quiz Screen: Hidden by default -->
+        <div id="quiz-screen" class="hidden p-6 sm:p-10 macaron-card rounded-2xl shadow-lg">
+            <div class="flex justify-between items-center mb-6">
+                <div id="progress" class="text-xl font-bold">第 1 / 10 題</div>
+                <div id="timer" class="text-2xl font-bold text-[#354F52]">00:00</div>
+            </div>
+            <div id="question-container" class="mb-8">
+                <h2 id="question-text" class="text-2xl sm:text-3xl font-semibold mb-2"></h2>
+                <p id="question-source" class="text-sm text-gray-500 mb-6"></p>
+                <div id="options-container" class="space-y-4"></div>
+            </div>
+            <div class="flex justify-between mt-8">
+                <button id="prev-btn" onclick="prevQuestion()" class="macaron-btn text-lg py-3 px-8 rounded-full">上一頁</button>
+                <button id="next-btn" onclick="nextQuestion()" class="macaron-btn text-lg py-3 px-8 rounded-full">下一頁</button>
+                <button id="submit-btn" onclick="submitQuiz()" class="hidden macaron-btn text-lg bg-[#E8A0A0] hover:bg-[#D78F8F] text-white py-3 px-8 rounded-full">繳交</button>
+            </div>
+        </div>
+
+        <!-- Results Screen: Hidden by default -->
+        <div id="results-screen" class="hidden p-6 sm:p-10 macaron-card rounded-2xl shadow-lg">
+            <div id="summary-section" class="text-center mb-8">
+                <h2 class="text-4xl font-bold mb-4">測驗完成！</h2>
+                <p id="score" class="text-3xl mb-2"></p>
+                <p id="time-taken" class="text-xl mb-6"></p>
+                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <button onclick="downloadResults('pdf')" class="macaron-btn text-lg py-3 px-6 rounded-full">下載 PDF</button>
+                    <button onclick="downloadResults('csv')" class="macaron-btn text-lg py-3 px-6 rounded-full">下載 CSV</button>
+                    <button onclick="window.location.reload()" class="macaron-btn text-lg py-3 px-6 rounded-full">再測一次</button>
+                </div>
+            </div>
+            <div id="details-section" class="space-y-6">
+                <!-- Detailed results will be injected here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // The entire application logic is contained within this script tag.
+        
+        const rawData = `
+1,下列何者是「單案研究設計」(single subject research design)在實務上最常使用到的類型？(101㊁20),⑴AB設計法,⑵ABAB設計法,⑶多重基線設計,⑷多重組合設計
+3,某社會工作師規劃兒童暑期活動方案，結束後進行評估研究以了解兒童行為改變狀況，下列何者正確？(110㊁14),⑴兒童需求評估,⑵活動過程評估,⑶活動成果評估,⑷形成性評估
+2,研究過程中，經常會有「誤差」(error)產生，當我們測量的事物沒有隨時間改變，但我們的測量結果卻有不一致的情形，也可能是測量前後不一致所產生的誤差。請問這種誤差稱為下列那一項？(97_11),⑴社會期望誤差,⑵隨機誤差,⑶樣本誤差,⑷系統誤差
+3,相關敘述如下：①測量進行愈多次，測量出來的趨勢愈穩定②採時間序列設計模式③針對目標問題進行重複測量④基線(baseline)階段，介入之前重複測量的階段，類似控制組⑤介入階段類似實驗組○6介入前後若有改變即是介入之影響○7不可能有巧合發生。請問上列的敘述，指的是那一種研究設計模式？(98_29),⑴拆解性研究設計,⑵分裂效果研究設計,⑶單案研究設計,⑷交換重複測量設計
+3,兩個變項間存在因果關係的條件，不包括下列何項？(109㊀6),⑴非虛假關係,⑵時間先後順序,⑶互為因果,⑷二者有相關
+2,設計問卷時，研究者事先擬好既定的選項，以提供受訪者自行填寫的答案，這種問卷的題型是屬於那一種？(105㊀36),⑴開放式封閉題型,⑵封閉式題型,⑶封閉式開放題型,⑷開放式題型
+2,預試(pre-testing)是問卷設計的常見步驟，下列有關預試的說法何者錯誤？(109㊀30),⑴參加預試的人不應再成為正式施測的受訪者,⑵預試樣本數以百人以上為佳,⑶預試樣本的特質應該要與預定研究對象相似,⑷預試有助於確保問卷工具的品質
+1,下列抽樣方式，何者未採隨機抽樣的原則？(107㊁27),⑴立意抽樣(purposive sampling),⑵系統化隨機抽樣(systematic random sampling),⑶集群隨機抽樣(cluster random sampling),⑷簡單隨機抽樣(simple random sampling)
+1,下列何者非為影響內在效度的因素？(91_22),⑴霍桑效應 (Hawthorne effect),⑵選取偏差 (selection biases),⑶統計迴歸 (statistical regression),⑷經歷事件 (history)
+4,“您覺得像中、低收入戶這樣的家庭，是否真的能夠解決其親子問題嗎？＂此問句最主要之缺失在於：(91_15),⑴同時問了一個以上之問題,⑵問題過份冗長,⑶使用了雙重否定之問法,⑷使用誘導式之問句
+4,研究者想研究新移民婦女社會適應的程度，透過接受訪問的新移民婦女介紹其認識的其他新移民婦女以選取研究對象，這是屬於何種抽樣方法？(107㊀20),⑴立意抽樣,⑵叢聚抽樣,⑶配額抽樣,⑷滾雪球抽樣
+1,下列關於抽樣(sampling)方法的敘述，何者錯誤？(101㊁27),⑴配額抽樣(quota sampling)是一種隨機( random)抽樣的方法,⑵不同的隨機抽樣方法結合在一起，還是隨機抽樣,⑶立意抽樣(purposive sampling)是最常見的質性研究抽樣方法,⑷當有效樣本數在各層的比例與母體差距頗大時，可用加權(weighting)的方式來處理
+2,假想某研究者正在進行某直轄市的「老人生活狀況調查」，下列何種方法最能精準地反映出該市老人的生活狀況？(105㊁32),⑴寄發網路問卷，並以滾雪球的方式請受訪者將此問卷轉寄給認識者，轉寄越多獲獎越大,⑵按戶籍名冊以「按數量成比例的機率抽樣法(簡稱PPS)」抽出受訪者並進行面訪,⑶隨機抽出市內的30個里，針對這30個里的全體里民發放問卷施測,⑷請工讀生在市內的各醫療院所及大賣場針對看病或購物的民眾進行面對面的訪問
+2,如受試者發現自己被研究，可能會刻意改變行為，如此會影響研究的效度。請問下列那種實驗設計能克服此種威脅？(108㊁29),⑴單組前後測設計(one group pretest-posttest design),⑵時間序列設計(time series design),⑶對照組前後測設計(pretest-posttest comparison group design),⑷實驗組後測設計(posttest-only experimental group design)
+2,有關問卷的結構，下列敘述何者錯誤？(112㊀22),⑴問卷題次的安排，較容易回答的題項通常置於前面,⑵基本資料通常是屬自變項，無論如何一定要放在問卷前面,⑶問卷通常以問候與說明開始，必要時附上研究主持人簽名以減少受訪者的疑慮,⑷問卷內容會有不同單元，單元之間研究者須做指示說明，以利受訪者作答
+3,下述那個敘述不是質性研究取樣時的思維或特徵？(106㊀14),⑴隨著研究過程逐步浮現取樣方式,⑵常使用立意取樣,⑶強調樣本與母體間要有一致性,⑷選取的樣本要能提供研究豐富的資訊
+1,研究者設計的問卷問項可以正確測量出所欲測量概念的程度，是指問卷問項具備：(107㊀15),⑴效度,⑵敏感度,⑶區辨度,⑷信度
+3,方案評鑑中結合量性和質性方法，似乎已成為一種趨勢，可見諸許多社會福利服務方案的評鑑，下列何者是質化方法較能夠發揮的長處？①方案有無成效②方案有無成效的實務過程③方案面臨困境的改善方法④方案的成本效益(98_27),⑴①②,⑵①③,⑶②③,⑷③④
+2,下列那一種抽樣設計可能產生較大的抽樣誤差？(113㊀22),⑴簡單隨機抽樣,⑵立意抽樣,⑶等比例隨機抽樣法,⑷叢集隨機抽樣法
+3,研究者要測量「請問你對於政府施政的滿意度如何」，問卷設計的選項那一種是有問題的？(94_33),⑴1.不滿意2.普通3.滿意,⑵1.非常不滿意2.不滿意3.普通4.滿意5.非常滿意,⑶1.很滿意2.滿意3.還可以4.普通5.不滿意,⑷1.非常不滿意2.不滿意3.滿意5.非常滿意
+2,在實驗設計前進行隨機分配，不能排除下列那一項威脅？(108㊁22),⑴成熟,⑵自暴自棄,⑶統計迴歸,⑷樣本偏誤
+3,下列四項有關隨機誤差 (random error) 之敘述中，何者為真？①具有特定之型態，總是偏高或偏低②一般而言，正、負誤差會相互抵消③較易影響效度而非信度④當樣本數增加時，隨機誤差會減少(91_39),⑴①②③,⑵①③,⑶②④,⑷②③④
+4,某研究者發現社區居民需求評量的量表中「社會融合」這項構面的 Cronbach’s α 值為 0.82。這意味著：(100_11),⑴這份量表的內容效度高，它可以真正測到社會融合這個構面,⑵這份量表的受測者在填答社會融合這個構面的不同題項時，它有著高度差異的反應,⑶這份量表中社會融合構面的建構效度高，它表示其中各個項目間具有高度的一致性,⑷這份量表在社會融合這項構面中的各個題項相關性高，它在信度上具有內在一致性
+3,研究中所發現的因果關係可概化或推論到研究以外的情境和母群體的程度，是指下列那種效度？(111㊀8),⑴內在效度,⑵同時效度,⑶外在效度,⑷建構效度
+1,關於單案研究設計的敘述，下列何者正確？(109㊁27),⑴單案研究基本上是偏向準實驗設計的研究方法,⑵單案研究設計被研究的對象只有一個人,⑶單案研究主要評量個案前後的變化，觀察項目不需操作化為可測量的變項,⑷單案研究設計對方案處置的前後只能做單一變項的比較
+1,下列有關因果模型之敘述，何者正確？①共變為因果關係之先決條件 ②實驗性研究設計旨在驗證因果關係 ③依變項在產生變化的時間順序上先於自變項 ④因果關係中的依變項與自變項應直接有關 ⑤在實驗性之研究設計中可明確擬定研究假設(99㊁35),⑴①②④⑤,⑵①②③④,⑶②③④⑤,⑷①②③⑤
+1,由於沒有測量方式可以避開偏誤，因此研究者會使用多種不同方法蒐集相同資料，確認是否得到類似的研究發現，是指下列何種方法？(105㊀19),⑴三角檢測法,⑵反覆法,⑶回溯檢視法,⑷正反驗證法
+1,某研究者將研究變項社會工作者的「畢業科系」分成社會工作系畢業、社會工作相關科系畢業與其他三類時，此一分類具有下列何種特質？(113㊀3),⑴既互斥又周延,⑵互斥但不周延,⑶周延但不互斥,⑷既不互斥又不周延
+1,社會工作介入(intervention)，就方案評估研究而言，是屬於：(90_32),⑴自變項,⑵依變項,⑶干擾變項,⑷不能控制的第三變項
+1,下列量化研究中決定樣本大小的敘述，何者正確？(100_10),⑴它可由「待分析變項數乘以統計程序所需每個變項之最小樣本數」所決定,⑵它可由「研究者所決定的抽樣間距(sampling interval)」所決定,⑶它可由「按數量成比例的機率抽樣(Probability Proportionate to Size Sampling，簡稱 PPS)」決定,⑷它可由「母群體越小、樣本就必需抽得越大」這項描述所決定
+4,有關抽樣架構(sampling frame)之敘述，下列何者錯誤？(108㊁15),⑴是被選取的研究元素名單,⑵抽樣架構中所有的元素都具有相同的代表性,⑶抽樣架構是進行隨機抽樣時重要的工具,⑷抽樣架構的元素一定等於母群體
+2,量化研究與質性研究有不同的抽樣方法取得研究樣本，下列那一抽樣方法較適合量化研究抽樣？(106㊁7),⑴配額抽樣,⑵系統抽樣,⑶理論抽樣,⑷滾雪球抽樣
+1,所有的社會工作研究者都希望研究的測量具有信度和效度，但很少有完美的信度。因此，在量化研究中如何改善信度，下列何者正確？①清楚界定所有概念②提升測量等級③使用多重的變項指標④使用前後測的比較(103㊁15),⑴123,⑵124,⑶134,⑷234
+2,在設計問卷時，研究者應該儘量避免題目使受試者產生誤解。下列對於問卷設計應該注意事項的敘述，何者錯誤？(104㊁16),⑴避免語意模糊、混淆,⑵一題二問方能使問卷控制在受試者可以接受的長度,⑶引導式問題應該儘量避免,⑷不要設計受訪者專業度無法回答的問題
+1,某社會工作師在長照 C 據點針對有輕度失智症長輩進行需求評估，下列何者沒有幫助？(110㊀32),⑴請家屬提供失智長輩年輕時的照片,⑵請社會工作師觀察失智長輩的失能行為,⑶請護理師提供失智長輩的用藥情形,⑷請照服員觀察失智長輩的生理機能
+3,針對調查研究進行問卷試測(pre-test)，下列敘述何者錯誤？(110㊀29),⑴有助了解研究對象對於題項的可能反應,⑵可以找出問卷中不清楚或難以理解的題項,⑶試測的人數應該與正式施測預定人數相同,⑷試測問卷填寫者不應納入正式調查的樣本
+4,有關抽樣架構，下列敘述何者正確？(111㊀15),⑴一定是等同於母體,⑵是蒐集資料的單位,⑶是抽樣過程中被選取的那個元素,⑷是所有元素的表列清單
+1,下列有關抽樣誤差(sampling error)的敘述，何者錯誤？(105㊁10),⑴抽樣誤差可分成處理誤差(processing error)與回應誤差(response error),⑵抽樣誤差是樣本統計量的值與相對應的母體參數值間的差異,⑶一般來說，「機率抽樣法」較「非機率抽樣法」的抽樣誤差小,⑷一般來說，抽取的樣本數越多，抽樣誤差愈小
+2,小典平時對身心障礙者常有不正確的看法，也常引起其他鄰居的不滿，今天恰巧在小典住家旁邊設置身心障礙庇護中心，訪員詢問小典是否贊成，小典擔心又引起其他鄰居的不滿，勉強回答贊成。請問這是那一種誤差？(102㊀32),⑴順從反應誤差,⑵社會期望誤差,⑶回答誤差,⑷文化誤差
+3,某機構想詢問有關案主宗教信仰的資料，列出「佛教、基督教、伊斯蘭教、天主教」四個項目請案主勾選，請問此舉最明顯的缺點可能是：(109㊀21),⑴易有社會期許問題,⑵選項過於籠統,⑶選項不周延,⑷未說明時間框架
+2,下列有關研究工具效度的敘述，何者錯誤？(103㊁14),⑴一份研究工具的「建構效度」是指測量工具符合某種理論與見解，建構效度可透過「趨同效度」(convergentvalidity)與「區別效度」(discriminantvalidity)加以測量,⑵一個研究測量工具的「表面效度」要比「內容效度」來得重要,⑶以同學們在「高中學科成績」作為申請進入大學的依據，如果這些學生在大學的表現與高中成績呈現高度的相關，可說高中學科成績具備「預測效度」,⑷信度與效度之間存在一種緊張的關係，當測量某一概念或變項時，某一種測量工具可能信度很好，但其效度不佳；也可能某一種測量工具效度很好，但其信度可能不佳
+1,下列何者是方案評估的研究問題？(94_31),⑴特殊境遇婦女家庭扶助條例對單親新貧婦女家庭生活保障的協助為何？,⑵社工師對社會役役男投入照顧性福利服務工作的看法為何？,⑶外籍配偶家庭子女照顧者之福利服務需求為何？,⑷影響少年偏差行為的社會因素為何？
+2,當樣本收集不易，所以請既有樣本介紹新的受訪者，再藉此擴散出去，此為何種抽樣方法？(92_20),⑴隨機抽樣,⑵滾雪球抽樣,⑶立意抽樣,⑷系統抽樣
+1,進行身心障礙者生活狀況調查時，針對較罕見的身心障礙類別，給予較高的抽選機率，以保證這些類別有充分的個案被選出，類別之間可以比較，下列敘述何者不正確？(98_6),⑴因為每個個體被選出的機率其實不等，不是機率樣本,⑵是一種非等比例分層抽樣,⑶進行母體參數估計時要注意各類別機率不等的權數調整,⑷抽樣機率不影響類別之間的比較
+4,下列何種抽樣方法所抽取出來的樣本最具有母體代表性？(109㊀14),⑴理論抽樣(theortical sampling),⑵滾雪球抽樣(snowball sampling),⑶深度抽樣(intensity sampling),⑷分層抽樣(stratified sampling)
+1,下列何者抽樣方法的抽樣結果代表性，最容易受到抽樣架構元素週期性排列影響？(108㊁16),⑴系統抽樣(systematic sampling),⑵叢集抽樣(cluster sampling),⑶配額抽樣(quota sampling),⑷簡單隨機抽樣(simple random sampling)
+4,下面那一種情況不適合用立意抽樣(purposive sampling)？(94_24),⑴研究者選擇特別能提供訊息的獨特個案,⑵研究者選取難以接近、屬性特殊的母群中的成員,⑶研究者想要確認個案類型，以便進行深入探究,⑷研究者選取具代表性個案，以推論母群的性質
+1,下列何者不是兩個變項之間具有因果關係的先決要件？(96_5),⑴兩個變項必須皆為連續變項,⑵兩個變項必須有共變關係,⑶兩個變項之變異性在時間上具有前後之順序,⑷兩個變項之間具有非虛擬的直接關係
+1,當有天災地變發生時，進行災難社會服務的研究，來瞭解受災民眾的社會心理問題與需求，採用那一種方式較為適切？(98特_44),⑴深度訪談法,⑵實驗研究法,⑶外在觀察法,⑷戶口普查法
+4,「你支持兩性工作平等的立法嗎？」這個問題設計可能引導下列那一種偏差性回答？(93_26),⑴威脅隱私性,⑵威脅和諧性,⑶利益敏感性,⑷社會期許性
+2,某社工想了解北部地區受聘在家中的外籍看護工照顧及生活適應的現況，他設計了一份網路問卷放到外籍移工常聯絡的群組或瀏覽的網站(Facebook或Line)上，讓在群組或網站看到此問卷的外籍看護工自由填寫。上述社工所採用的抽樣方法為何？(111㊁13),⑴簡單隨機抽樣法(simple random sampling),⑵便利抽樣法(convenience sampling),⑶配額抽樣法(quota sampling),⑷叢集抽樣法(cluster sampling)
+4,下述有關因果關係界定標準的敘述，何者錯誤？(107㊁40),⑴原因必須發生於結果之前,⑵原因與結果必須要有共變性,⑶原因與結果的共變性不是因為其他變項的影響,⑷兩個變項間有高度相關，則非常可能有因果關係
+1,社會工作研究是一門科學，必須說明事件因果關係的過程，下列何者不是構成因果關係的條件？(104㊁34),⑴從時間序列來說，「因」與「果」的前後次序是不確定的,⑵「因」與「果」彼此相關,⑶「因」與「果」的相關，必須能排除不相干的因素,⑷「果」事件是因為有了「因」事件才造成的
+1,進行研究時，測量方法都被要求應有信度(reliability)和效度(validity)，下列有關信度和效度的描述，何者正確？(102㊀33),⑴信度是指測驗結果的一致性或穩定性,⑵信度比效度更重要,⑶內容效度涉及採用因素分析方法加以檢驗,⑷問項或量表具有信度就一定有效度
+3,小鈞設計一個問題「請問你父母親的職業為何？」在問卷設計原則當中，請問他犯了什麼錯誤？(102㊀16),⑴問題必須有關聯性,⑵問題應該力求簡短,⑶雙重的問題,⑷負向的問題
+4,為避免社會工作評估過程中，社會工作者的主觀期望有意無意間影響了案主的回答，我們可考慮採用：(100_19),⑴開放實驗設計,⑵霍桑實驗設計,⑶單盲實驗設計,⑷雙盲實驗設計
+2,有關信度與效度的敘述，下列何者正確？(104㊀28),⑴有信度的測量必定會有效度,⑵有效度的測量必定會有信度,⑶信度與效度有共變關係，提高信度必定提高效度，降低效度必定降低信度,⑷信度與效度有拉鋸關係，提高信度必定降低效度，提高效度必定降低信度
+2,下列有關非機率抽樣法之描述何者正確？(95_18),⑴總是產生與母體特質不符之樣本資料,⑵研究者無法運用統計理論去推估母體,⑶分層抽樣也是非機率抽樣,⑷需有一抽樣架構
+4,「看電視或逛街是你喜歡從事的休閒活動嗎？」請問這樣的問卷題項設計犯了何種錯誤？(98特_7),⑴概念抽象,⑵問題帶有傾向性,⑶問題與答案不協調,⑷雙重涵義問題
+2,在電視的扣應節目中，民眾打電話表達意見，此代表何種抽樣方法？(92_19),⑴隨機抽樣,⑵非隨機抽樣,⑶系統抽樣,⑷分層抽樣
+2,單案研究設計(single-subject design)可以解決的研究內在效度之威脅，其中不包含下列何者？(104㊀25),⑴歷史因素,⑵因果時序,⑶時間成熟,⑷統計迴歸
+"2,3",進行前須先建立一個矩陣，用以描述目標母體特性(例如在母群體中不同性別、年齡層、族群所占比例)的是那一種抽樣方法？(107㊁12),⑴立意抽樣(purposive sampling),⑵配額抽樣(quota sampling),⑶分層抽樣(stratified sampling),⑷系統抽樣(systematic sampling)
+2,受試者從實驗中找到線索，根據自己所猜測的研究者之預期而改變自己行為，以討研究者歡心，這種反應屬於下列何者？(110㊀8),⑴治療擴散或污染(diffusion of treatment or contamination),⑵實驗者期望(experimenter expectancy),⑶安慰劑效應(placebo effect),⑷補償行為(compensatory behavior)
+3,從或然率的角度來解釋因果關係時，下列敘述何者正確？(113㊀7),⑴在現象的陳述中若是「有了X，便有極大的可能產生Y」時，X 就是產生Y 的必要條件,⑵在現象的陳述中若是「若不是X，便不可能Y」時，X 就是產生Y 的充分條件,⑶在現象的陳述中若是「若不是X，便不可能Y」時，X 就是產生Y 的必要條件,⑷兩種變項有因果關係，就看得出其中有必要條件的存在
+1,以下何種評估研究是屬形成性 (formative) 評估？①效率評估②影響評估③過程評估④需求評量(91_38),⑴③④,⑵①④,⑶①②,⑷②③
+3,李克特量表(Likert Scale)是屬於那一種量表結構形式？(98特_22),⑴累積量表,⑵等距量表,⑶總加量表,⑷語意差異量表
+3,下列何者不是影響實驗設計內在效度的主要因素？(98特_43),⑴歷史,⑵統計迴歸,⑶實驗情景的人工化,⑷研究樣本的流失
+4,透過加總平均壽命、教育水準、收入三項積分來表示男性和女性的地位，這是那種測量編製方法？(102㊁12),⑴評鑑(evaluation),⑵評量(assessment),⑶量表(scale),⑷指數(index)
+4,某社會工作者的工作是觀察評估 3 歲前幼兒是否需要早療，有關觀察法的特性，下列何者錯誤？(109㊁32),⑴觀察要配合研究目的,⑵要有系統的記錄觀察結,⑶要檢視評估結果的信度和效度,⑷任何場所都可進行觀察
+1,所謂「三段分層比例系統隨機抽樣」中的「三段」，指的是：(93_31),⑴集體抽樣(cluster sampling)的過程,⑵三個層(strata)的分層抽樣(stratified sampling),⑶考量三個分層變項的分層抽樣,⑷以三種抽樣架構(sampling frame)來抽選樣本
+4,下列有關單案研究設計的敘述，何者錯誤？(106㊁38),⑴單案研究設計研究對象只有一個，其對象可能是個人、家庭、機構、團體、社區或方案,⑵單案研究設計利用重複測量以求穩定的趨勢可供觀察，對可能的外在因素造成的干擾影響有較好的控制,⑶單案研究設計沒有控制組，在介入前的基線期可視為控制期，介入後的干預期可視為實驗期,⑷ABAB設計在第二基線期，抽離原有的介入，一段時間後再介入干預，並沒有研究倫理的問題
+2,關於測量，下列敘述何者有錯誤？(93_4),⑴凡測量皆有誤差,⑵系統性誤差具有特定的型態，偏高或偏低影響測量信度,⑶隨機性誤差有正有負，一般而言會相互抵銷,⑷樣本數增加，隨機誤差會減少
+2,研究者試圖尋找變項之間的因果關係，下列何種研究設計最能夠確立因果關係？(108㊁5),⑴內容分析設計,⑵古典實驗設計,⑶非實驗設計,⑷準實驗設計
+2,有關考慮問卷題目設計應注意的事項，下列敘述何者正確？(104㊀26),⑴避免提供題目的背景訊息以免有主觀偏見,⑵避免用否定句型的問句以免混淆題意,⑶題目有雙重題意可節省問卷問題數量,⑷題目應詳細說明而不需太顧慮字數限制
+4,研究人員想探究一個社區組織長久以來招募人員的型態，一開始先訪問最近加入的成員，問他們由誰介紹加入這個組織，再來訪問被提及的介紹人，再問這些人由誰介紹他們加入，然後再訪問那些被指名的人。請問此運用方法是下列何者？(106㊁34),⑴配額抽樣(quota sampling),⑵立意或判斷抽樣(purposive or judgmental sampling),⑶機率抽樣(probability sampling),⑷滾雪球抽樣(snowball sampling)
+3,下列有關問卷裡問項先後順序的說法，何者正確？①為防回答者沒耐性，最好開始就問有壓迫性的問題②為避免回答者不仔細看題目，最好不按邏輯順序交雜詢問不同主題問項③問卷問項先後順序影響回答者作答的現象稱順序效果(order effect)④順序效果對持中立態度者與低教育程度者影響較大⑤先問一般問題再問特殊問題的順序安排稱為漏斗順序(funnel sequence)。(100_15),⑴①②③,⑵②③④,⑶③④⑤,⑷①④⑤
+2,你的同事在上一次的社會工作師考試總成績換算成百分點數為5 等級，這一次的總成績為15 等級，雖然也沒有通過，而你以過來人並學過研究方法的身分，你會如何向她解釋此一狀況？(91_21),⑴考題的信度越來越強,⑵統計迴歸趨中現象,⑶考題的效度有問題,⑷因為受到上一次考試的影響
+2,在發展建構量表的過程中，若量表中所有的問題項目均是測量某一個特定概念時，我們稱此一特性為：(96_22),⑴周延含蓋性(exhaustive),⑵單一向度性(unidimensionality),⑶互斥性(mutually exclusive),⑷嚴謹性
+1,下列關於總加量表(Likert Scale)的敘述，何者錯誤？(101㊁25),⑴總加量表一定是五等分量表(5-pointScale),⑵總加量表是測受訪者的主觀意見,⑶一個總加量表可以劃分成若干分量表,⑷只要兩個受訪者的總加量表總分相同，就表示此二人在此問題的態度傾向相同
+3,某校為調查學生意見，請導師讓各班學生抽籤，各派出5名代表去做問卷。試問這種抽樣方式是：(101㊁34),⑴簡單隨機抽樣,⑵系統隨機抽樣,⑶分層隨機抽樣,⑷集叢隨機抽樣
+4,觀察分析外籍配偶子女的學校生活適應、學習成就、同儕關係及行為表現的問題等，屬於那一種研究？(93_17),⑴政策評估研究(policy evaluation research),⑵社會影響評估研究(social impact assessment),⑶行動研究(action research),⑷需求評估研究(need assessment)
+3,有關實驗設計，下列何者正確？(110㊁36),⑴一項研究只可以有一組實驗組和一組控制組,⑵介入處遇放在控制組，觀察實驗組是否有變化,⑶一項研究可以有二組實驗組，但介入內容必須不同,⑷安心丸設計不具有功能，不須安排介入
+3,在實驗研究法裡，提及「內部效度」的問題，下列敘述何者正確？(103㊁24),⑴內部效度是指實驗的過程必須有效率,⑵內部效度是指實驗的結果是可以推論的,⑶內部效度是指實驗排除其他可能解釋依變項變動因素的信心或程度,⑷內部效度是指實驗的人員必須是受過嚴格訓練的
+1,測量一個概念時，能反映涵蓋此概念所包含意義多寡的程度，稱為：(106㊀34),⑴內容效度,⑵內在效度,⑶建構效度,⑷表面效度
+3,對許多社會工作實務的研究而言，依據隨機分派取得對照組較有實際上的困難，然而基於研究的效度考量，下列敘述何者是正確的態度與作法？(98_15),⑴社會工作應避免實驗研究，以免只得到無效的結論,⑵社會工作應放棄實驗研究，以免動輒觸犯研究倫理,⑶可以謹慎設計嘗試能獲得合理的內在效度的準實驗方法,⑷只能使用非實驗方法
+4,研究母體名單出現排列方式的週期性(periodicity)現象，是使用那種抽樣方法會擔心的風險？(111㊀16),⑴簡單隨機抽樣,⑵定額抽樣,⑶分層抽樣,⑷系統抽樣
+3,用同一份問卷的問題，對同一群受測者前後調查兩次，再根據調查的結果，計算其相關係數，此信度檢驗稱之為：(98特_16),⑴複本信度(alternate-form reliability),⑵折半信度(split-half reliability),⑶再測信度(test-retest reliability),⑷分數信度(score reliability)
+1,根據所需要的樣本大小，從母群清冊中的名單每隔K個元素的間隔抽取樣本，稱為何種抽樣？(105㊀27),⑴系統抽樣,⑵分層抽樣,⑶亂數表抽樣,⑷叢集抽樣
+1,下列何者不是威脅研究內在效度的來源之一？(110㊁11),⑴樣本無代表性,⑵樣本過小,⑶違反統計基本假定,⑷測量工具的信度低
+2,「請問新住民的相關問題有那些？①生活適應問題②語言溝通問題③親子教養問題④醫療健康問題⑤人際關係問題⑥婆媳關係問題」此題設計方式有沒有符合周延性(exhaustive)和互斥性(mutually exclusive)？(102㊀15),⑴周延性和互斥性都有,⑵周延性和互斥性都沒有,⑶沒有周延性，有互斥性,⑷有周延性，沒有互斥性
+4,下列那一種抽樣方法獲得的樣本最具代表性？(106㊀31),⑴簡單隨機抽樣,⑵配額抽樣,⑶系統抽樣,⑷分層比例隨機抽樣
+2,下列那一個抽樣方法不是「非隨機抽樣法」？(99㊀24),⑴便利抽樣(convenience sampling),⑵系統抽樣(systematic sampling),⑶配額抽樣(quota sampling),⑷滾雪球抽樣(snowball sampling)
+3,下列何者不是了解問卷量表信度的方式？(108㊁14),⑴找一群人填寫一次，過段時間再填一次，比較兩次分數,⑵將量表分成兩半，找人填寫，比較兩邊的分數,⑶邀請專家審查，看看問卷內容是否包含此概念各重要層面,⑷找一群人填寫量表，利用電腦計算其α係數
+2,描述、檢查與記錄方案執行程度與狀況的研究是那種評估研究呢？(106㊀21),⑴需求評估,⑵過程評估,⑶成果評估,⑷效益評估
+2,關於信效度的說明，下列何者正確？(106㊀4),⑴信度指的是研究的準確性,⑵效度指的是研究測出研究者想要測量的概念之能力,⑶有信度，就一定有效度,⑷質化研究無須注重信效度
+2,在下列有關研究樣本選取的敘述中，何者正確？①樣本數越大時，越具有代表母群體之趨勢②研究之目的及本質與樣本之大小無關③樣本數越大時，抽樣誤差也越大④母群體中之個體異質性越高時，越需要較大之樣本⑤樣本之大小會影響研究之信度和效度(96_17),⑴①②③,⑵①④⑤,⑶①③⑤,⑷①②④
+1,某位社工員設計了一份量表，以評估青少年的學業表現，為確保此量表真能有效測量此概念，他將量表上的分數和學童段考成績做比較，屬於何種效度？(110㊁5),⑴效標關聯效度,⑵理論效度,⑶表面效度,⑷專家效度
+1,請問母群體(population)與樣本(sample)的關係，下列那一項說明正確？(102㊀35),⑴樣本是由母群體抽取出來的,⑵母群體是由樣本抽取出來的,⑶母群體是用來說明樣本的特質,⑷研究母群體以推論樣本的特質
+1,某社工師採用不對等比較組設計(nonequivalent comparison groups design)方式，以了解懷舊團體在老人之家的功能，下列敘述何者正確？(109㊀25),⑴找一個現存團體與實驗組相似，以便用來比較其功能,⑵二組的基本資料差異太大無法比較,⑶一組進行前測，另一組不須前測,⑷二組都進行懷舊團體
+3,石頭是受虐兒童的社會工作師，他為受虐兒童進行自我肯定訓練，希望提昇受虐兒童的自尊程度，下列是研究過程的描述：①第一次基線階段，自我貶抑次數高(例如10次)，自尊程度低(例如0分)②第一次介入階段，自我貶抑次數降低(例如7 次)，自尊程度提高(例如3 分)③自我肯定訓練暫停，只進行觀察④第二次基線階段，自我貶抑次數提高一些(例如8 次)，自尊程度低(例如2 分)⑤第二次介入階段，自我貶抑次數更降低(例如5 次)，自尊程度更提高(例如5 分)○6石頭很高興的表示自我肯定訓練，可以提昇受虐兒童的自尊程度。請問上列的敘述，指的是那一種研究設計模式？(97_32),⑴安心丸控制組設計,⑵所羅門4 組設計,⑶ABAB撤回逆轉設計,⑷AB設計
+4,小志是同志團體的社會工作師，他想多幫助一些同志個案，請問下列那一項樣本來源對小志的工作沒有幫助？(97_14),⑴個案經常參與的教會,⑵個案經常購買物品的店家,⑶個案經常接觸的醫護人員,⑷個案經常使用的法律條文
+4,下列針對隨機抽樣方法的特質描述，何者正確？(90_13),⑴簡單隨機抽樣(simple random sampling)，沒有任何限制，是最有效率的抽樣方法,⑵分層抽樣(stratified sampling)，其各分層類屬之間的同質性愈高愈好,⑶叢集抽樣(cluster sampling)，其各叢集類屬之間的異質性愈高愈好,⑷系統抽樣(systematic sampling)的最大誤差來源，係指抽樣間隔與樣本安排次序間隔相等時的情況而言
+1,下列關於前實驗研究設計(pre-experimental design)的敘述，何者錯誤？(106㊁27),⑴單組末測設計是研究人員給予單一組受試者實驗設計之後，再測量他們在自變項的狀況,⑵單組前測、末測設計是讓實驗組進行前後測，但缺少一個控制組,⑶小組靜態比較是有實驗組和控制組，但未進行前測,⑷單案研究採用時間序列設計的邏輯，用以評鑑介入或是政策對單一個案或是單一系統的影響
+4,在研究態度與意向時，下列何者的測量變異幅度(range of variation)最大？(109㊁10),⑴是/否,⑵同意/沒意見/不同意,⑶非常同意/同意/不同意/非常不同意,⑷非常同意/同意/沒意見/反對/非常反對
+4,如果兩變項之間在數理統計上有顯著相關，則我們可以說：(91_32),⑴該兩變項相互獨立,⑵該兩變項必然相干,⑶該兩變項存有因果關係,⑷該兩變項之觀測值具有共變之情形
+1,在說明變項間因果關係的檢測結果時，必須考量那二種效度？(108㊁7),⑴內在效度與外在效度,⑵內容效度與效標關聯效度,⑶同時效度與預測效度,⑷聚合效度與區別效度
+1,一般而言，當樣本數增加時：(99㊁4),⑴抽樣誤差會減少,⑵抽樣誤差會增加,⑶抽樣誤差會消失,⑷抽樣誤差會維持不變
+4,下列「需求評估(needs assessment)」方法的組合，何者正確？1調查關鍵資訊提供者2舉行社區論壇3檢視接受處遇者比例4分析社會指標5進行社區或目標團體調查(102㊁22),⑴123,⑵124,⑶1234,⑷12345
+4,下列有關測量誤差的敘述，何者錯誤？(106㊁8),⑴拿成人的問卷去讓小學童作答，學童可能不懂一些專有名詞而隨意作答，是屬於「隨機誤差」,⑵受訪者因問卷過於冗長，問卷的後半部不加思索快速完成作答，是屬於「隨機誤差」,⑶受訪者因為愛面子，傾向於以社會期望的方式回答，是屬於「系統誤差」,⑷「系統誤差」影響測量的「信度」，「隨機誤差」影響測量的「效度」
+4,研究者期望要盡量避免測量誤差，下面何種情況敘述是錯誤的？(94_14),⑴詳細探討測量工具的設計過程,⑵要訪員真正了解研究目的,⑶運用三角測量法,⑷讓受訪者覺得是被研究的對象
+3,從某個角度而言，研究可分成實驗性研究(experimental research)與非實驗性研究(non-experimental research)，試問以實驗性研究來說，其與非實驗性研究之間最大的區別在於：(96_7),⑴實驗性研究比較嚴謹,⑵實驗性研究規模較大,⑶實驗性研究中，自變項之變異性可由研究者加以控制,⑷實驗性研究比較耗費時間
+4,曉華負責弱勢家庭兒童課後輔導方案成效評估，她要了解學童在輔導課程中完成家庭作業的比率，她在每週五課輔時間結束前，以口頭詢問「這個星期每天都有完成家庭作業的人請舉手」，再以學童舉手人數來計算完成家庭作業人數。請問這個方法會出現何種測量上的誤差？(104㊁22),⑴隨機誤差(random error),⑵交互信度誤差(interrater reliability error),⑶測量方式不一致(unconsistency measurement),⑷社會期望性偏誤(social desirability bias)
+3,當我們把「宗教信仰」此一變項作如下分類：佛教、道教、基督教、天主教、回教，則我們可以說此變項具備下列何種重要特質？(107㊀10),⑴可互換性,⑵周延,⑶互斥,⑷周延與互斥
+2,以正在成長的國小學童為研究對象進行單組前測、後測實驗設計，主要研究目的是在探討學校綜合課程對其情緒管理能力之效益。請問在此研究過程中，容易受到下列何種因素之影響而降低其內在效度？(98特_13),⑴課程情境操作過多的控制,⑵個人的身心成熟,⑶測量工具的準確度,⑷實驗組和控制組的相互競爭
+4,下列對於自變項與依變項之間關係的敘述，何者正確？(104㊁4),⑴兩個變項間存在統計上的顯著相關，就表示該兩個變項間具有因果關係,⑵一個變項假定它是決定於或是受其他變項的影響者，稱為自變項,⑶自變項與依變項的實證關係，是因為第三個變項影響才產生因果關聯,⑷因果關係中自變項與依變項的相關性是可以證實的
+1,有關實驗設計的內在效度與外在效度，下列何者正確？(112㊀5),⑴實驗結果無法推論真實世界情況，外在效度低,⑵實驗結果無法推論真實世界情況，內在效度低,⑶實驗過程依變項是因其他因素所造成的程度，指具有內在效度,⑷實驗排除其他可能解釋依變項變動因素，指具有外在效度
+1,針對同理心概念的測量，研究者建構了一組包含10個問項的量表，每個問項都採正向的敘述，並以五點尺度計分，例如：「非常同意」到「非常不同意」。蒐集資料後進行項目分析時，下列情形何者是具有信度的指標？(98_18),⑴各問項間都有正相關,⑵各問項間有些呈現正相關，有些則是負相關,⑶各問項之間至少應有零相關者,⑷問項間完全相關是最好的情況
+1,實驗研究設計涉及多次測驗時，先前測驗對於後續測驗所產生的影響效應，屬於下列何者？(112㊀20),⑴測驗效應,⑵測量工具,⑶測量工作,⑷選樣效應
+1,下列何者不是系統抽樣(systematic sampling)過程中必要的步驟？(108㊀16),⑴要有母群體元素的重要特徵屬性,⑵要有抽樣間距,⑶要有抽樣比,⑷要有抽樣架構
+4,某次民意調查當中，有一題為「社會救助金額應該增加，並且以提高所得稅的方式籌措財源」，此一題項違反了下列那個提問準則？(110㊀28),⑴題項文字應該去除偏見用語,⑵不問受訪者無法回答的題目,⑶儘量減少使用否定的題項,⑷避免出現一題兩問的情況
+`;
+        let allQuestions = [];
+        let currentQuizQuestions = [];
+        let userAnswers = {};
+        let currentQuestionIndex = 0;
+        let timerInterval;
+        let seconds = 0;
+
+        // Helper function to shuffle an array
+        const shuffleArray = (array) => {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        };
+
+        // Parse the raw text data into a structured question bank
+        const parseData = () => {
+             const lines = rawData.trim().split('\n').filter(line => line.trim() !== '');
+            
+            allQuestions = lines.map((line, index) => {
+                const parts = line.split(',');
+                if (parts.length < 3) {
+                    console.error(`Skipping invalid line ${index + 1}:`, line);
+                    return null;
+                }
+
+                const answerIndex = parseInt(parts[0], 10) - 1;
+                const questionPart = parts[1];
+                
+                const qMatch = questionPart.match(/(.*)(\(.*\))/);
+                const questionText = qMatch ? qMatch[1].trim() : questionPart.trim();
+                const source = qMatch ? qMatch[2] : '';
+                
+                const options = parts.slice(2).map(opt => opt.substring(1).trim());
+                
+                if (isNaN(answerIndex) || answerIndex < 0 || answerIndex >= options.length) {
+                    console.error(`Parsing error on line ${index + 1} (Invalid Answer Index):`, line);
+                    return null;
+                }
+                const answer = options[answerIndex];
+
+                return { id: index, question: questionText, source, options, answer };
+            }).filter(q => q !== null);
+        };
+
+        // Functions to manage UI visibility
+        const showScreen = (screenId) => {
+            ['start-screen', 'quiz-screen', 'results-screen'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById(screenId).classList.remove('hidden');
+        };
+
+        const formatTime = (totalSeconds) => {
+            const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+            const seconds = (totalSeconds % 60).toString().padStart(2, '0');
+            return `${minutes}:${seconds}`;
+        };
+
+        const startTimer = () => {
+            seconds = 0;
+            document.getElementById('timer').textContent = formatTime(seconds);
+            timerInterval = setInterval(() => {
+                seconds++;
+                document.getElementById('timer').textContent = formatTime(seconds);
+            }, 1000);
+        };
+        
+        // Main function to start the quiz
+        const startQuiz = (numQuestions) => {
+            userAnswers = {};
+            currentQuestionIndex = 0;
+            
+            const shuffled = shuffleArray([...allQuestions]);
+            currentQuizQuestions = shuffled.slice(0, numQuestions);
+            currentQuizQuestions.forEach(q => {
+                q.options = shuffleArray([...q.options]);
+            });
+
+            showScreen('quiz-screen');
+            renderQuestion(currentQuestionIndex);
+            startTimer();
+        };
+
+        // Render a single question on the screen
+        const renderQuestion = (index) => {
+            const question = currentQuizQuestions[index];
+            document.getElementById('question-text').textContent = question.question;
+            document.getElementById('question-source').textContent = question.source;
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            question.options.forEach((option, i) => {
+                const optionId = `q${index}_opt${i}`;
+                const checked = userAnswers[index] === option ? 'checked' : '';
+                optionsContainer.innerHTML += `
+                    <div class="macaron-option rounded-lg">
+                        <input type="radio" name="q${index}" id="${optionId}" value="${option}" class="hidden" ${checked} onchange="selectAnswer(${index}, '${option}')">
+                        <label for="${optionId}" class="block w-full text-left p-4 text-xl rounded-lg cursor-pointer">
+                            ${option}
+                        </label>
+                    </div>
+                `;
+            });
+
+            document.getElementById('progress').textContent = `第 ${index + 1} / ${currentQuizQuestions.length} 題`;
+            document.getElementById('prev-btn').style.visibility = index === 0 ? 'hidden' : 'visible';
+            document.getElementById('next-btn').style.display = index === currentQuizQuestions.length - 1 ? 'none' : 'block';
+            document.getElementById('submit-btn').style.display = index === currentQuizQuestions.length - 1 ? 'block' : 'none';
+        };
+
+        const selectAnswer = (index, answer) => {
+            userAnswers[index] = answer;
+        };
+
+        const prevQuestion = () => {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuestion(currentQuestionIndex);
+            }
+        };
+
+        const nextQuestion = () => {
+            if (currentQuestionIndex < currentQuizQuestions.length - 1) {
+                currentQuestionIndex++;
+                renderQuestion(currentQuestionIndex);
+            }
+        };
+        
+        const submitQuiz = () => {
+            clearInterval(timerInterval);
+            showScreen('results-screen');
+            renderResults();
+        };
+
+        const renderResults = () => {
+            let score = 0;
+            currentQuizQuestions.forEach((q, i) => {
+                if (userAnswers[i] === q.answer) {
+                    score++;
+                }
+            });
+
+            document.getElementById('score').textContent = `你的分數: ${score} / ${currentQuizQuestions.length}`;
+            document.getElementById('time-taken').textContent = `測驗時間: ${formatTime(seconds)}`;
+
+            const detailsContainer = document.getElementById('details-section');
+            detailsContainer.innerHTML = '';
+
+            currentQuizQuestions.forEach((q, i) => {
+                const userAnswer = userAnswers[i] || "未作答";
+                const isCorrect = userAnswer === q.answer;
+                
+                detailsContainer.innerHTML += `
+                    <div class="p-5 rounded-lg border macaron-card">
+                        <p class="text-xl font-semibold mb-3">${i + 1}. ${q.question} <span class="text-sm text-gray-500">${q.source}</span></p>
+                        <p class="p-3 rounded-md ${isCorrect ? 'correct-answer' : 'incorrect-answer'}">你的答案：${userAnswer}</p>
+                        ${!isCorrect ? `<p class="p-3 mt-2 rounded-md correct-answer">正確答案：${q.answer}</p>` : ''}
+                    </div>
+                `;
+            });
+        };
+        
+        // Functions to download results as PDF or CSV
+        const downloadResults = async (format) => {
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const filename = `social-work-ethics-quiz-results-${timestamp}`;
+
+            if (format === 'pdf') {
+                 try {
+                    const { jsPDF } = window.jspdf;
+                    const pdf = new jsPDF('p', 'mm', 'a4');
+                    const content = document.getElementById('results-screen');
+                    
+                    pdf.setFont('helvetica'); // Using a standard font
+                    pdf.setFontSize(20);
+                     // Using a placeholder text as jsPDF has issues with unicode without proper fonts
+                    pdf.text('Quiz Results', 105, 20, null, null, 'center');
+                    
+                    const canvas = await html2canvas(content, { 
+                        scale: 2,
+                        useCORS: true, 
+                        allowTaint: true 
+                    });
+                    const imgData = canvas.toDataURL('image/png');
+                    const imgProps= pdf.getImageProperties(imgData);
+                    const pdfWidth = pdf.internal.pageSize.getWidth() - 20; // with margin
+                    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+                    
+                    pdf.addImage(imgData, 'PNG', 10, 30, pdfWidth, pdfHeight);
+                    pdf.save(`${filename}.pdf`);
+                } catch (e) {
+                    console.error("Error generating PDF:", e);
+                    alert("抱歉，PDF下載功能目前無法使用。請嘗試下載CSV或截圖保存。");
+                }
+            } else if (format === 'csv') {
+                let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; // \uFEFF for BOM
+                csvContent += "題號,題目,你的答案,正確答案\n";
+
+                currentQuizQuestions.forEach((q, i) => {
+                    const userAnswer = userAnswers[i] || "未作答";
+                    const row = [
+                        i + 1,
+                        `"${q.question.replace(/"/g, '""')}"`,
+                        `"${userAnswer.replace(/"/g, '""')}"`,
+                        `"${q.answer.replace(/"/g, '""')}"`
+                    ].join(',');
+                    csvContent += row + "\r\n";
+                });
+
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", `${filename}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        };
+
+        // Initialize the app when the page loads
+        window.onload = () => {
+            parseData();
+        };
+    </script>
+</body>
+</html>
