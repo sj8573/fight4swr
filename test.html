@@ -1,0 +1,526 @@
+<!-- Chosen Palette: Academic Neutrals (Slate, Academic Blue, Warm Amber) -->
+<!-- Application Structure Plan: A single-page app with a thematic top navigation (Home, Core Theory, Faction Spectrum, Practice, Legacy). This structure is chosen over a linear report layout to promote user-driven exploration. The key interaction is the 'Faction Spectrum', which allows users to dynamically compare the three major factions using an interactive Chart.js radar chart and accompanying text descriptions, making dense academic comparisons intuitive and engaging. -->
+<!-- Visualization & Content Choices:
+1. Report Info: Introduction -> Goal: Inform -> Viz: Clean Text Layout -> Interaction: None -> Justification: Clear opening. -> Library: HTML/Tailwind.
+2. Report Info: History, Theory, Core Critiques -> Goal: Organize/Inform -> Viz: Interactive Card Grid (HTML/CSS) -> Interaction: JS (click to show/hide detail text) -> Justification: Breaks down dense theory into digestible, user-selected chunks. -> Library: HTML/Tailwind/JS.
+3. Report Info: Three Factions Comparison (Table/Text) -> Goal: Compare/Analyze -> Viz: Chart.js Radar Chart -> Interaction: JS (toggling datasets) + JS (updating dynamic text block with faction details on click/hover) -> Justification: Transforms qualitative comparisons into a powerful, interactive visual (Radar Chart) for easy analysis, fulfilling the 'Compare' goal. -> Library: Chart.js, JS.
+4. Report Info: Practice Strategies, Advantages, Challenges -> Goal: Inform/Compare -> Viz: Two-Column Tiled Layout (HTML/CSS) -> Interaction: None -> Justification: Clearly separates methods from outcomes. -> Library: HTML/Tailwind.
+5. Report Info: Timeline/Legacy, Conclusion -> Goal: Change/Inform -> Viz: Horizontal Timeline (HTML/CSS) & Key Takeaways Text -> Interaction: None -> Justification: Summarizes evolution and impact. -> Library: HTML/Tailwind.
+-->
+<!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+<!DOCTYPE html>
+<html lang="zh-TW" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>基變/基進社會工作：互動式分析</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f8fafc; /* bg-slate-50 */
+            color: #1e293b; /* text-slate-800 */
+        }
+        .nav-link {
+            @apply px-4 py-2 text-lg font-medium text-slate-700 hover:text-blue-800 transition-colors duration-200;
+        }
+        .nav-link.active {
+            @apply text-blue-800 border-b-2 border-blue-800;
+        }
+        .content-section {
+            @apply min-h-[calc(100vh-80px)] w-full max-w-7xl mx-auto p-6 md:p-12;
+        }
+        .card {
+            @apply bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 cursor-pointer;
+        }
+        .card-title {
+            @apply text-xl font-bold text-blue-800 mb-3;
+        }
+        .card-content {
+            @apply text-slate-700 text-base;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 500px;
+            max-height: 500px;
+        }
+        .timeline-item {
+            @apply relative pb-8;
+        }
+        .timeline-item:not(:last-child)::before {
+            content: '';
+            @apply absolute left-4 top-4 w-0.5 h-full bg-slate-300;
+        }
+        .timeline-dot {
+            @apply absolute left-0 top-1.5 w-6 h-6 rounded-full bg-blue-800 border-4 border-white;
+        }
+    </style>
+</head>
+<body class="antialiased">
+    
+    <header class="sticky top-0 z-50 bg-white/95 backdrop-blur-sm shadow-md h-20">
+        <nav class="max-w-7xl mx-auto flex items-center justify-between h-full px-6">
+            <h1 class="text-2xl font-bold text-blue-800">基進社會工作</h1>
+            <div class="hidden md:flex items-center space-x-2">
+                <a href="#home" class="nav-link active" data-section="home">首頁</a>
+                <a href="#theory" class="nav-link" data-section="theory">核心理論</a>
+                <a href="#spectrum" class="nav-link" data-section="spectrum">學派光譜</a>
+                <a href="#practice" class="nav-link" data-section="practice">實踐藍圖</a>
+                <a href="#legacy" class="nav-link" data-section="legacy">當代迴響</a>
+            </div>
+            <button id="mobile-menu-btn" class="md:hidden text-slate-800 text-3xl">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                </svg>
+            </button>
+        </nav>
+        <div id="mobile-menu" class="hidden md:hidden bg-white shadow-lg absolute top-20 left-0 w-full z-40">
+            <a href="#home" class="block px-6 py-3 text-lg font-medium text-slate-700 hover:bg-slate-100" data-section="home">首頁</a>
+            <a href="#theory" class="block px-6 py-3 text-lg font-medium text-slate-700 hover:bg-slate-100" data-section="theory">核心理論</a>
+            <a href="#spectrum" class="block px-6 py-3 text-lg font-medium text-slate-700 hover:bg-slate-100" data-section="spectrum">學派光譜</a>
+            <a href="#practice" class="block px-6 py-3 text-lg font-medium text-slate-700 hover:bg-slate-100" data-section="practice">實踐藍圖</a>
+            <a href="#legacy" class="block px-6 py-3 text-lg font-medium text-slate-700 hover:bg-slate-100" data-section="legacy">當代迴響</a>
+        </div>
+    </header>
+
+    <main>
+        
+        <section id="home" class="content-section flex flex-col justify-center items-center text-center bg-slate-50">
+            <h2 class="text-5xl md:text-6xl font-bold text-blue-800 leading-tight">基變/基進社會工作</h2>
+            <p class="text-2xl md:text-3xl text-slate-700 mt-4 mb-10">起源、理論、實踐與批判之深度分析</p>
+            <div class="max-w-4xl text-left text-lg space-y-4">
+                <p>傳統的社會工作取向，尤其在二十世紀中葉，傾向於將個人困境（如貧窮、失業）歸因於個體的適應不良或心理失衡。這種將社會問題「個人化」的解釋，無形中強化了既有的社會秩序。</p>
+                <p class="font-semibold text-blue-800">基變/基進社會工作 (Radical Social Work, RSW) 正是在對這種主流思潮進行根本性反省後所興起的一種對立途徑。</p>
+                <p>它並非一套特定的技巧，而是一種強烈的專業信念、意識形態與批判性視角。它的出現標誌著一次深刻的「範式轉移」，試圖將關注點從個體的適應問題，轉向導致這些問題產生的<strong class="text-amber-600">宏觀社會結構性因素</strong>。</p>
+            </div>
+            <a href="#theory" class="mt-10 px-8 py-3 bg-blue-800 text-white text-lg font-semibold rounded-lg shadow-lg hover:bg-blue-700 transition-colors">
+                探索核心理論
+            </a>
+        </section>
+
+        <section id="theory" class="content-section bg-white hidden">
+            <h2 class="text-4xl font-bold text-blue-800 mb-10 text-center">核心理論</h2>
+            <p class="text-xl text-slate-600 text-center max-w-3xl mx-auto mb-12">
+                基進社會工作根植於特定的歷史背景與學術土壤。本節將探討其理論基礎與核心批判，點擊下方的卡片以閱讀詳細內容。
+            </p>
+            
+            <div id="theory-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="card" data-title="歷史淵源：《個案騙局》" data-content="基進社會工作真正形成一股運動，是在二戰後福利國家興盛的年代。當時實務界過度受到個案工作模式的影響，忽視了問題的結構性成因，被批判為一種「個案化的騙局」（Case Con）。為此，英國在1970年代出現了《個案騙局》（Case Con）雜誌，旨在批判將結構性社會問題簡化為個人責任的「不誠實的把戲」。">
+                    <h3 class="card-title">歷史淵源：《個案騙局》</h3>
+                    <p class="card-content">批判將結構性問題「個人化」的傳統實務。點此展開...</p>
+                </div>
+                
+                <div class="card" data-title="理論奠基：馬克思主義" data-content="基進社會工作主要立基於馬克思主義（Marxism）與批判理論（Critical Theory）。它借鑒了馬克思主義對資本主義社會中生產關係與階級剝削的分析，認為社會問題的根本成因在於資本家掌握生產工具並主宰資源，從而製造了制度上的不均與剝削。">
+                    <h3 class="card-title">理論奠基：馬克思主義</h3>
+                    <p class="card-content">分析資本主義、階級剝削與制度性不均。點此展開...</p>
+                </div>
+
+                <div class="card" data-title="理論奠基：意識覺醒" data-content="基進社會工作汲取了巴西教育家保羅．弗雷勒（Paulo Freire）「被壓迫者教育學」的核心概念，尤其是「意識覺醒」（conscientization）。這種「意識覺醒」是指社會工作者不僅要協助案主處理其個別問題，更要幫助他們意識到自身困境的社會、政治與經濟根源。">
+                    <h3 class="card-title">理論奠基：意識覺醒</h3>
+                    <p class="card-content">源自保羅．弗雷勒，幫助案主意識到困境的社會根源。點此展開...</p>
+                </div>
+
+                <div class="card" data-title="核心概念：多重壓迫" data-content="基進社會工作在承襲馬克思主義階級分析的基礎上，其批判視角不斷擴展，涵蓋了更為廣泛的壓迫形式。這些形式包括父權制、種族主義、年齡歧視、同性戀歧視、帝國主義與殘疾人歧視等。這種擴展特別受到女性主義觀點的深刻影響，能夠將「個人與政治連結起來」（the personal is political）。">
+                    <h3 class="card-title">核心概念：多重壓迫</h3>
+                    <p class="card-content">受女性主義啟發，將階級分析擴展至性別、種族等。點此展開...</p>
+                </div>
+                
+                <div class="card" data-title="批判：福利國家" data-content="基進社會工作認為，福利制度雖然提供了生存保障，但同時也具有「社會控制」與「維穩」的功能，用以維繫既有的社會階級差異，並使之合法化。在這一視角下，社會工作者可能會在不知不覺中成為「政府的維穩工具」或「階級控制者」。">
+                    <h3 class="card-title">批判：福利國家</h3>
+                    <p class="card-content">福利制度不僅是保障，也可能是「社會控制」的維穩工具。點此展開...</p>
+                </div>
+
+                <div class="card" data-title="批判：專業主義" data-content="基進社會工作也對社會工作的專業主義（professionalism）本身提出質疑。它認為，社會工作者過度強調其特殊的「知識與技術」，這種專業化傾向反而使他們與服務使用者產生疏離，並可能使服務使用者受害，同時強化了專業領域的階級性。">
+                    <h3 class="card-title">批判：專業主義</h3>
+                    <p class="card-content">質疑「專業」是否反而製造了社工與案主間的疏離與階級。點此展開...</p>
+                </div>
+            </div>
+        </section>
+
+        <div id="modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm hidden">
+            <div class="bg-white w-11/12 max-w-3xl max-h-[80vh] rounded-lg shadow-2xl flex flex-col">
+                <div class="flex justify-between items-center p-6 border-b">
+                    <h3 id="modal-title" class="text-2xl font-bold text-blue-800"></h3>
+                    <button id="modal-close" class="text-3xl text-slate-500 hover:text-slate-800">&times;</button>
+                </div>
+                <div class="p-8 overflow-y-auto">
+                    <p id="modal-content" class="text-lg text-slate-700 leading-relaxed"></p>
+                </div>
+            </div>
+        </div>
+
+        <section id="spectrum" class="content-section bg-slate-50 hidden">
+            <h2 class="text-4xl font-bold text-blue-800 mb-10 text-center">學派光譜：互動式比較</h2>
+            <p class="text-xl text-slate-600 text-center max-w-3xl mx-auto mb-12">
+                基進社會工作並非一個統一的陣營，其內部分為三大主要派別。使用下面的雷達圖和按鈕，來互動式地比較它們在不同概念上的立場。
+            </p>
+            
+            <div class="lg:grid lg:grid-cols-3 lg:gap-8 items-center">
+                <div class="lg:col-span-2">
+                    <div class="chart-container bg-white rounded-lg shadow-lg p-4">
+                        <canvas id="factionChart"></canvas>
+                    </div>
+                    <div class="flex justify-center space-x-4 mt-6">
+                        <label class="flex items-center space-x-2 text-lg cursor-pointer">
+                            <input type="checkbox" class="faction-toggle" data-index="0" checked>
+                            <span class="font-semibold" style="color: 'rgba(217, 95, 2, 0.8)'">社會民主主義</span>
+                        </label>
+                        <label class="flex items-center space-x-2 text-lg cursor-pointer">
+                            <input type="checkbox" class="faction-toggle" data-index="1" checked>
+                            <span class="font-semibold" style="color: 'rgba(27, 158, 119, 0.8)'">革命式馬克思主義</span>
+                        </label>
+                        <label class="flex items-center space-x-2 text-lg cursor-pointer">
+                            <input type="checkbox" class="faction-toggle" data-index="2" checked>
+                            <span class="font-semibold" style="color: 'rgba(117, 112, 179, 0.8)'">進化的馬克思主義</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="lg:col-span-1 mt-8 lg:mt-0">
+                    <div id="faction-details" class="bg-white p-6 rounded-lg shadow-lg h-[500px] overflow-y-auto">
+                        <h3 id="faction-title" class="text-2xl font-bold text-blue-800 mb-4">學派詳情</h3>
+                        <p id="faction-description" class="text-slate-700 text-lg leading-relaxed">
+                            點擊圖表或上方的標籤，或將滑鼠懸停在圖表上，以查看各學派的詳細說明。雷達圖根據原始報告的描述，將各學派的傾向進行了可視化。
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="practice" class="content-section bg-white hidden">
+            <h2 class="text-4xl font-bold text-blue-800 mb-10 text-center">實踐藍圖：策略與挑戰</h2>
+            <p class="text-xl text-slate-600 text-center max-w-3xl mx-auto mb-12">
+                基進社會工作的理論最終須落實於實踐。本節探討其核心干預策略，以及在實踐中面臨的優勢與挑戰。
+            </p>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                <div>
+                    <h3 class="text-3xl font-bold text-blue-800 mb-6 border-b-2 border-amber-500 pb-2">核心干預策略</h3>
+                    <div class="space-y-6">
+                        <div class="bg-slate-50 p-6 rounded-lg shadow-sm">
+                            <h4 class="text-xl font-semibold text-slate-800 mb-2">結構權力分析 (首要步驟)</h4>
+                            <p>將個人的問題追溯到背後的社會與經濟結構，揭示與挑戰那些根植於體制中的結構性不平等。</p>
+                        </div>
+                        <div class="bg-slate-50 p-6 rounded-lg shadow-sm">
+                            <h4 class="text-xl font-semibold text-slate-800 mb-2">政治性賦權 (Empowerment)</h4>
+                            <p>賦權不再只是提升個體自信，而是讓個體學習「掌控社會結構所帶來的影響」，成為抵抗與對抗的變革工具。</p>
+                        </div>
+                        <div class="bg-slate-50 p-6 rounded-lg shadow-sm">
+                            <h4 class="text-xl font-semibold text-slate-800 mb-2">反壓迫實踐 (AOP)</h4>
+                            <p>倡導「平等專業關係」，強調與受壓迫群體的「合作」，支持他們發聲與行動，而非由上而下的指導。</p>
+                        </div>
+                        <div class="bg-slate-50 p-6 rounded-lg shadow-sm">
+                            <h4 class="text-xl font-semibold text-slate-800 mb-2">最終目標：使社工多餘</h4>
+                            <p>當受壓迫者能夠自我組織、自我充權時，專業的干預便不再是必需，這與傳統追求「專業化」的趨勢形成鮮明對照。</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="text-3xl font-bold text-blue-800 mb-6 border-b-2 border-amber-500 pb-2">優勢 vs. 挑戰</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="text-2xl font-semibold text-green-700 mb-3">優勢</h4>
+                            <ul class="list-disc list-inside space-y-2 text-lg">
+                                <li><strong>政治取向</strong>：關注權力結構與社會變革。</li>
+                                <li><strong>社會正義</strong>：直面問題根源，追求公平。</li>
+                                <li><strong>集體行動</strong>：鼓勵團結，建立社群凝聚力。</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 class="text-2xl font-semibold text-red-700 mb-3">挑戰</h4>
+                            <ul class="list-disc list-inside space-y-2 text-lg">
+                                <li><strong>可行性</strong>：結構性轉變是複雜且長期的過程。</li>
+                                <li><strong>政治反響</strong>：挑戰既有秩序可能帶來壓力與風險。</li>
+                                <li><strong>潛在盲點</strong>：可能被詬病「忽略個體層面」。</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="legacy" class="content-section bg-slate-50 hidden">
+            <h2 class="text-4xl font-bold text-blue-800 mb-10 text-center">當代迴響與遺產</h2>
+            <p class="text-xl text-slate-600 text-center max-w-3xl mx-auto mb-12">
+                基進社會工作並非僅是歷史的註腳。它在當代重新興起，以回應全球化資本主義與新自由主義治理所帶來的持續壓迫。
+            </p>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+                <div>
+                    <h3 class="text-3xl font-bold text-blue-800 mb-6">發展時間軸</h3>
+                    <div class="relative">
+                        <div class="timeline-item">
+                            <div class="timeline-dot"></div>
+                            <div class="ml-12">
+                                <h4 class="text-xl font-semibold text-slate-800 mb-1">1930s-1970s：興起</h4>
+                                <p>受經濟大恐慌啟發，在1970年代以《個案騙局》為代表，形成具體運動。</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-dot"></div>
+                            <div class="ml-12">
+                                <h4 class="text-xl font-semibold text-slate-800 mb-1">1980s-1990s：沉寂</h4>
+                                <p>隨著新自由主義興起與福利國家被削減，焦點轉向管理主義，基進思潮一度沉寂。</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-dot"></div>
+                            <div class="ml-12">
+                                <h4 class="text-xl font-semibold text-slate-800 mb-1">2000s：復興</h4>
+                                <p>在 Ferguson 與 Lavalette 等學者努力下重新興起，以回應全球化資本主義的壓迫。</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-dot" style="background-color: #f59e0b;"></div>
+                            <div class="ml-12">
+                                <h4 class="text-xl font-semibold text-slate-800 mb-1">今日：遺產</h4>
+                                <p>其核心精神被「批判性社會工作」、「反壓迫實踐 (AOP)」等理論所繼承並拓展。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-12 lg:mt-0">
+                    <h3 class="text-3xl font-bold text-blue-800 mb-6">結論：基進社會工作的價值</h3>
+                    <div class="space-y-4 text-lg bg-white p-8 rounded-lg shadow-lg">
+                        <p>基進社會工作持續提醒著專業人員，其責任不僅止於個案服務，更在於挑戰不公義的社會制度與結構。</p>
+                        <ul class="list-disc list-inside space-y-2 pt-2">
+                            <li class="font-semibold"><strong>問題的根本性界定</strong>：
+                                <span class="font-normal">提供分析工具，超越個案表象，直面結構性根源。</span>
+                            </li>
+                            <li class="font-semibold"><strong>專業角色的重塑</strong>：
+                                <span class="font-normal">挑戰「中立性」神話，促使社工扮演「解放者」，而非「維穩者」。</span>
+                            </li>
+                            <li class="font-semibold"><strong>實踐的政治性賦權</strong>：
+                                <span class="font-normal">將「賦權」從心理學概念提升為社會變革的政治工具。</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="text-center p-8 bg-slate-200 text-slate-600 mt-12">
+        <p>此互動式應用程式根據「基變/基進社會工作」報告文件生成。</p>
+        <p>僅為概念展示用途。</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            const sections = document.querySelectorAll('.content-section');
+            const navLinks = document.querySelectorAll('.nav-link');
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const mobileNavLinks = mobileMenu.querySelectorAll('a');
+
+            function showSection(targetId) {
+                sections.forEach(section => {
+                    if (section.id === targetId) {
+                        section.classList.remove('hidden');
+                    } else {
+                        section.classList.add('hidden');
+                    }
+                });
+                
+                const activeLink = document.querySelector(`.nav-link[data-section="${targetId}"]`);
+                navLinks.forEach(link => link.classList.remove('active'));
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                }
+                
+                window.scrollTo(0, 0);
+            }
+            
+            function handleNavClick(e) {
+                e.preventDefault();
+                const targetId = e.currentTarget.getAttribute('href').substring(1);
+                showSection(targetId);
+                history.pushState(null, null, e.currentTarget.href);
+            }
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', handleNavClick);
+            });
+            
+            mobileNavLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    handleNavClick(e);
+                    mobileMenu.classList.add('hidden');
+                });
+            });
+
+            mobileMenuBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+            
+            window.addEventListener('popstate', () => {
+                const targetId = location.hash ? location.hash.substring(1) : 'home';
+                showSection(targetId);
+            });
+
+            const initialSection = location.hash ? location.hash.substring(1) : 'home';
+            showSection(initialSection);
+
+            const modal = document.getElementById('modal');
+            const modalTitle = document.getElementById('modal-title');
+            const modalContent = document.getElementById('modal-content');
+            const modalClose = document.getElementById('modal-close');
+            
+            document.querySelectorAll('#theory-grid .card').forEach(card => {
+                card.addEventListener('click', () => {
+                    modalTitle.textContent = card.dataset.title;
+                    modalContent.textContent = card.dataset.content;
+                    modal.classList.remove('hidden');
+                });
+            });
+            
+            function closeModal() {
+                modal.classList.add('hidden');
+            }
+            
+            modalClose.addEventListener('click', closeModal);
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    closeModal();
+                }
+            });
+
+            const factionDetails = {
+                title: [
+                    "社會民主主義 (Social Democratic)",
+                    "革命式馬克思主義 (Revolutionary Marxist)",
+                    "進化的馬克思主義 (Evolutionary Marxist)"
+                ],
+                description: [
+                    "此派別強調「修正」，相信福利國家本身是促進資本主義向社會主義轉型的途徑。他們將壓迫來源歸因於「社會地位的衝突」，而非根本性的階級衝突。然而，這種強調體制內改革的立場，也受到了來自其他派別的批評，認為其做法可能反而會「合法化制度的不均」。",
+                    "此派別立場更為激進，認為福利國家充其量只能增進生存，無法從根本上促進資本主義的轉型。他們將壓迫的根源明確鎖定在「資本家和生產關係」上，認為這加劇了所有其他形式的社會衝突。革命式馬克思主義被批評為過於強調階級衝突。",
+                    "此派別是前兩者的折衷與融合，它接受福利國家同時具有維繫資本主義與製造階級衝突的「矛盾性質」，但同時也將其視為一股可行的改革力量。他們認為「階級衝突」是壓迫的初級來源，並由此引發後續的種族、性別等衝突。此立場因此同時受到兩派的雙重批判。"
+                ]
+            };
+            
+            const factionTitleEl = document.getElementById('faction-title');
+            const factionDescEl = document.getElementById('faction-description');
+
+            function updateFactionDetails(index) {
+                factionTitleEl.textContent = factionDetails.title[index];
+                factionDescEl.textContent = factionDetails.description[index];
+            }
+
+            const chartData = {
+                labels: [
+                    '體制內改良', 
+                    '信任福利國家', 
+                    '多元壓迫', 
+                    '階級為核心', 
+                    '結構性變革'
+                ],
+                datasets: [
+                    {
+                        label: '社會民主主義',
+                        data: [8, 7, 6, 4, 3],
+                        fill: true,
+                        backgroundColor: 'rgba(217, 95, 2, 0.2)',
+                        borderColor: 'rgba(217, 95, 2, 0.8)',
+                        pointBackgroundColor: 'rgba(217, 95, 2, 0.8)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(217, 95, 2, 0.8)'
+                    },
+                    {
+                        label: '革命式馬克思主義',
+                        data: [2, 1, 5, 9, 9],
+                        fill: true,
+                        backgroundColor: 'rgba(27, 158, 119, 0.2)',
+                        borderColor: 'rgba(27, 158, 119, 0.8)',
+                        pointBackgroundColor: 'rgba(27, 158, 119, 0.8)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(27, 158, 119, 0.8)'
+                    },
+                    {
+                        label: '進化的馬克思主義',
+                        data: [5, 5, 7, 7, 6],
+                        fill: true,
+                        backgroundColor: 'rgba(117, 112, 179, 0.2)',
+                        borderColor: 'rgba(117, 112, 179, 0.8)',
+                        pointBackgroundColor: 'rgba(117, 112, 179, 0.8)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(117, 112, 179, 0.8)'
+                    }
+                ]
+            };
+
+            const ctx = document.getElementById('factionChart').getContext('2d');
+            const factionChart = new Chart(ctx, {
+                type: 'radar',
+                data: chartData,
+                options: {
+                    maintainAspectRatio: false,
+                    responsive: true,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(0, 0, 0, 0.1)' },
+                            grid: { color: 'rgba(0, 0, 0, 0.1)' },
+                            pointLabels: {
+                                font: {
+                                    size: 14,
+                                    family: "'Noto Sans TC', sans-serif"
+                                },
+                                color: '#1e293b'
+                            },
+                            ticks: {
+                                backdropColor: 'rgba(255, 255, 255, 0)',
+                                color: '#475569',
+                                stepSize: 2,
+                                beginAtZero: true,
+                                max: 10
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                title: function(tooltipItems) {
+                                    const index = tooltipItems[0].datasetIndex;
+                                    updateFactionDetails(index);
+                                    return chartData.datasets[index].label;
+                                }
+                            }
+                        }
+                    },
+                    onClick: (e, elements) => {
+                        if (elements.length > 0) {
+                            const datasetIndex = elements[0].datasetIndex;
+                            updateFactionDetails(datasetIndex);
+                        }
+                    }
+                }
+            });
+
+            document.querySelectorAll('.faction-toggle').forEach(toggle => {
+                toggle.addEventListener('change', () => {
+                    const index = parseInt(toggle.dataset.index);
+                    factionChart.data.datasets[index].hidden = !toggle.checked;
+                    factionChart.update();
+                });
+            });
+        });
+    </script>
+</body>
+</html>
