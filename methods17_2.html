@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ANOVA Interactive</title>
+  <!-- 1. 載入 Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- 2. 載入 React 和 ReactDOM -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <!-- 3. 載入 Babel (讓瀏覽器看懂 JSX) -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  
+  <style>
+    /* 隱藏捲軸但保持功能 */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="bg-slate-50">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useMemo } = React;
+
+    // --- 簡易圖示組件 (取代 lucide-react 以利直接運行) ---
+    const Icons = {
+      BookOpen: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>,
+      Activity: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>,
+      HelpCircle: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>,
+      CheckCircle: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>,
+      XCircle: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>,
+      ArrowRight: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>,
+      Sliders: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>,
+      GitMerge: () => <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M6 21V9a9 9 0 0 0 9 9"/></svg>,
+      Users: () => <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    };
+
+    // --- 輔助函式 ---
+    const normalPDF = (x, mean, stdDev) => {
+      return (1 / (stdDev * Math.sqrt(2 * Math.PI))) * Math.exp(-0.5 * Math.pow((x - mean) / stdDev, 2));
+    };
+
+    const calculateF = (means, stdDev, n) => {
+      const k = means.length;
+      const totalN = n * k;
+      const grandMean = means.reduce((a, b) => a + b, 0) / k;
+      
+      const ssb = n * means.reduce((acc, m) => acc + Math.pow(m - grandMean, 2), 0);
+      const dfBetween = k - 1;
+      const msBetween = ssb / dfBetween;
+
+      const variance = Math.pow(stdDev, 2);
+      const ssw = variance * (n - 1) * k;
+      const dfWithin = totalN - k;
+      const msWithin = ssw / dfWithin;
+
+      if (msWithin === 0) return 0;
+      return msBetween / msWithin;
+    };
+
+    const generateNormalPath = (mean, stdDev, heightScale) => {
+      const points = [];
+      const step = 0.5; 
+      for (let x = 0; x <= 100; x += step) {
+        const y = normalPDF(x, mean, stdDev) * heightScale;
+        const yDraw = y > 0.1 ? y : 0;
+        points.push(`${x},${250 - yDraw}`);
+      }
+      return `M ${points[0]} L ${points.slice(1).join(' L ')}`;
+    };
+
+    // --- 資料 ---
+    const PAGE_DATA = {
+      title: "ANOVA：多組比較的藝術",
+      subtitle: "變異數分析互動講義",
+      intro: "當我們想比較「三組或以上」的平均數差異時（例如：藥物組 vs. 諮商組 vs. 對照組），T 檢定就不夠用了。這時我們需要 ANOVA，透過比較「組間差異」與「組內差異」來判斷效果。",
+      concepts: [
+        {
+          title: "為什麼不跑 3 次 T 檢定？",
+          content: "如果你有 A, B, C 三組，分別跑 A-B, B-C, A-C 三次檢定，會導致「第一型錯誤」(Type I Error) 的機率大幅膨脹。簡單說，做得越多次，越容易「瞎貓碰到死耗子」，誤判有顯著差異。ANOVA 可以一次解決這個問題。"
+        },
+        {
+          title: "ANOVA 的核心邏輯：F 值",
+          content: "F 值 = 組間變異 (訊號) / 組內變異 (雜訊)。\n\n● 組間變異：不同組別「平均數」之間的差異（治療效果）。\n● 組內變異：同一組內「個別成員」的差異（個人體質、誤差）。\n\n如果 F 值很大，代表治療效果「衝破」了個人差異的干擾。"
+        },
+        {
+          title: "事後比較 (Post Hoc)",
+          content: "ANOVA 只能告訴你「這三組不一樣」，但沒告訴你「哪兩組不一樣」。如果 F 檢定顯著，我們還需要做「事後比較」（如 Scheffe 或 Tukey 法）來找出具體差異。"
+        }
+      ],
+      quizzes: [
+        {
+          question: "在 ANOVA 中，F 值是用什麼計算出來的？",
+          options: [
+            "兩組平均數相減",
+            "組間變異數 除以 組內變異數",
+            "組內變異數 除以 組間變異數",
+            "全部樣本的標準差"
+          ],
+          correctIndex: 1,
+          explanation: "正確！F = MS(Between) / MS(Within)。這是訊號與雜訊的比值。"
+        },
+        {
+          question: "如果我們增加每一組的樣本數 (N)，但平均數和標準差不變，F 值通常會？",
+          options: [
+            "變大（更容易顯著）",
+            "變小（更難顯著）",
+            "不變",
+            "變成負數"
+          ],
+          correctIndex: 0,
+          explanation: "答對了！增加樣本數會讓分母的估計更精確（自由度增加），通常會提升檢定力，讓 F 值更容易達到顯著。"
+        },
+        {
+          question: "如果 ANOVA 結果顯示 F 值未達顯著水準，我們該做什麼？",
+          options: [
+            "趕快做 T 檢定來補救",
+            "進行事後比較 (Post Hoc)",
+            "接受虛無假設，停止分析（結論：各組之間沒有顯著差異）",
+            "刪除數據重做"
+          ],
+          correctIndex: 2,
+          explanation: "正確。如果整體 F 檢定都不顯著，代表沒有證據顯示組間有差異，就不應再進行事後比較了。"
+        }
+      ]
+    };
+
+    // --- 主程式 ---
+    function InteractiveANOVA() {
+      const [activeTab, setActiveTab] = useState('concept');
+      
+      const [spread, setSpread] = useState(5);
+      const [stdDev, setStdDev] = useState(5);
+      const [n, setN] = useState(20);
+      
+      const means = useMemo(() => [50 - spread, 50, 50 + spread], [spread]);
+      const fValue = useMemo(() => calculateF(means, stdDev, n), [means, stdDev, n]);
+      const isSignificant = fValue > 3.2;
+
+      const [quizState, setQuizState] = useState({});
+      const [showConfetti, setShowConfetti] = useState(false);
+
+      const handleQuizAnswer = (qIndex, optionIndex) => {
+        const isCorrect = optionIndex === PAGE_DATA.quizzes[qIndex].correctIndex;
+        setQuizState(prev => ({
+          ...prev,
+          [qIndex]: { selected: optionIndex, isCorrect }
+        }));
+        
+        if (isCorrect && Object.keys(quizState).length + 1 === PAGE_DATA.quizzes.length) {
+          setShowConfetti(true);
+          setTimeout(() => setShowConfetti(false), 3000);
+        }
+      };
+
+      return (
+        <div className="min-h-screen bg-slate-50 text-slate-800 font-sans selection:bg-indigo-100 selection:text-indigo-900 p-2">
+          <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-slate-200 shadow-sm rounded-xl mb-4">
+            <div className="max-w-5xl mx-auto px-4 py-2">
+              <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold shadow-lg shadow-indigo-200">
+                    F
+                  </div>
+                  <span className="font-bold text-xl tracking-tight text-slate-900">基礎統計：ANOVA</span>
+                </div>
+                <div className="flex space-x-1 bg-slate-100 p-1 rounded-xl">
+                  {[
+                    { id: 'concept', label: '原理概念', icon: Icons.BookOpen },
+                    { id: 'simulate', label: '互動模擬', icon: Icons.Activity },
+                    { id: 'quiz', label: '隨堂測驗', icon: Icons.HelpCircle }
+                  ].map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                        activeTab === tab.id
+                          ? 'bg-white text-indigo-600 shadow-sm ring-1 ring-black/5'
+                          : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
+                      }`}
+                    >
+                      <tab.icon />
+                      <span>{tab.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </nav>
+
+          <main className="max-w-4xl mx-auto px-2 sm:px-6 py-4">
+            <div className="mb-8 text-center">
+              <h1 className="text-3xl font-extrabold text-slate-900 mb-3">
+                {PAGE_DATA.title}
+              </h1>
+              <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+                {PAGE_DATA.intro}
+              </p>
+            </div>
+
+            {activeTab === 'concept' && (
+              <div className="space-y-6">
+                <div className="grid md:grid-cols-3 gap-6">
+                  {PAGE_DATA.concepts.map((item, idx) => (
+                    <div key={idx} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:border-indigo-200 transition-colors">
+                      <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mb-4 font-bold text-lg">
+                        {idx + 1}
+                      </div>
+                      <h3 className="font-bold text-lg text-slate-800 mb-2">{item.title}</h3>
+                      <p className="text-slate-600 text-sm leading-relaxed whitespace-pre-line">
+                        {item.content}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm mt-8">
+                  <h3 className="text-xl font-bold text-center text-slate-800 mb-6">解構 F 值公式</h3>
+                  <div className="flex flex-col items-center justify-center text-2xl font-serif">
+                    <div className="flex items-center gap-4">
+                      <span className="font-bold italic text-indigo-700">F</span>
+                      <span>=</span>
+                      <div className="flex flex-col items-center">
+                        <div className="border-b-2 border-slate-800 pb-2 px-4 text-center text-orange-600 font-bold text-base md:text-2xl">
+                          組間變異 (MS Between)
+                        </div>
+                        <div className="pt-2 px-4 text-center text-teal-600 font-bold text-base md:text-2xl">
+                          組內變異 (MS Within)
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-8 grid md:grid-cols-2 gap-8 w-full text-base font-sans">
+                      <div className="bg-orange-50 p-4 rounded-xl border border-orange-100 relative overflow-hidden">
+                        <div className="absolute -right-4 -top-4 text-orange-100 opacity-50">
+                           <Icons.GitMerge />
+                        </div>
+                        <h4 className="font-bold text-orange-800 mb-2 relative z-10">分子：訊號 (Signal)</h4>
+                        <p className="text-orange-700 relative z-10">
+                          代表各組「平均數」彼此離得有多遠。<br/>
+                          <strong>數值越大，代表組別間差異越明顯。</strong>
+                        </p>
+                      </div>
+                      <div className="bg-teal-50 p-4 rounded-xl border border-teal-100 relative overflow-hidden">
+                        <div className="absolute -right-4 -top-4 text-teal-100 opacity-50">
+                           <Icons.Users />
+                        </div>
+                        <h4 className="font-bold text-teal-800 mb-2 relative z-10">分母：雜訊 (Noise)</h4>
+                        <p className="text-teal-700 relative z-10">
+                          代表各組「內部成員」的分數有多分散。<br/>
+                          <strong>數值越小（越集中），F 值就會越大。</strong>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-center mt-8">
+                     <button 
+                      onClick={() => setActiveTab('simulate')}
+                      className="inline-flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-full font-medium shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-colors"
+                    >
+                      去模擬這兩股力量 <Icons.ArrowRight />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'simulate' && (
+              <div className="grid lg:grid-cols-12 gap-8">
+                <div className="lg:col-span-4 space-y-6">
+                  <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <div className="flex items-center gap-2 mb-4 text-slate-800">
+                      <Icons.Sliders />
+                      <h3 className="font-bold text-lg">訊號與雜訊控制台</h3>
+                    </div>
+                    
+                    <div className="mb-6">
+                      <div className="flex justify-between mb-2">
+                        <label className="text-sm font-bold text-orange-700">組間差異 (訊號)</label>
+                        <span className="text-sm font-mono bg-orange-100 text-orange-800 px-2 rounded">{spread}</span>
+                      </div>
+                      <input 
+                        type="range" min="0" max="20" step="1" 
+                        value={spread} onChange={(e) => setSpread(Number(e.target.value))}
+                        className="w-full h-2 bg-orange-200 rounded-lg appearance-none cursor-pointer accent-orange-600"
+                      />
+                    </div>
+
+                    <div className="mb-6">
+                      <div className="flex justify-between mb-2">
+                        <label className="text-sm font-bold text-teal-700">組內差異 (雜訊)</label>
+                        <span className="text-sm font-mono bg-teal-100 text-teal-800 px-2 rounded">{stdDev}</span>
+                      </div>
+                      <input 
+                        type="range" min="2" max="15" step="0.5" 
+                        value={stdDev} onChange={(e) => setStdDev(Number(e.target.value))}
+                        className="w-full h-2 bg-teal-200 rounded-lg appearance-none cursor-pointer accent-teal-600"
+                      />
+                    </div>
+
+                    <div className="mb-2">
+                      <div className="flex justify-between mb-2">
+                        <label className="text-sm font-bold text-indigo-700">每組樣本數 (N)</label>
+                        <span className="text-sm font-mono bg-indigo-100 text-indigo-800 px-2 rounded">{n}</span>
+                      </div>
+                      <input 
+                        type="range" min="5" max="50" step="1" 
+                        value={n} onChange={(e) => setN(Number(e.target.value))}
+                        className="w-full h-2 bg-indigo-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+                      />
+                    </div>
+                  </div>
+
+                  <div className={`p-6 rounded-2xl border-2 transition-all duration-500 text-center ${
+                    isSignificant ? 'bg-green-50 border-green-400' : 'bg-slate-100 border-slate-300'
+                  }`}>
+                    <h4 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">F 檢定結果</h4>
+                    <div className="text-4xl font-black mb-2 text-slate-800">
+                      F = {fValue.toFixed(2)}
+                    </div>
+                    <div className={`font-bold text-lg ${isSignificant ? 'text-green-700' : 'text-slate-500'}`}>
+                      {isSignificant ? "達到顯著差異！ (p < .05)" : "未達顯著水準 (p > .05)"}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="lg:col-span-8">
+                  <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm h-full flex flex-col">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="font-bold text-lg text-slate-800">三組分佈模擬</h3>
+                      <div className="flex gap-3 text-xs font-medium">
+                        <div className="flex items-center gap-1"><div className="w-3 h-3 bg-red-400 rounded-full"></div> A</div>
+                        <div className="flex items-center gap-1"><div className="w-3 h-3 bg-blue-400 rounded-full"></div> B</div>
+                        <div className="flex items-center gap-1"><div className="w-3 h-3 bg-green-400 rounded-full"></div> C</div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex-grow relative w-full min-h-[300px] bg-slate-50 rounded-xl overflow-hidden border border-slate-100">
+                      <svg viewBox="0 0 400 260" className="w-full h-full absolute inset-0" preserveAspectRatio="none">
+                        <line x1="0" y1="250" x2="400" y2="250" stroke="#cbd5e1" strokeWidth="2" />
+                        
+                        {spread > 2 && (
+                          <>
+                            <line x1={means[0]*4} y1="40" x2={means[2]*4} y2="40" stroke="#ea580c" strokeWidth="2" strokeDasharray="4" />
+                            <text x="200" y="35" fill="#ea580c" fontSize="12" fontWeight="bold" textAnchor="middle">組間差異</text>
+                          </>
+                        )}
+
+                        <path d={generateNormalPath(means[0], stdDev, 1000)} fill="rgba(248, 113, 113, 0.3)" stroke="#ef4444" strokeWidth="2" transform="scale(4, 1)" />
+                        <path d={generateNormalPath(means[1], stdDev, 1000)} fill="rgba(96, 165, 250, 0.3)" stroke="#3b82f6" strokeWidth="2" transform="scale(4, 1)" />
+                        <path d={generateNormalPath(means[2], stdDev, 1000)} fill="rgba(74, 222, 128, 0.3)" stroke="#22c55e" strokeWidth="2" transform="scale(4, 1)" />
+                      </svg>
+                    </div>
+                    
+                    <div className="mt-4 flex flex-col sm:flex-row gap-4">
+                       <div className="flex-1 text-sm text-orange-800 bg-orange-50 p-3 rounded-lg border border-orange-100">
+                        <span className="font-bold block mb-1">組間變異: {((n * means.reduce((acc, m) => acc + Math.pow(m - 50, 2), 0))/2).toFixed(1)}</span>
+                        數值越大，F值越大。
+                      </div>
+                       <div className="flex-1 text-sm text-teal-800 bg-teal-50 p-3 rounded-lg border border-teal-100">
+                        <span className="font-bold block mb-1">組內變異: {(Math.pow(stdDev, 2)).toFixed(1)}</span>
+                        數值越小，F值越大。
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'quiz' && (
+              <div className="space-y-6">
+                 <div className="bg-indigo-50 rounded-xl p-6 border border-indigo-100 mb-6 flex gap-4">
+                    <div className="bg-indigo-100 p-3 rounded-full h-fit">
+                      <Icons.HelpCircle />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-indigo-900 text-lg">隨堂測驗</h3>
+                      <p className="text-indigo-700 mt-1">確認您是否理解 ANOVA 的邏輯。</p>
+                    </div>
+                  </div>
+
+                {PAGE_DATA.quizzes.map((quiz, qIndex) => {
+                  const state = quizState[qIndex];
+                  const isAnswered = state !== undefined;
+                  
+                  return (
+                    <div key={qIndex} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                      <div className="p-6 border-b border-slate-100 bg-slate-50/50">
+                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Question {qIndex + 1}</span>
+                        <h3 className="text-lg font-semibold text-slate-800 mt-2">{quiz.question}</h3>
+                      </div>
+                      <div className="p-4 space-y-2">
+                        {quiz.options.map((option, oIndex) => {
+                          let btnClass = "w-full text-left p-4 rounded-xl border-2 transition-all duration-200 flex justify-between items-center ";
+                          
+                          if (!isAnswered) {
+                            btnClass += "border-slate-100 hover:border-indigo-200 hover:bg-indigo-50 text-slate-600";
+                          } else {
+                            if (oIndex === quiz.correctIndex) {
+                              btnClass += "border-green-500 bg-green-50 text-green-800 font-medium";
+                            } else if (state.selected === oIndex && !state.isCorrect) {
+                              btnClass += "border-red-300 bg-red-50 text-red-800 opacity-70";
+                            } else {
+                              btnClass += "border-transparent text-slate-400 opacity-50 cursor-default";
+                            }
+                          }
+
+                          return (
+                            <button
+                              key={oIndex}
+                              onClick={() => !isAnswered && handleQuizAnswer(qIndex, oIndex)}
+                              disabled={isAnswered}
+                              className={btnClass}
+                            >
+                              <span>{option}</span>
+                              {isAnswered && oIndex === quiz.correctIndex && <Icons.CheckCircle />}
+                              {isAnswered && state.selected === oIndex && !state.isCorrect && <Icons.XCircle />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      {isAnswered && (
+                        <div className={`p-5 mx-4 mb-4 rounded-xl text-sm ${state.isCorrect ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                          <p className="font-bold mb-1">{state.isCorrect ? '🎉 答對了！' : '💡 再想一下...'}</p>
+                          <p>{quiz.explanation}</p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+                {showConfetti && (
+                  <div className="text-center p-4 bg-indigo-100 text-indigo-800 font-bold rounded-xl animate-pulse">
+                    太棒了！您已經掌握了 ANOVA 的核心觀念！
+                  </div>
+                )}
+              </div>
+            )}
+          </main>
+        </div>
+      );
+    }
+
+    // 渲染到頁面
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<InteractiveANOVA />);
+  </script>
+</body>
+</html>
