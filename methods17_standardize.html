@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Normal Distribution & Z-Score Interactive</title>
+  
+  <!-- 1. 載入 Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- 2. 載入 React 相關 (核心) -->
+  <script crossorigin src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+  
+  <!-- 3. 載入 Babel (JSX 編譯器) -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  
+  <style>
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .range-slider::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none;
+      width: 20px; height: 20px;
+      border-radius: 50%; background: #0ea5e9; cursor: pointer;
+    }
+    /* 簡單的動畫 */
+    .fade-in { animation: fadeIn 0.5s ease-in; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useMemo } = React;
+
+    // --- 簡易圖示組件 ---
+    const Icons = {
+      BookOpen: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>,
+      Activity: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>,
+      Scale: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg>,
+      HelpCircle: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>,
+      CheckCircle: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>,
+      XCircle: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>,
+      ArrowRight: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+    };
+
+    // --- 數學輔助函式 ---
+    const normalPDF = (x, mean, stdDev) => {
+      return (1 / (stdDev * Math.sqrt(2 * Math.PI))) * Math.exp(-0.5 * Math.pow((x - mean) / stdDev, 2));
+    };
+
+    // --- SVG 曲線繪製組件 ---
+    const NormalCurveSVG = ({ mean, sd, showSDLines = false, highlightZ = null, rangeX = [0, 100] }) => {
+      const width = 400;
+      const height = 200;
+      const padding = 20;
+      
+      // 計算繪圖路徑
+      const points = [];
+      const step = (rangeX[1] - rangeX[0]) / 200;
+      
+      // 找出最大 Y 值以進行縮放 (讓曲線頂端總是固定高度，方便觀察形狀變化)
+      // 但如果是為了教學「變胖變瘦」，Y軸應該統一比例比較好？
+      // 這裡為了視覺美觀，我們使用一個參考的 peak (sd=5) 來做相對縮放，或者動態縮放
+      // 為了展示 SD 變大曲線變平，我們應該固定 Y 軸的最大值參考點
+      const refMaxY = normalPDF(50, 5, 5); // 以 SD=5 為基準
+      const scaleY = (height - padding * 2) / refMaxY;
+
+      for (let x = rangeX[0]; x <= rangeX[1]; x += step) {
+        const y = normalPDF(x, mean, sd);
+        // 轉換為 SVG 坐標
+        const svgX = ((x - rangeX[0]) / (rangeX[1] - rangeX[0])) * width;
+        const svgY = height - padding - (y * scaleY); 
+        points.push(`${svgX},${svgY}`);
+      }
+      
+      const pathD = `M ${points[0]} L ${points.slice(1).join(' L ')}`;
+
+      // 繪製標準差區域 (Area Filling)
+      const getAreaPath = (startSD, endSD) => {
+        const startX = mean + startSD * sd;
+        const endX = mean + endSD * sd;
+        const areaPoints = [];
+        
+        for (let x = startX; x <= endX; x += step) {
+           const y = normalPDF(x, mean, sd);
+           const svgX = ((x - rangeX[0]) / (rangeX[1] - rangeX[0])) * width;
+           const svgY = height - padding - (y * scaleY);
+           areaPoints.push(`${svgX},${svgY}`);
+        }
+        // Close the path at the bottom
+        const bottomStartY = height - padding;
+        const bottomStartX = ((startX - rangeX[0]) / (rangeX[1] - rangeX[0])) * width;
+        const bottomEndX = ((endX - rangeX[0]) / (rangeX[1] - rangeX[0])) * width;
+        
+        return `M ${bottomStartX},${bottomStartY} L ${areaPoints.join(' L ')} L ${bottomEndX},${bottomStartY} Z`;
+      };
+
+      return (
+        <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full overflow-visible">
+          {/* 網格線 */}
+          <line x1="0" y1={height - padding} x2={width} y2={height - padding} stroke="#cbd5e1" strokeWidth="2" />
+          
+          {/* 經驗法則區域 (SD Lines) */}
+          {showSDLines && (
+            <>
+               {/* 3SD */}
+               <path d={getAreaPath(-3, 3)} fill="#bae6fd" opacity="0.3" />
+               {/* 2SD */}
+               <path d={getAreaPath(-2, 2)} fill="#7dd3fc" opacity="0.4" />
+               {/* 1SD */}
+               <path d={getAreaPath(-1, 1)} fill="#38bdf8" opacity="0.5" />
+               
+               {/* SD 標記線 */}
+               {[-3, -2, -1, 0, 1, 2, 3].map(k => {
+                 const xVal = mean + k * sd;
+                 const svgX = ((xVal - rangeX[0]) / (rangeX[1] - rangeX[0])) * width;
+                 return (
+                   <g key={k}>
+                     <line x1={svgX} y1={height - padding} x2={svgX} y2={height - padding + 10} stroke="#64748b" strokeWidth="1" />
+                     <text x={svgX} y={height - padding + 25} fontSize="10" textAnchor="middle" fill="#64748b">
+                       {k === 0 ? 'μ' : (k > 0 ? `+${k}σ` : `${k}σ`)}
+                     </text>
+                   </g>
+                 );
+               })}
+            </>
+          )}
+
+          {/* 主曲線 */}
+          <path d={pathD} fill="none" stroke="#0284c7" strokeWidth="3" />
+          
+          {/* Z-Score Point Highlight */}
+          {highlightZ !== null && (
+            <g>
+              {(() => {
+                 // highlightZ is the raw score
+                 const svgX = ((highlightZ - rangeX[0]) / (rangeX[1] - rangeX[0])) * width;
+                 const y = normalPDF(highlightZ, mean, sd);
+                 const svgY = height - padding - (y * scaleY);
+                 return (
+                   <>
+                     <line x1={svgX} y1={svgY} x2={svgX} y2={height-padding} stroke="#ef4444" strokeWidth="2" strokeDasharray="4" />
+                     <circle cx={svgX} cy={svgY} r="5" fill="#ef4444" />
+                     <text x={svgX} y={svgY - 10} textAnchor="middle" fill="#ef4444" fontWeight="bold" fontSize="12">
+                       X={highlightZ}
+                     </text>
+                   </>
+                 )
+              })()}
+            </g>
+          )}
+        </svg>
+      );
+    };
+
+    // --- 資料內容 ---
+    const PAGE_DATA = {
+      title: "常態分配與標準分數",
+      subtitle: "一把萬用的尺",
+      intro: "世界上許多現象（如身高、智商、誤差）都呈現「鐘形曲線」。理解常態分配，我們才能判斷一個數值是「正常」還是「極端」；學會標準分數 (Z-score)，我們才能在不同的測驗標準間進行公平比較。",
+      concepts: [
+        { title: "常態分配 (Normal Distribution)", content: "又稱鐘形曲線 (Bell Curve)。\n● 對稱性：以平均數為中心，左右對稱。\n● 集中性：平均數 = 中位數 = 眾數。\n● 漸近性：曲線兩端無限延伸但不觸碰 X 軸。" },
+        { title: "經驗法則 (Empirical Rule)", content: "在常態分配中，數據的分佈有固定比例：\n● 68% 的數據落在平均數 ±1 個標準差內。\n● 95% 的數據落在平均數 ±2 個標準差內。\n● 99.7% 的數據落在平均數 ±3 個標準差內。" },
+        { title: "標準分數 (Z-Score)", content: "公式：Z = (分數 - 平均數) / 標準差。\n意義：這個分數距離平均數有「幾個標準差」遠？\n用途：將不同單位的數據轉化為統一標準（標準化），以便比較。" }
+      ],
+      quizzes: [
+        { question: "如果一位學生的智商測驗分數 Z 分數為 +2.0，這代表什麼意思？", options: ["他的智商剛好是平均值", "他的智商比平均值高出 2 個標準差，是非常優秀的成績", "他的智商是全班第 2 名", "計算錯誤，Z 分數不能大於 1"], correctIndex: 1, explanation: "正確！Z=+2 代表位於平均數右邊 2 個標準差的位置，根據經驗法則，這已經贏過約 97.7% 的人。" },
+        { question: "小明數學考 80 分 (班平均 70, SD=10)，英文考 85 分 (班平均 80, SD=2.5)。請問他在哪一科的相對表現比較好？", options: ["英文比較好", "數學比較好", "兩科一樣好", "無法比較"], correctIndex: 0, explanation: "正確！讓我們算 Z 分數。數學 Z = (80-70)/10 = 1.0；英文 Z = (85-80)/2.5 = 2.0。英文的 Z 分數較高，代表在該群體中相對位置更前面。" },
+        { question: "常態分配曲線下的總面積是多少？", options: ["0.5", "1.0", "100", "無限大"], correctIndex: 1, explanation: "正確！曲線下的總面積代表總機率，也就是 1 (或 100%)。" }
+      ]
+    };
+
+    // --- 主程式 ---
+    function InteractiveNormal() {
+      const [activeTab, setActiveTab] = useState('concept');
+      
+      // Tab 2 State: Shape
+      const [mean, setMean] = useState(50);
+      const [sd, setSd] = useState(10);
+
+      // Tab 3 State: Z-Score
+      // Subject A
+      const [scoreA, setScoreA] = useState(80);
+      const [meanA, setMeanA] = useState(70);
+      const [sdA, setSdA] = useState(10);
+      // Subject B
+      const [scoreB, setScoreB] = useState(85);
+      const [meanB, setMeanB] = useState(80);
+      const [sdB, setSdB] = useState(2.5);
+
+      const zA = (meanA === 0 && sdA === 0) ? 0 : (scoreA - meanA) / sdA;
+      const zB = (meanB === 0 && sdB === 0) ? 0 : (scoreB - meanB) / sdB;
+
+      // Quiz State
+      const [quizState, setQuizState] = useState({});
+      const [showConfetti, setShowConfetti] = useState(false);
+
+      const handleQuizAnswer = (qIndex, optionIndex) => {
+        const isCorrect = optionIndex === PAGE_DATA.quizzes[qIndex].correctIndex;
+        setQuizState(prev => ({ ...prev, [qIndex]: { selected: optionIndex, isCorrect } }));
+        if (isCorrect && Object.keys(quizState).length + 1 === PAGE_DATA.quizzes.length) {
+          setShowConfetti(true);
+          setTimeout(() => setShowConfetti(false), 3000);
+        }
+      };
+
+      return (
+        <div className="min-h-screen bg-slate-50 text-slate-800 font-sans p-2">
+          {/* Navigation */}
+          <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-slate-200 shadow-sm rounded-xl mb-4">
+            <div className="max-w-5xl mx-auto px-4 py-3">
+              <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-sky-500 rounded-lg flex items-center justify-center text-white font-bold shadow-lg shadow-sky-200">Z</div>
+                  <span className="font-bold text-xl tracking-tight text-slate-900">常態分配與標準分數</span>
+                </div>
+                <div className="flex space-x-1 bg-slate-100 p-1 rounded-xl overflow-x-auto w-full md:w-auto">
+                  {[
+                    { id: 'concept', label: '核心概念', icon: Icons.BookOpen },
+                    { id: 'curve', label: '探索曲線', icon: Icons.Activity },
+                    { id: 'zscore', label: 'Z 分數比較', icon: Icons.Scale },
+                    { id: 'quiz', label: '隨堂測驗', icon: Icons.HelpCircle }
+                  ].map((tab) => (
+                    <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${activeTab === tab.id ? 'bg-white text-sky-600 shadow-sm ring-1 ring-black/5' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}>
+                      <tab.icon />
+                      <span>{tab.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </nav>
+
+          <main className="max-w-4xl mx-auto px-2 sm:px-6 py-4">
+            <div className="mb-8 text-center">
+              <h1 className="text-3xl font-extrabold text-slate-900 mb-3">{PAGE_DATA.title}</h1>
+              <p className="text-lg text-slate-600 max-w-2xl mx-auto">{PAGE_DATA.intro}</p>
+            </div>
+
+            {/* TAB 1: CONCEPT */}
+            {activeTab === 'concept' && (
+              <div className="space-y-6 fade-in">
+                <div className="grid md:grid-cols-3 gap-6">
+                  {PAGE_DATA.concepts.map((item, idx) => (
+                    <div key={idx} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:border-sky-200 transition-colors">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-10 h-10 bg-sky-50 text-sky-600 rounded-full flex items-center justify-center font-bold text-lg">{idx + 1}</div>
+                        <h3 className="font-bold text-lg text-slate-800">{item.title}</h3>
+                      </div>
+                      <p className="text-slate-600 text-sm leading-relaxed whitespace-pre-line">{item.content}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="text-center mt-8">
+                   <button onClick={() => setActiveTab('curve')} className="inline-flex items-center gap-2 bg-sky-600 text-white px-6 py-3 rounded-full font-medium shadow-lg shadow-sky-200 hover:bg-sky-700 transition-colors">
+                    開始探索曲線 <Icons.ArrowRight />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 2: CURVE EXPLORER */}
+            {activeTab === 'curve' && (
+              <div className="grid lg:grid-cols-12 gap-8 fade-in">
+                <div className="lg:col-span-4 space-y-6">
+                  <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <div className="flex items-center gap-2 mb-4 text-slate-800">
+                      <Icons.Activity />
+                      <h3 className="font-bold text-lg">曲線控制台</h3>
+                    </div>
+                    
+                    <div className="mb-6">
+                      <div className="flex justify-between mb-2"><label className="text-sm font-bold text-sky-700">平均數 (μ)</label><span className="text-sm font-mono bg-sky-100 text-sky-800 px-2 rounded">{mean}</span></div>
+                      <input type="range" min="10" max="90" step="1" value={mean} onChange={(e) => setMean(Number(e.target.value))} className="w-full h-2 bg-sky-200 rounded-lg appearance-none cursor-pointer accent-sky-600" />
+                      <p className="text-xs text-slate-500 mt-1">控制曲線的中心位置 (平移)。</p>
+                    </div>
+
+                    <div className="mb-2">
+                      <div className="flex justify-between mb-2"><label className="text-sm font-bold text-emerald-700">標準差 (σ)</label><span className="text-sm font-mono bg-emerald-100 text-emerald-800 px-2 rounded">{sd}</span></div>
+                      <input type="range" min="2" max="20" step="0.5" value={sd} onChange={(e) => setSd(Number(e.target.value))} className="w-full h-2 bg-emerald-200 rounded-lg appearance-none cursor-pointer accent-emerald-600" />
+                      <p className="text-xs text-slate-500 mt-1">控制曲線的胖瘦 (離散)。數值越大越扁平。</p>
+                    </div>
+                  </div>
+                  
+                  <div className="p-4 bg-sky-50 rounded-xl border border-sky-100 text-sm text-sky-800">
+                    <strong>經驗法則小知識：</strong><br/>
+                    無論曲線變胖變瘦，平均數 ±1σ 永遠包含約 68% 的面積，±2σ 永遠包含約 95%。
+                  </div>
+                </div>
+
+                <div className="lg:col-span-8">
+                  <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm h-full flex flex-col">
+                     <h3 className="text-center font-bold text-slate-700 mb-4">常態分配曲線與經驗法則</h3>
+                     <div className="flex-grow min-h-[300px]">
+                        <NormalCurveSVG mean={mean} sd={sd} showSDLines={true} rangeX={[0, 100]} />
+                     </div>
+                     <div className="flex justify-center gap-4 mt-4 text-xs text-slate-500">
+                       <div className="flex items-center gap-1"><div className="w-3 h-3 bg-sky-400 opacity-50"></div> ±1σ (68%)</div>
+                       <div className="flex items-center gap-1"><div className="w-3 h-3 bg-sky-300 opacity-40"></div> ±2σ (95%)</div>
+                       <div className="flex items-center gap-1"><div className="w-3 h-3 bg-sky-200 opacity-30"></div> ±3σ (99.7%)</div>
+                     </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 3: Z-SCORE COMPARISON */}
+            {activeTab === 'zscore' && (
+              <div className="grid lg:grid-cols-12 gap-8 fade-in">
+                <div className="lg:col-span-5 space-y-6">
+                  <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <div className="flex items-center gap-2 mb-6 text-slate-800">
+                      <Icons.Scale />
+                      <h3 className="font-bold text-lg">成績比較計算機</h3>
+                    </div>
+
+                    {/* Subject A */}
+                    <div className="mb-6 pb-6 border-b border-slate-100">
+                      <h4 className="font-bold text-blue-600 mb-3 flex items-center gap-2">科目 A (例如：數學) <span className="text-xs bg-blue-100 px-2 py-0.5 rounded text-blue-800">Z = {zA.toFixed(2)}</span></h4>
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                           <span className="w-12 text-xs font-bold text-slate-500">得分</span>
+                           <input type="number" value={scoreA} onChange={(e) => setScoreA(Number(e.target.value))} className="w-20 border border-slate-300 rounded px-2 py-1 text-sm" />
+                           <input type="range" min="0" max="100" value={scoreA} onChange={(e) => setScoreA(Number(e.target.value))} className="flex-grow h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600" />
+                        </div>
+                        <div className="flex items-center gap-2">
+                           <span className="w-12 text-xs font-bold text-slate-500">平均</span>
+                           <input type="number" value={meanA} onChange={(e) => setMeanA(Number(e.target.value))} className="w-20 border border-slate-300 rounded px-2 py-1 text-sm" />
+                           <input type="range" min="0" max="100" value={meanA} onChange={(e) => setMeanA(Number(e.target.value))} className="flex-grow h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-400" />
+                        </div>
+                        <div className="flex items-center gap-2">
+                           <span className="w-12 text-xs font-bold text-slate-500">SD</span>
+                           <input type="number" value={sdA} onChange={(e) => setSdA(Number(e.target.value))} className="w-20 border border-slate-300 rounded px-2 py-1 text-sm" />
+                           <input type="range" min="1" max="20" value={sdA} onChange={(e) => setSdA(Number(e.target.value))} className="flex-grow h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-300" />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Subject B */}
+                    <div>
+                      <h4 className="font-bold text-orange-600 mb-3 flex items-center gap-2">科目 B (例如：英文) <span className="text-xs bg-orange-100 px-2 py-0.5 rounded text-orange-800">Z = {zB.toFixed(2)}</span></h4>
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                           <span className="w-12 text-xs font-bold text-slate-500">得分</span>
+                           <input type="number" value={scoreB} onChange={(e) => setScoreB(Number(e.target.value))} className="w-20 border border-slate-300 rounded px-2 py-1 text-sm" />
+                           <input type="range" min="0" max="100" value={scoreB} onChange={(e) => setScoreB(Number(e.target.value))} className="flex-grow h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-orange-600" />
+                        </div>
+                        <div className="flex items-center gap-2">
+                           <span className="w-12 text-xs font-bold text-slate-500">平均</span>
+                           <input type="number" value={meanB} onChange={(e) => setMeanB(Number(e.target.value))} className="w-20 border border-slate-300 rounded px-2 py-1 text-sm" />
+                           <input type="range" min="0" max="100" value={meanB} onChange={(e) => setMeanB(Number(e.target.value))} className="flex-grow h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-orange-400" />
+                        </div>
+                         <div className="flex items-center gap-2">
+                           <span className="w-12 text-xs font-bold text-slate-500">SD</span>
+                           <input type="number" value={sdB} onChange={(e) => setSdB(Number(e.target.value))} className="w-20 border border-slate-300 rounded px-2 py-1 text-sm" />
+                           <input type="range" min="1" max="20" value={sdB} onChange={(e) => setSdB(Number(e.target.value))} className="flex-grow h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-orange-300" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-slate-800 text-white rounded-xl shadow-lg text-center">
+                    <p className="text-sm opacity-80 mb-1">結論：相對表現</p>
+                    <h3 className="text-xl font-bold">
+                      {zA > zB ? "科目 A 表現較佳" : (zB > zA ? "科目 B 表現較佳" : "兩科表現一樣")}
+                    </h3>
+                  </div>
+                </div>
+
+                <div className="lg:col-span-7 space-y-6">
+                  {/* Visual A */}
+                  <div className="bg-white p-4 rounded-xl border border-blue-100 shadow-sm">
+                     <div className="text-xs font-bold text-blue-600 mb-2 text-center">科目 A 原始分佈 (Mean={meanA}, SD={sdA})</div>
+                     <div className="h-[120px]">
+                       <NormalCurveSVG mean={meanA} sd={sdA} showSDLines={false} highlightZ={scoreA} rangeX={[0, 100]} />
+                     </div>
+                  </div>
+
+                  {/* Visual B */}
+                  <div className="bg-white p-4 rounded-xl border border-orange-100 shadow-sm">
+                     <div className="text-xs font-bold text-orange-600 mb-2 text-center">科目 B 原始分佈 (Mean={meanB}, SD={sdB})</div>
+                     <div className="h-[120px]">
+                       <NormalCurveSVG mean={meanB} sd={sdB} showSDLines={false} highlightZ={scoreB} rangeX={[0, 100]} />
+                     </div>
+                  </div>
+                  
+                  {/* Standardized Visual */}
+                  <div className="bg-slate-100 p-4 rounded-xl border border-slate-200 shadow-inner relative">
+                     <div className="text-xs font-bold text-slate-600 mb-2 text-center">標準常態分配 (Mean=0, SD=1)</div>
+                     <div className="h-[120px] relative">
+                       {/* 我們模擬一個標準常態分配，這裡用 mean=50, sd=10 來代表視覺上的 Z=0, Z=1 */}
+                       <NormalCurveSVG mean={50} sd={10} showSDLines={true} rangeX={[10, 90]} />
+                       
+                       {/* Manually place Z points based on the visual scale above (50 is center, 10 is 1SD) */}
+                       {/* Point A */}
+                       <div className="absolute top-1/2 w-4 h-4 bg-blue-600 rounded-full border-2 border-white shadow flex items-center justify-center text-[8px] text-white font-bold transition-all duration-500"
+                            style={{ left: `${((50 + zA * 10) - 10) / 80 * 100}%`, top: '60%' }}>A</div>
+                       
+                       {/* Point B */}
+                       <div className="absolute top-1/2 w-4 h-4 bg-orange-600 rounded-full border-2 border-white shadow flex items-center justify-center text-[8px] text-white font-bold transition-all duration-500"
+                            style={{ left: `${((50 + zB * 10) - 10) / 80 * 100}%`, top: '40%' }}>B</div>
+                     </div>
+                     <div className="text-center text-xs text-slate-500 mt-2">
+                       將兩者都換算成 Z 分數後，放在同一把尺上比較。越右邊越好。
+                     </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 4: QUIZ */}
+            {activeTab === 'quiz' && (
+              <div className="space-y-6 fade-in">
+                 <div className="bg-sky-50 rounded-xl p-6 border border-sky-100 mb-6 flex gap-4">
+                    <div className="bg-sky-100 p-3 rounded-full h-fit"><Icons.HelpCircle /></div>
+                    <div><h3 className="font-bold text-sky-900 text-lg">隨堂測驗</h3><p className="text-sky-700 mt-1">確認您是否理解常態分配與 Z 分數的概念。</p></div>
+                  </div>
+                {PAGE_DATA.quizzes.map((quiz, qIndex) => {
+                  const state = quizState[qIndex];
+                  const isAnswered = state !== undefined;
+                  return (
+                    <div key={qIndex} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                      <div className="p-6 border-b border-slate-100 bg-slate-50/50">
+                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Question {qIndex + 1}</span>
+                        <h3 className="text-lg font-semibold text-slate-800 mt-2">{quiz.question}</h3>
+                      </div>
+                      <div className="p-4 space-y-2">
+                        {quiz.options.map((option, oIndex) => {
+                          let btnClass = "w-full text-left p-4 rounded-xl border-2 transition-all duration-200 flex justify-between items-center ";
+                          if (!isAnswered) { btnClass += "border-slate-100 hover:border-sky-200 hover:bg-sky-50 text-slate-600"; } else { if (oIndex === quiz.correctIndex) { btnClass += "border-green-500 bg-green-50 text-green-800 font-medium"; } else if (state.selected === oIndex && !state.isCorrect) { btnClass += "border-red-300 bg-red-50 text-red-800 opacity-70"; } else { btnClass += "border-transparent text-slate-400 opacity-50 cursor-default"; } }
+                          return (
+                            <button key={oIndex} onClick={() => !isAnswered && handleQuizAnswer(qIndex, oIndex)} disabled={isAnswered} className={btnClass}>
+                              <span>{option}</span>
+                              {isAnswered && oIndex === quiz.correctIndex && <Icons.CheckCircle />}
+                              {isAnswered && state.selected === oIndex && !state.isCorrect && <Icons.XCircle />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      {isAnswered && <div className={`p-5 mx-4 mb-4 rounded-xl text-sm ${state.isCorrect ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}><p className="font-bold mb-1">{state.isCorrect ? '🎉 答對了！' : '💡 再想一下...'}</p><p>{quiz.explanation}</p></div>}
+                    </div>
+                  );
+                })}
+                {showConfetti && <div className="text-center p-4 bg-sky-100 text-sky-800 font-bold rounded-xl animate-pulse">太棒了！您已經掌握了這些統計概念！</div>}
+              </div>
+            )}
+          </main>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<InteractiveNormal />);
+  </script>
+</body>
+</html>
