@@ -1,0 +1,590 @@
+import React, { useState } from 'react';
+import { BookOpen, CheckSquare, ChevronRight, ChevronLeft, Info, Layout, HelpCircle, CheckCircle, XCircle, RefreshCw, ArrowDown, Brain, Database, ZoomIn, Globe } from 'lucide-react';
+
+// ==========================================
+// 內容資料庫 (Content Data)
+// ==========================================
+const PAGE_DATA = {
+  title: "社會工作研究的哲學與理論",
+  subtitle: "研究的藍圖與地基",
+  intro: "如果說「研究方法」是蓋房子的工具（如鎚子、鋸子），那麼「哲學與理論」就是藍圖與地基。一個不了解哲學的研究者，就像拿著工具卻不知道為何而蓋的工人。本章節將帶您探索研究背後的信念系統與邏輯架構。",
+  
+  // Tab 1: 核心閱讀 (Reading)
+  sections: [
+    {
+      id: "intro",
+      title: "🏠 導論：為何需要哲學？",
+      content: `在社會工作研究中，哲學與理論扮演著關鍵角色：
+
+1. **哲學典範 (Paradigm)**：決定了我們的「世界觀」。回答了「什麼是真實？」、「我們如何認識真實？」等根本問題。
+2. **理論 (Theory)**：提供了觀察世界的「鏡片」。幫助我們組織觀察、解釋現象並預測未來。`
+    },
+    {
+      id: "paradigm",
+      title: "🌎 四大哲學典範",
+      content: `研究者看待世界的信念系統，直接影響研究方法的選擇：
+
+🔹 **實證主義 (Positivism)**
+世界觀：存在一個客觀、獨立於人的真實世界。
+目標：尋找普世的「因果法則」。
+方法：量化研究、實驗法 (如 RCT)。
+
+🔹 **詮釋/建構主義 (Interpretivism)**
+世界觀：真實是主觀建構的，是透過互動賦予意義的。
+目標：深入「理解」人們的主觀經驗。
+方法：質性研究、深度訪談。
+
+🔹 **批判典範 (Critical Paradigm)**
+世界觀：世界充滿權力鬥爭與壓迫。
+目標：「揭露」不義結構，並「賦權」弱勢以促成改變。
+方法：行動研究、批判論述分析。
+
+🔹 **實用主義 (Pragmatism)**
+世界觀：不爭論絕對真理，關注「什麼是有效的」。
+目標：解決實際問題。
+方法：混合研究法 (Mixed Methods)。`
+    },
+    {
+      id: "explanation",
+      title: "🎯 解釋的兩種類型",
+      content: `研究的目標是解釋，但有深度與廣度之分：
+
+🔸 **個殊式解釋 (Idiographic)**
+目標：追求「完整」與「深入」地理解「單一」個案的所有成因。
+範例：深入探討「小明」為何中輟的所有獨特故事（家庭、同儕、心理...）。
+適用：質性研究、個案研究。
+
+🔸 **律則式解釋 (Nomothetic)**
+目標：追求「簡潔」與「概化」，找出解釋「多數」情況的少數關鍵變項。
+範例：分析500位中輟生，發現「家庭支持低」是最大的共同預測因子。
+適用：量化研究、統計分析。`
+    }
+  ],
+
+  // Tab 2: 理論架構與邏輯 (Visuals)
+  // 這裡我們將原本的 steps 改為兩種互動模式
+  logicModels: [
+    {
+      id: "structure",
+      title: "理論的構成階梯",
+      description: "理論不是一塊鐵板，而是由抽象到具體的一系列元件組成的邏輯體系。",
+      items: [
+        {
+          title: "理論 (Theory)",
+          desc: "一套有系統的命題，用以解釋特定現象。是抽象的解釋體系。",
+          example: "例如：社會連帶理論 (Social Bond Theory)"
+        },
+        {
+          title: "概念 (Concepts)",
+          desc: "理論的基石，抽象的標籤。複雜概念常包含多個維度。",
+          example: "例如：依附 (Attachment)、偏差行為"
+        },
+        {
+          title: "命題 (Propositions)",
+          desc: "陳述「概念」之間抽象關係的語句。",
+          example: "例如：個人的「依附」越強，其「偏差行為」越少。"
+        },
+        {
+          title: "假設 (Hypothesis)",
+          desc: "將命題轉化為「可測量」的具體陳述，用於實證檢驗。",
+          example: "例如：青少年「對父母的親密感評分」越高，「逃學次數」越少。"
+        }
+      ]
+    },
+    {
+      id: "wheel",
+      title: "科學之輪：歸納與演繹",
+      description: "科學研究是一個不斷循環的過程，連結了理論與觀察。",
+      items: [
+        {
+          title: "歸納法 (Induction)",
+          sub: "由下而上 (Bottom-up)",
+          desc: "從「具體觀察」出發 ➔ 尋找模式 ➔ 建立「暫時性理論」。",
+          use: "常用於質性、探索性研究。"
+        },
+        {
+          title: "演繹法 (Deduction)",
+          sub: "由上而下 (Top-down)",
+          desc: "從「既有理論」出發 ➔ 推導假設 ➔ 蒐集資料「驗證」。",
+          use: "常用於量化、驗證性研究。"
+        }
+      ]
+    }
+  ],
+
+  // Tab 3: 隨堂測驗 (Quizzes)
+  quizzes: [
+    {
+      question: "一位研究者與社區居民「共同」探討問題，並致力於找出方案以「爭取權益」。這最符合哪一種哲學典範？",
+      options: [
+        "實證主義 (Positivism)",
+        "詮釋主義 (Interpretivism)",
+        "批判典範 (Critical Paradigm)",
+        "實用主義 (Pragmatism)"
+      ],
+      correctIndex: 2,
+      explanation: "答對了！批判典範的核心目標正是揭露不義、賦權弱勢，並透過行動（如行動研究）來促成社會改變。"
+    },
+    {
+      question: "研究者提出：「『社會支持』越高的人，其『憂鬱程度』越低。」這個陳述屬於理論建構中的哪一層次？",
+      options: [
+        "理論 (Theory)",
+        "概念 (Concept)",
+        "命題 (Proposition)",
+        "假設 (Hypothesis)"
+      ],
+      correctIndex: 2,
+      explanation: "正確！這是陳述兩個抽象「概念」（社會支持、憂鬱）之間關係的「命題」。如果轉化為具體量表分數，才會變成假設。"
+    },
+    {
+      question: "社工訪談受暴婦女後，發現「經濟依賴」是共同主因，於是「發展」出一個關於經濟賦權的初步理論。這是使用哪種邏輯？",
+      options: [
+        "歸納法 (Induction)",
+        "演繹法 (Deduction)",
+        "個殊式 (Idiographic)",
+        "律則式 (Nomothetic)"
+      ],
+      correctIndex: 0,
+      explanation: "沒錯！從具體觀察（訪談）出發，歸納出模式並建立理論，這是「由下而上」的歸納法。"
+    },
+    {
+      question: "社工想了解「A社區」在風災後為何復原特別快，她深入分析該社區的歷史、文化與所有獨特因素。她追求的是哪種解釋？",
+      options: [
+        "個殊式解釋 (Idiographic)",
+        "律則式解釋 (Nomothetic)",
+        "演繹法 (Deduction)",
+        "實證主義 (Positivism)"
+      ],
+      correctIndex: 0,
+      explanation: "答對了！個殊式解釋試圖「完整」且「深入」地理解「單一」個案的所有獨特脈絡。"
+    }
+  ],
+
+  // Tab 4: 自我檢核 (Checklist)
+  checklist: [
+    "我能區分四大哲學典範（實證、詮釋、批判、實用）的核心差異",
+    "我理解理論建構的四個層次（理論 ➔ 概念 ➔ 命題 ➔ 假設）",
+    "我能分辨歸納法（觀察➔理論）與演繹法（理論➔觀察）的不同",
+    "我能舉例說明個殊式解釋與律則式解釋的差別"
+  ]
+};
+
+// ==========================================
+// 應用程式邏輯 (Application Logic)
+// ==========================================
+
+export default function InteractivePage() {
+  const [activeTab, setActiveTab] = useState('read');
+  const [logicView, setLogicView] = useState('structure'); // structure or wheel
+  const [quizState, setQuizState] = useState({});
+  const [checkedItems, setCheckedItems] = useState({});
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
+
+  // Checklist Logic
+  const toggleCheck = (index) => {
+    const nextState = { ...checkedItems, [index]: !checkedItems[index] };
+    setCheckedItems(nextState);
+    if (PAGE_DATA.checklist.every((_, i) => nextState[i])) {
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 3000);
+    }
+  };
+
+  // Quiz Logic
+  const handleQuizAnswer = (qIndex, optionIndex) => {
+    setQuizState(prev => ({
+      ...prev,
+      [qIndex]: {
+        selected: optionIndex,
+        isCorrect: optionIndex === PAGE_DATA.quizzes[qIndex].correctIndex
+      }
+    }));
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans selection:bg-indigo-100 selection:text-indigo-900">
+      {/* Navigation */}
+      <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-slate-200 shadow-sm">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-16 items-center">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold shadow-lg shadow-indigo-200">
+                P&T
+              </div>
+              <span className="font-bold text-xl tracking-tight text-slate-900 hidden sm:block">Philosophy & Theory</span>
+              <span className="font-bold text-xl tracking-tight text-slate-900 sm:hidden">Phil. & Theory</span>
+            </div>
+            
+            {/* Desktop Tabs */}
+            <div className="hidden md:flex space-x-1 bg-slate-100 p-1 rounded-xl">
+              {[
+                { id: 'read', label: '核心閱讀', icon: BookOpen },
+                { id: 'visuals', label: '邏輯圖解', icon: Layout },
+                { id: 'quiz', label: '隨堂測驗', icon: HelpCircle },
+                { id: 'check', label: '自我檢核', icon: CheckSquare }
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    activeTab === tab.id
+                      ? 'bg-white text-indigo-600 shadow-sm ring-1 ring-black/5'
+                      : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
+                  }`}
+                >
+                  <tab.icon size={16} />
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Mobile Menu Toggle */}
+            <div className="md:hidden">
+              <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg">
+                {isMenuOpen ? <X size={24} /> : <Layout size={24} />}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile Menu */}
+        {isMenuOpen && (
+          <div className="md:hidden bg-white border-b border-slate-200 px-4 py-4 space-y-2 shadow-lg">
+            {[
+              { id: 'read', label: '核心閱讀', icon: BookOpen },
+              { id: 'visuals', label: '邏輯圖解', icon: Layout },
+              { id: 'quiz', label: '隨堂測驗', icon: HelpCircle },
+              { id: 'check', label: '自我檢核', icon: CheckSquare }
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => { setActiveTab(tab.id); setIsMenuOpen(false); }}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-base font-medium ${
+                  activeTab === tab.id ? 'bg-indigo-50 text-indigo-600' : 'text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                <tab.icon size={18} />
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </nav>
+
+      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+        {/* Header */}
+        <div className="mb-10 text-center animate-fade-in">
+          <span className="inline-block px-3 py-1 mb-3 text-xs font-semibold tracking-wider text-indigo-600 uppercase bg-indigo-50 rounded-full border border-indigo-100">
+            {PAGE_DATA.subtitle}
+          </span>
+          <h1 className="text-2xl sm:text-4xl font-extrabold text-slate-900 mb-4 leading-tight">
+            {PAGE_DATA.title}
+          </h1>
+          <p className="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
+            {PAGE_DATA.intro}
+          </p>
+        </div>
+
+        <div className="min-h-[400px]">
+          
+          {/* TAB 1: READ */}
+          {activeTab === 'read' && (
+            <div className="space-y-8 animate-slide-up">
+              {PAGE_DATA.sections.map((section, idx) => (
+                <div key={idx} className="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-100">
+                  <div className="flex items-center gap-3 mb-6 border-b border-slate-100 pb-4">
+                    <h2 className="text-xl font-bold text-slate-800">{section.title}</h2>
+                  </div>
+                  <div className="prose prose-slate prose-indigo max-w-none text-slate-600 leading-relaxed whitespace-pre-line">
+                    {section.content}
+                  </div>
+                </div>
+              ))}
+              <div className="flex justify-center pt-4">
+                <button 
+                  onClick={() => setActiveTab('visuals')}
+                  className="flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-full font-medium shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-colors"
+                >
+                  下一步：圖解邏輯 <ChevronRight size={18} />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 2: VISUALS (Theory & Logic) */}
+          {activeTab === 'visuals' && (
+            <div className="animate-slide-up max-w-2xl mx-auto">
+              
+              {/* Sub-navigation for visuals */}
+              <div className="flex justify-center mb-8 space-x-4">
+                <button
+                  onClick={() => setLogicView('structure')}
+                  className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${
+                    logicView === 'structure' 
+                      ? 'bg-indigo-600 text-white shadow-md' 
+                      : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-50'
+                  }`}
+                >
+                  理論階梯
+                </button>
+                <button
+                  onClick={() => setLogicView('wheel')}
+                  className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${
+                    logicView === 'wheel' 
+                      ? 'bg-indigo-600 text-white shadow-md' 
+                      : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-50'
+                  }`}
+                >
+                  科學之輪
+                </button>
+              </div>
+
+              {/* View 1: Theory Structure (Ladder) */}
+              {logicView === 'structure' && (
+                <div className="space-y-4">
+                  <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 mb-4">
+                    <h3 className="font-bold text-blue-800 mb-2 flex items-center gap-2">
+                      <ArrowDown size={20} /> 從抽象到具體
+                    </h3>
+                    <p className="text-sm text-blue-600">
+                      理論建構是一個「操作化」的過程，我們必須將抽象的想法一步步轉化為可以測量的變項。
+                    </p>
+                  </div>
+
+                  {PAGE_DATA.logicModels[0].items.map((item, idx) => (
+                    <div key={idx} className="relative">
+                      {idx !== 0 && (
+                        <div className="absolute left-8 -top-4 h-4 w-0.5 bg-slate-300 z-0"></div>
+                      )}
+                      <div className="bg-white p-6 rounded-xl shadow-sm border-l-4 border-indigo-500 border-y border-r border-slate-100 relative z-10 hover:shadow-md transition-all">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h4 className="text-lg font-bold text-slate-800 mb-1">{item.title}</h4>
+                            <p className="text-slate-600 text-sm mb-3">{item.desc}</p>
+                            <div className="bg-slate-50 text-slate-500 text-xs p-2 rounded border border-slate-100 font-medium">
+                              {item.example}
+                            </div>
+                          </div>
+                          <div className="bg-indigo-50 text-indigo-600 font-bold text-xl w-8 h-8 rounded-full flex items-center justify-center shrink-0">
+                            {idx + 1}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* View 2: Wheel of Science (Induction/Deduction) */}
+              {logicView === 'wheel' && (
+                <div className="space-y-6">
+                   <div className="bg-purple-50 p-4 rounded-xl border border-purple-100 mb-4">
+                    <h3 className="font-bold text-purple-800 mb-2 flex items-center gap-2">
+                      <RefreshCw size={20} /> 循環的邏輯
+                    </h3>
+                    <p className="text-sm text-purple-600">
+                      研究不一定要從理論開始。你可以從觀察開始（歸納），也可以從理論開始（演繹）。兩者相輔相成。
+                    </p>
+                  </div>
+
+                  <div className="grid gap-6">
+                    {/* Induction Card */}
+                    <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:border-purple-300 transition-all group">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="bg-purple-100 p-2 rounded-lg text-purple-600 group-hover:scale-110 transition-transform">
+                          <ZoomIn size={24} />
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-lg text-slate-800">{PAGE_DATA.logicModels[1].items[0].title}</h4>
+                          <span className="text-xs font-bold text-purple-600 uppercase tracking-wider">{PAGE_DATA.logicModels[1].items[0].sub}</span>
+                        </div>
+                      </div>
+                      <p className="text-slate-600 mb-4 leading-relaxed">
+                        {PAGE_DATA.logicModels[1].items[0].desc}
+                      </p>
+                      <div className="text-sm text-slate-400 bg-slate-50 p-3 rounded-lg">
+                        💡 {PAGE_DATA.logicModels[1].items[0].use}
+                      </div>
+                    </div>
+
+                    {/* Deduction Card */}
+                    <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:border-teal-300 transition-all group">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="bg-teal-100 p-2 rounded-lg text-teal-600 group-hover:scale-110 transition-transform">
+                          <Brain size={24} />
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-lg text-slate-800">{PAGE_DATA.logicModels[1].items[1].title}</h4>
+                          <span className="text-xs font-bold text-teal-600 uppercase tracking-wider">{PAGE_DATA.logicModels[1].items[1].sub}</span>
+                        </div>
+                      </div>
+                      <p className="text-slate-600 mb-4 leading-relaxed">
+                        {PAGE_DATA.logicModels[1].items[1].desc}
+                      </p>
+                      <div className="text-sm text-slate-400 bg-slate-50 p-3 rounded-lg">
+                        💡 {PAGE_DATA.logicModels[1].items[1].use}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="text-center pt-4">
+                     <button 
+                      onClick={() => setActiveTab('quiz')}
+                      className="text-indigo-600 font-medium hover:text-indigo-800 flex items-center justify-center gap-2 mx-auto"
+                    >
+                      理解了嗎？來做測驗吧 <ChevronRight size={16} />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB 3: QUIZ */}
+          {activeTab === 'quiz' && (
+            <div className="animate-slide-up max-w-2xl mx-auto space-y-8">
+              <div className="bg-indigo-50 rounded-xl p-6 border border-indigo-100 mb-6 flex gap-4">
+                <div className="bg-indigo-100 p-3 rounded-full h-fit">
+                  <HelpCircle className="text-indigo-600 w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-indigo-900 text-lg">隨堂測驗</h3>
+                  <p className="text-indigo-700 mt-1">請根據前面學到的觀念，回答以下問題。</p>
+                </div>
+              </div>
+
+              {PAGE_DATA.quizzes.map((quiz, qIndex) => {
+                const state = quizState[qIndex];
+                const isAnswered = state !== undefined;
+                
+                return (
+                  <div key={qIndex} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div className="p-6 border-b border-slate-100 bg-slate-50/50">
+                      <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Question {qIndex + 1}</span>
+                      <h3 className="text-lg font-semibold text-slate-800 mt-2 leading-relaxed">{quiz.question}</h3>
+                    </div>
+                    <div className="p-4 space-y-3">
+                      {quiz.options.map((option, oIndex) => {
+                        let btnClass = "w-full text-left p-4 rounded-xl border-2 transition-all duration-200 flex justify-between items-center ";
+                        
+                        if (!isAnswered) {
+                          btnClass += "border-slate-100 hover:border-indigo-200 hover:bg-indigo-50 text-slate-600";
+                        } else {
+                          if (oIndex === quiz.correctIndex) {
+                            btnClass += "border-green-500 bg-green-50 text-green-800 font-medium";
+                          } else if (state.selected === oIndex && !state.isCorrect) {
+                            btnClass += "border-red-300 bg-red-50 text-red-800 opacity-70";
+                          } else {
+                            btnClass += "border-transparent text-slate-400 opacity-50 cursor-default";
+                          }
+                        }
+
+                        return (
+                          <button
+                            key={oIndex}
+                            onClick={() => !isAnswered && handleQuizAnswer(qIndex, oIndex)}
+                            disabled={isAnswered}
+                            className={btnClass}
+                          >
+                            <span>{option}</span>
+                            {isAnswered && oIndex === quiz.correctIndex && <CheckCircle className="text-green-600" size={20} />}
+                            {isAnswered && state.selected === oIndex && !state.isCorrect && <XCircle className="text-red-500" size={20} />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    
+                    {isAnswered && (
+                      <div className={`p-5 mx-4 mb-4 rounded-xl text-sm ${state.isCorrect ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                        <p className="font-bold mb-1">{state.isCorrect ? '🎉 答對了！' : '💡 再想一下...'}</p>
+                        <p>{quiz.explanation}</p>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* TAB 4: CHECKLIST */}
+          {activeTab === 'check' && (
+            <div className="animate-slide-up max-w-xl mx-auto">
+              <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div className="p-6 bg-gradient-to-r from-indigo-50 to-white border-b border-slate-100">
+                  <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                    <CheckSquare className="text-indigo-600" />
+                    學習成效檢核
+                  </h2>
+                  <p className="text-slate-500 text-sm mt-1">
+                    完成所有學習後，請確認您已掌握以下重點。
+                  </p>
+                </div>
+                
+                <div className="divide-y divide-slate-100">
+                  {PAGE_DATA.checklist.map((item, idx) => (
+                    <label 
+                      key={idx} 
+                      className={`flex items-start gap-4 p-5 cursor-pointer hover:bg-slate-50 transition-colors ${
+                        checkedItems[idx] ? 'bg-indigo-50/30' : ''
+                      }`}
+                    >
+                      <div className="relative flex items-center mt-0.5">
+                        <input
+                          type="checkbox"
+                          className="peer h-5 w-5 cursor-pointer appearance-none rounded-md border-2 border-slate-300 transition-all checked:border-indigo-500 checked:bg-indigo-500 hover:border-indigo-400"
+                          checked={!!checkedItems[idx]}
+                          onChange={() => toggleCheck(idx)}
+                        />
+                        <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 peer-checked:opacity-100">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                      </div>
+                      <span className={`text-base transition-all ${
+                        checkedItems[idx] ? 'text-slate-400 line-through' : 'text-slate-700'
+                      }`}>
+                        {item}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+                
+                {showConfetti && (
+                  <div className="p-4 bg-green-100 text-green-800 text-center font-medium animate-pulse">
+                    🎉 恭喜！您已完成本章節的學習！
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+        </div>
+      </main>
+
+      <footer className="border-t border-slate-200 bg-white mt-20 py-8">
+        <div className="max-w-5xl mx-auto px-4 text-center text-slate-400 text-sm">
+          <p>© 社會工作研究法 - 互動講義</p>
+        </div>
+      </footer>
+
+      <style>{`
+        @keyframes slide-up {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fade-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        .animate-slide-up {
+          animation: slide-up 0.4s ease-out forwards;
+        }
+        .animate-fade-in {
+          animation: fade-in 0.6s ease-out forwards;
+        }
+      `}</style>
+    </div>
+  );
+}
