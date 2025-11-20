@@ -11,12 +11,8 @@
   <!-- 2. 載入 React 相關 (核心) -->
   <script crossorigin src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/prop-types/prop-types.min.js"></script>
   
-  <!-- 3. 載入 Recharts (圖表庫) -->
-  <script src="https://unpkg.com/recharts@2.8.0/umd/Recharts.min.js"></script>
-  
-  <!-- 4. 載入 Babel (JSX 編譯器) -->
+  <!-- 3. 載入 Babel (JSX 編譯器) -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   
   <style>
@@ -47,6 +43,77 @@
       ArrowRight: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
     };
 
+    // --- 自製 SVG 直方圖組件 (不依賴 Recharts) ---
+    const SimpleHistogram = ({ dataA, dataB, colorA, colorB }) => {
+      // 找出所有數據中的最大計數，用於設定 Y 軸比例
+      const maxCount = Math.max(
+        ...dataA.map(d => d.count),
+        ...dataB.map(d => d.count),
+        1
+      );
+      
+      // 計算每個 Bar 的寬度 (簡單起見，假設組距固定)
+      const totalBins = dataA.length;
+      const widthPerBin = 100 / totalBins;
+
+      return (
+        <div className="w-full h-full relative pt-4 pb-8 px-2 select-none">
+          {/* 繪圖區域 */}
+          <div className="w-full h-full border-b border-slate-300 relative flex items-end">
+            {/* 背景網格線 (此處簡化為一條平均線) */}
+            <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-slate-400 border-l border-dashed opacity-50 z-0"></div>
+            <div className="absolute -top-4 left-1/2 -translate-x-1/2 text-xs text-slate-500 font-bold">Mean (80分)</div>
+
+            {/* 繪製 A 班 (藍色) */}
+            {dataA.map((d, i) => (
+              <div 
+                key={`a-${i}`}
+                className="absolute bottom-0 transition-all duration-300 hover:opacity-100 opacity-60 z-10 group"
+                style={{
+                  left: `${i * widthPerBin}%`,
+                  width: `${widthPerBin}%`,
+                  height: `${(d.count / maxCount) * 100}%`,
+                  backgroundColor: colorA,
+                  padding: '0 1px' // 讓 Bar 之間有一點空隙
+                }}
+              >
+                 {/* Tooltip */}
+                 <div className="hidden group-hover:block absolute bottom-full left-1/2 -translate-x-1/2 mb-1 bg-slate-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50">
+                   {d.score}分: {d.count}人
+                 </div>
+              </div>
+            ))}
+
+            {/* 繪製 B 班 (橘色) - 疊加顯示 */}
+             {dataB.map((d, i) => (
+              <div 
+                key={`b-${i}`}
+                className="absolute bottom-0 transition-all duration-300 hover:opacity-100 opacity-60 z-20 group pointer-events-none" // pointer-events-none 讓下方 A 班也能被 hover (簡單處理)
+                style={{
+                  left: `${i * widthPerBin}%`,
+                  width: `${widthPerBin}%`,
+                  height: `${(d.count / maxCount) * 100}%`,
+                  backgroundColor: colorB,
+                  padding: '0 1px',
+                  mixBlendMode: 'multiply' // 混合模式讓重疊部分變深
+                }}
+              >
+              </div>
+            ))}
+          </div>
+          
+          {/* X 軸標籤 */}
+          <div className="w-full flex justify-between text-xs text-slate-400 mt-2 px-2">
+            <span>40分</span>
+            <span>60分</span>
+            <span>80分</span>
+            <span>100分</span>
+            <span>120分</span>
+          </div>
+        </div>
+      );
+    };
+
     // --- 統計計算函式 ---
     const calculateStats = (data) => {
       const n = data.length;
@@ -72,6 +139,7 @@
       return points;
     };
 
+    // --- 資料內容 ---
     const PAGE_DATA = {
       title: "描述性統計：資料的素描",
       subtitle: "基礎統計學互動講義",
@@ -90,53 +158,41 @@
     // --- 主程式 ---
     function InteractiveDescriptiveStats() {
       const [activeTab, setActiveTab] = useState('concept');
-      const [isRechartsLoaded, setIsRechartsLoaded] = useState(false);
       
-      // 檢查 Recharts 是否載入完成
-      useEffect(() => {
-        if (window.Recharts) {
-          setIsRechartsLoaded(true);
-        } else {
-          const checkInterval = setInterval(() => {
-            if (window.Recharts) {
-              setIsRechartsLoaded(true);
-              clearInterval(checkInterval);
-            }
-          }, 500);
-          return () => clearInterval(checkInterval);
-        }
-      }, []);
-      
-      // 互動 1: 集中趨勢
+      // 互動 1: 集中趨勢 (5 戶人家)
       const [incomes, setIncomes] = useState([30, 35, 40, 45, 50]);
       const stats1 = useMemo(() => calculateStats(incomes), [incomes]);
       
-      // 互動 2: 離散趨勢
+      const handleIncomeChange = (index, value) => {
+        const newIncomes = [...incomes];
+        newIncomes[index] = Number(value);
+        setIncomes(newIncomes);
+      };
+
+      // 互動 2: 離散趨勢 (兩個班級)
       const [sdA, setSdA] = useState(5);
       const [sdB, setSdB] = useState(15);
       
-      const dataA = useMemo(() => {
-        // Generate histogram data on the fly
-        const points = generateNormalPoints(80, sdA, 1000);
-        const bins = {};
-        for(let i=40; i<=120; i+=5) bins[i] = 0;
-        points.forEach(p => {
-           const bin = Math.floor(p / 5) * 5;
-           if (bins[bin] !== undefined) bins[bin]++;
-        });
-        return Object.keys(bins).map(k => ({ score: Number(k), count: bins[k] }));
-      }, [sdA]);
+      // 產生直方圖數據 (固定平均數 80，組距 2)
+      // 為了讓圖形更平滑且固定，我們這裡稍微簡化生成邏輯，確保每次渲染相對穩定
+      const generateStableHist = (mean, sd) => {
+         const bins = [];
+         const binSize = 4; // 組距
+         const start = 20;
+         const end = 140;
+         
+         // 使用常態分佈公式直接計算該 bin 的高度 (理論次數)，而非隨機抽樣
+         // 這樣圖形會非常漂亮且平滑，適合教學演示
+         for (let x = start; x <= end; x += binSize) {
+            const y = (1 / (sd * Math.sqrt(2 * Math.PI))) * Math.exp(-0.5 * Math.pow((x - mean) / sd, 2));
+            // 將機率密度放大為「人數」以便顯示
+            bins.push({ score: x, count: y * 1000 });
+         }
+         return bins;
+      };
 
-      const dataB = useMemo(() => {
-        const points = generateNormalPoints(80, sdB, 1000);
-        const bins = {};
-        for(let i=40; i<=120; i+=5) bins[i] = 0;
-        points.forEach(p => {
-           const bin = Math.floor(p / 5) * 5;
-           if (bins[bin] !== undefined) bins[bin]++;
-        });
-        return Object.keys(bins).map(k => ({ score: Number(k), count: bins[k] }));
-      }, [sdB]);
+      const dataA = useMemo(() => generateStableHist(80, sdA), [sdA]);
+      const dataB = useMemo(() => generateStableHist(80, sdB), [sdB]);
 
       const [quizState, setQuizState] = useState({});
       const [showConfetti, setShowConfetti] = useState(false);
@@ -150,25 +206,9 @@
         }
       };
 
-      // 安全地獲取 Recharts 元件
-      const RechartsLib = window.Recharts || {};
-      const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } = RechartsLib;
-
-      // Loading Screen
-      if (!isRechartsLoaded) {
-        return (
-          <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-4">
-            <div className="text-indigo-600 mb-4 animate-bounce">
-              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v4"/><path d="m16.2 7.8 2.9-2.9"/><path d="M18 12h4"/><path d="m16.2 16.2 2.9 2.9"/><path d="M12 18v4"/><path d="m4.9 19.1 2.9-2.9"/><path d="M2 12h4"/><path d="m4.9 4.9 2.9 2.9"/></svg>
-            </div>
-            <div className="text-slate-600 font-medium">正在載入互動圖表，請稍候...</div>
-            <div className="text-slate-400 text-sm mt-2">若此畫面停留過久，請重新整理網頁</div>
-          </div>
-        );
-      }
-
       return (
         <div className="min-h-screen bg-slate-50 text-slate-800 font-sans selection:bg-indigo-100 selection:text-indigo-900 p-2">
+          {/* Navigation */}
           <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-slate-200 shadow-sm rounded-xl mb-4">
             <div className="max-w-5xl mx-auto px-4 py-3">
               <div className="flex flex-col md:flex-row justify-between items-center gap-4">
@@ -289,19 +329,17 @@
                  <div className="lg:col-span-8">
                     <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm h-full flex flex-col">
                        <h3 className="text-center font-bold text-slate-700 mb-2">成績分佈直方圖 (Mean = 80)</h3>
+                       
+                       {/* Custom Simple Chart */}
                        <div className="flex-grow h-[300px] w-full">
-                          <ResponsiveContainer width="100%" height="100%">
-                            <BarChart margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
-                              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                              <XAxis dataKey="score" type="number" domain={[40, 120]} allowDataOverflow={true} ticks={[40,60,80,100,120]} />
-                              <YAxis hide />
-                              <Tooltip />
-                              <Bar data={dataA} dataKey="count" fill="#3b82f6" fillOpacity={0.6} name="A班" />
-                              <Bar data={dataB} dataKey="count" fill="#f97316" fillOpacity={0.6} name="B班" />
-                              <ReferenceLine x={80} stroke="#64748b" strokeDasharray="3 3" label="Mean" />
-                            </BarChart>
-                          </ResponsiveContainer>
+                          <SimpleHistogram 
+                            dataA={dataA} 
+                            dataB={dataB} 
+                            colorA="#3b82f6" // blue-500
+                            colorB="#f97316" // orange-500
+                          />
                        </div>
+
                        <div className="mt-4 flex justify-center gap-6 text-sm">
                           <div className="flex items-center gap-2"><div className="w-3 h-3 bg-blue-500 opacity-60"></div><span>A 班 (SD={sdA})</span></div>
                           <div className="flex items-center gap-2"><div className="w-3 h-3 bg-orange-500 opacity-60"></div><span>B 班 (SD={sdB})</span></div>
