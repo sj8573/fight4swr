@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive T-Test</title>
+  <!-- 1. 載入 Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- 2. 載入 React 和 ReactDOM -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <!-- 3. 載入 Babel (讓瀏覽器看懂 JSX) -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  
+  <style>
+    /* 隱藏捲軸但保持功能 */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="bg-slate-50">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useMemo } = React;
+
+    // --- 簡易圖示組件 (取代 lucide-react 以利直接運行) ---
+    const Icons = {
+      BookOpen: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>,
+      Activity: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>,
+      Calculator: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="16" y1="14" x2="16" y2="18"/><path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/><path d="M12 14h.01"/><path d="M8 14h.01"/><path d="M12 18h.01"/><path d="M8 18h.01"/></svg>,
+      HelpCircle: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>,
+      CheckCircle: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>,
+      XCircle: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>,
+      ArrowRight: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>,
+      Info: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>,
+      BarChart2: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>,
+      Sliders: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+    };
+
+    // --- 輔助函式 ---
+    const normalPDF = (x, mean, stdDev) => {
+      return (1 / (stdDev * Math.sqrt(2 * Math.PI))) * Math.exp(-0.5 * Math.pow((x - mean) / stdDev, 2));
+    };
+
+    const calculateT = (m1, m2, s, n) => {
+      // 簡化假設：兩組變異數相等 (Pooled Variance simplified logic for teaching)
+      const se = s * Math.sqrt(2 / n);
+      if (se === 0) return 0;
+      return (m1 - m2) / se;
+    };
+
+    const generateNormalPath = (mean, stdDev, rangeX, heightScale) => {
+      const points = [];
+      const step = (rangeX[1] - rangeX[0]) / 100;
+      for (let x = rangeX[0]; x <= rangeX[1]; x += step) {
+        const y = normalPDF(x, mean, stdDev) * heightScale;
+        points.push(`${x},${150 - y}`); // 150 is baseline Y
+      }
+      return `M ${points[0]} L ${points.slice(1).join(' L ')}`;
+    };
+
+    // --- 資料 ---
+    const PAGE_DATA = {
+      title: "T檢定：訊號與雜訊的戰爭",
+      subtitle: "基礎統計學互動講義",
+      intro: "在社工實務中，我們常需要回答：「這個方案真的有效嗎？」T檢定就是幫助我們判斷兩組數據（例如：實驗組 vs. 控制組）的差異，究竟是「真實存在的差異」，還是「機率造成的巧合」。",
+      
+      concepts: [
+        {
+          title: "什麼是 T 檢定？",
+          content: "簡單來說，T 檢定是用來比較「兩個平均數」是否有顯著差異的統計方法。想像你在評估一個「老人憂鬱團體」的成效，你會比較「參加組」與「沒參加組」的憂鬱分數平均值。"
+        },
+        {
+          title: "核心公式的直觀理解",
+          content: "T 值 = (組間差異) / (組內差異) = 訊號 / 雜訊。\n\n當 T 值越大，代表「訊號」(效果) 遠強過「雜訊」(干擾)，我們就越有信心說這兩組是真的不同。"
+        },
+        {
+          title: "P 值的意義",
+          content: "P 值代表「如果兩組其實沒差別，卻剛好抽樣抽成這樣」的機率。P 值越小 (< .05)，代表這幾乎不可能是巧合，我們稱之為「統計顯著」。"
+        }
+      ],
+
+      quizzes: [
+        {
+          question: "如果 T 值很大（例如 t = 5.0），這通常代表什麼意思？",
+          options: [
+            "兩組之間的差異很小，可能是巧合",
+            "組內的個別差異（雜訊）非常大",
+            "訊號強過雜訊，兩組之間很可能有真實差異",
+            "計算錯誤，T 值不可能大於 1"
+          ],
+          correctIndex: 2,
+          explanation: "正確！T 值越大，代表分子（組間差異/訊號）相對於分母（標準誤/雜訊）越大，差異越顯著。"
+        },
+        {
+          question: "在其他條件不變的情況下，如果「樣本數 (N)」變大，T 值通常會如何變化？",
+          options: [
+            "T 值會變大（更容易顯著）",
+            "T 值會變小（更難顯著）",
+            "樣本數與 T 值無關",
+            "T 值會變成負數"
+          ],
+          correctIndex: 0,
+          explanation: "答對了！樣本數越大，標準誤（分母）會越小，使得算出來的 T 值變大。這就是為什麼大樣本較容易得到顯著結果。"
+        },
+        {
+          question: "我們通常設定的顯著水準 (Alpha) 是多少？",
+          options: [
+            "0.50",
+            "0.10",
+            "0.05",
+            "0.0001"
+          ],
+          correctIndex: 2,
+          explanation: "正確！社會科學通常以 p < .05 作為拒絕虛無假設的門檻。"
+        }
+      ]
+    };
+
+    // --- 主程式 ---
+    function InteractiveTTest() {
+      const [activeTab, setActiveTab] = useState('concept'); // concept, simulate, quiz
+      
+      // Simulation State
+      const [diff, setDiff] = useState(2);   // Mean Difference (Signal)
+      const [stdDev, setStdDev] = useState(3); // Standard Deviation (Noise)
+      const [n, setN] = useState(30);        // Sample Size
+      
+      // Calculated Values
+      const tValue = useMemo(() => calculateT(10 + diff, 10, stdDev, n), [diff, stdDev, n]);
+      const isSignificant = Math.abs(tValue) > 2.0; // Approximate threshold for teaching
+
+      // Quiz State
+      const [quizState, setQuizState] = useState({});
+      const [showConfetti, setShowConfetti] = useState(false);
+
+      const handleQuizAnswer = (qIndex, optionIndex) => {
+        const isCorrect = optionIndex === PAGE_DATA.quizzes[qIndex].correctIndex;
+        setQuizState(prev => ({
+          ...prev,
+          [qIndex]: { selected: optionIndex, isCorrect }
+        }));
+        
+        if (isCorrect && Object.keys(quizState).length + 1 === PAGE_DATA.quizzes.length) {
+          setShowConfetti(true);
+          setTimeout(() => setShowConfetti(false), 3000);
+        }
+      };
+
+      return (
+        <div className="min-h-screen bg-slate-50 text-slate-800 font-sans selection:bg-teal-100 selection:text-teal-900 p-2">
+          {/* Navigation */}
+          <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-slate-200 shadow-sm rounded-xl mb-4">
+            <div className="max-w-5xl mx-auto px-4 py-2">
+              <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-teal-600 rounded-lg flex items-center justify-center text-white font-bold shadow-lg shadow-teal-200">
+                    t
+                  </div>
+                  <span className="font-bold text-xl tracking-tight text-slate-900">基礎統計：T檢定</span>
+                </div>
+                
+                {/* Tabs */}
+                <div className="flex space-x-1 bg-slate-100 p-1 rounded-xl">
+                  {[
+                    { id: 'concept', label: '原理概念', icon: Icons.BookOpen },
+                    { id: 'simulate', label: '互動模擬', icon: Icons.Activity },
+                    { id: 'quiz', label: '隨堂測驗', icon: Icons.HelpCircle }
+                  ].map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                        activeTab === tab.id
+                          ? 'bg-white text-teal-600 shadow-sm ring-1 ring-black/5'
+                          : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
+                      }`}
+                    >
+                      <tab.icon />
+                      <span className="hidden sm:inline">{tab.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </nav>
+
+          <main className="max-w-4xl mx-auto px-2 sm:px-6 py-4">
+            
+            {/* Introduction Header */}
+            <div className="mb-8 text-center">
+              <h1 className="text-3xl font-extrabold text-slate-900 mb-3">
+                {PAGE_DATA.title}
+              </h1>
+              <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+                {PAGE_DATA.intro}
+              </p>
+            </div>
+
+            {/* TAB 1: CONCEPT */}
+            {activeTab === 'concept' && (
+              <div className="space-y-6">
+                {/* Concept Cards */}
+                <div className="grid md:grid-cols-3 gap-6">
+                  {PAGE_DATA.concepts.map((item, idx) => (
+                    <div key={idx} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:border-teal-200 transition-colors">
+                      <div className="w-10 h-10 bg-teal-50 text-teal-600 rounded-full flex items-center justify-center mb-4 font-bold text-lg">
+                        {idx + 1}
+                      </div>
+                      <h3 className="font-bold text-lg text-slate-800 mb-2">{item.title}</h3>
+                      <p className="text-slate-600 text-sm leading-relaxed whitespace-pre-line">
+                        {item.content}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Formula Visualization */}
+                <div className="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm mt-8">
+                  <h3 className="text-xl font-bold text-center text-slate-800 mb-6">解構 T 值公式</h3>
+                  <div className="flex flex-col items-center justify-center text-2xl font-serif">
+                    <div className="flex items-center gap-4">
+                      <span className="font-bold italic text-teal-700">t</span>
+                      <span>=</span>
+                      <div className="flex flex-col items-center">
+                        <div className="border-b-2 border-slate-800 pb-2 px-4 text-center text-blue-600 font-bold">
+                          組間平均數差異 (訊號)
+                        </div>
+                        <div className="pt-2 px-4 text-center text-orange-600 font-bold">
+                          標準誤 (雜訊)
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-8 grid md:grid-cols-2 gap-8 w-full text-base font-sans">
+                      <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
+                        <h4 className="font-bold text-blue-800 mb-2">分子：訊號 (Signal)</h4>
+                        <p className="text-blue-600">我們希望這個數值越大越好。代表實驗組（如：接受諮商）比起控制組（無諮商）有明顯的改變。</p>
+                      </div>
+                      <div className="bg-orange-50 p-4 rounded-xl border border-orange-100">
+                        <h4 className="font-bold text-orange-800 mb-2">分母：雜訊 (Noise)</h4>
+                        <p className="text-orange-600">這是來自個體差異或測量誤差的干擾。樣本數 (N) 越大，這個雜訊會越小（因為除以 N），T 值就會變大。</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-center mt-8">
+                     <button 
+                      onClick={() => setActiveTab('simulate')}
+                      className="inline-flex items-center gap-2 bg-teal-600 text-white px-6 py-3 rounded-full font-medium shadow-lg shadow-teal-200 hover:bg-teal-700 transition-colors"
+                    >
+                      去動手玩玩看公式 <Icons.ArrowRight />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 2: SIMULATION */}
+            {activeTab === 'simulate' && (
+              <div className="grid lg:grid-cols-12 gap-8">
+                
+                {/* Left: Controls */}
+                <div className="lg:col-span-4 space-y-6">
+                  <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <div className="flex items-center gap-2 mb-4 text-slate-800">
+                      <Icons.Sliders className="text-teal-600" />
+                      <h3 className="font-bold text-lg">參數設定</h3>
+                    </div>
+                    
+                    {/* Slider 1: Difference */}
+                    <div className="mb-6">
+                      <div className="flex justify-between mb-2">
+                        <label className="text-sm font-bold text-blue-700">兩組差異 (訊號)</label>
+                        <span className="text-sm font-mono bg-blue-100 text-blue-800 px-2 rounded">{diff}</span>
+                      </div>
+                      <input 
+                        type="range" min="0" max="10" step="0.5" 
+                        value={diff} onChange={(e) => setDiff(Number(e.target.value))}
+                        className="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                      />
+                      <p className="text-xs text-slate-500 mt-1">例如：實驗組憂鬱分數比控制組低多少？</p>
+                    </div>
+
+                    {/* Slider 2: SD */}
+                    <div className="mb-6">
+                      <div className="flex justify-between mb-2">
+                        <label className="text-sm font-bold text-orange-700">標準差 (雜訊)</label>
+                        <span className="text-sm font-mono bg-orange-100 text-orange-800 px-2 rounded">{stdDev}</span>
+                      </div>
+                      <input 
+                        type="range" min="1" max="10" step="0.5" 
+                        value={stdDev} onChange={(e) => setStdDev(Number(e.target.value))}
+                        className="w-full h-2 bg-orange-200 rounded-lg appearance-none cursor-pointer accent-orange-600"
+                      />
+                      <p className="text-xs text-slate-500 mt-1">組內成員的分數落差有多大？</p>
+                    </div>
+
+                    {/* Slider 3: N */}
+                    <div className="mb-2">
+                      <div className="flex justify-between mb-2">
+                        <label className="text-sm font-bold text-teal-700">樣本數 (N)</label>
+                        <span className="text-sm font-mono bg-teal-100 text-teal-800 px-2 rounded">{n}</span>
+                      </div>
+                      <input 
+                        type="range" min="5" max="100" step="5" 
+                        value={n} onChange={(e) => setN(Number(e.target.value))}
+                        className="w-full h-2 bg-teal-200 rounded-lg appearance-none cursor-pointer accent-teal-600"
+                      />
+                      <p className="text-xs text-slate-500 mt-1">我們調查了多少人？</p>
+                    </div>
+                  </div>
+
+                  {/* Result Card */}
+                  <div className={`p-6 rounded-2xl border-2 transition-all duration-500 text-center ${
+                    isSignificant ? 'bg-green-50 border-green-400' : 'bg-slate-100 border-slate-300'
+                  }`}>
+                    <h4 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">計算結果</h4>
+                    <div className="text-4xl font-black mb-2 text-slate-800">
+                      t = {tValue.toFixed(2)}
+                    </div>
+                    <div className={`font-bold text-lg ${isSignificant ? 'text-green-700' : 'text-slate-500'}`}>
+                      {isSignificant ? "達到顯著差異！ (p < .05)" : "未達顯著水準 (p > .05)"}
+                    </div>
+                    <p className="text-xs mt-2 text-slate-600">
+                      {isSignificant 
+                        ? "結論：我們可以拒絕虛無假設，這兩個團體真的不一樣。" 
+                        : "結論：差異還不夠大，可能只是抽樣誤差造成的巧合。"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Right: Visualization */}
+                <div className="lg:col-span-8">
+                  <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm h-full flex flex-col">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="font-bold text-lg text-slate-800">分佈圖模擬</h3>
+                      <div className="flex gap-4 text-xs font-medium">
+                        <div className="flex items-center gap-1">
+                          <div className="w-3 h-3 bg-slate-400/50 rounded-full"></div> 控制組
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <div className="w-3 h-3 bg-blue-500/50 rounded-full"></div> 實驗組
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* SVG Graph Area */}
+                    <div className="flex-grow relative w-full min-h-[300px] bg-slate-50 rounded-xl overflow-hidden border border-slate-100">
+                      <svg viewBox="0 0 400 200" className="w-full h-full absolute inset-0" preserveAspectRatio="none">
+                        {/* Grid Lines */}
+                        <line x1="0" y1="150" x2="400" y2="150" stroke="#cbd5e1" strokeWidth="2" />
+                        <line x1="200" y1="0" x2="200" y2="200" stroke="#e2e8f0" strokeWidth="1" strokeDasharray="4" />
+
+                        {/* Distribution 1 (Control) - Fixed Mean at center-left */}
+                        <path 
+                          d={generateNormalPath(10, stdDev, [-10, 30], 500)} 
+                          fill="rgba(148, 163, 184, 0.4)" 
+                          stroke="#64748b" 
+                          strokeWidth="2"
+                          transform="translate(100, 0) scale(1, 1)" 
+                        />
+                        
+                        {/* Distribution 2 (Experimental) - Moving Mean */}
+                        <path 
+                          d={generateNormalPath(10 + diff, stdDev, [-10 + diff, 30 + diff], 500)} 
+                          fill="rgba(59, 130, 246, 0.4)" 
+                          stroke="#2563eb" 
+                          strokeWidth="2"
+                          transform="translate(100, 0) scale(1, 1)" 
+                        />
+                        
+                        {/* Labels */}
+                        <text x="110" y="170" fontSize="10" fill="#64748b" textAnchor="middle">控制組平均</text>
+                        <text x={110 + (diff * 10)} y="170" fontSize="10" fill="#2563eb" textAnchor="middle">實驗組平均</text>
+                      </svg>
+                    </div>
+                    
+                    <div className="mt-4 text-sm text-slate-500 bg-blue-50 p-3 rounded-lg border border-blue-100">
+                      <span className="font-bold text-blue-800">觀察重點：</span>
+                      當兩個山峰重疊越少（差異大或山峰瘦高），T 值就越大，越容易達到顯著。
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 3: QUIZ */}
+            {activeTab === 'quiz' && (
+              <div className="space-y-6">
+                 <div className="bg-teal-50 rounded-xl p-6 border border-teal-100 mb-6 flex gap-4">
+                    <div className="bg-teal-100 p-3 rounded-full h-fit">
+                      <Icons.HelpCircle className="text-teal-600 w-6 h-6" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-teal-900 text-lg">隨堂測驗</h3>
+                      <p className="text-teal-700 mt-1">試著回答以下問題，確認您是否理解 T 檢定的邏輯。</p>
+                    </div>
+                  </div>
+
+                {PAGE_DATA.quizzes.map((quiz, qIndex) => {
+                  const state = quizState[qIndex];
+                  const isAnswered = state !== undefined;
+                  
+                  return (
+                    <div key={qIndex} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                      <div className="p-6 border-b border-slate-100 bg-slate-50/50">
+                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Question {qIndex + 1}</span>
+                        <h3 className="text-lg font-semibold text-slate-800 mt-2">{quiz.question}</h3>
+                      </div>
+                      <div className="p-4 space-y-2">
+                        {quiz.options.map((option, oIndex) => {
+                          let btnClass = "w-full text-left p-4 rounded-xl border-2 transition-all duration-200 flex justify-between items-center ";
+                          
+                          if (!isAnswered) {
+                            btnClass += "border-slate-100 hover:border-teal-200 hover:bg-teal-50 text-slate-600";
+                          } else {
+                            if (oIndex === quiz.correctIndex) {
+                              btnClass += "border-green-500 bg-green-50 text-green-800 font-medium";
+                            } else if (state.selected === oIndex && !state.isCorrect) {
+                              btnClass += "border-red-300 bg-red-50 text-red-800 opacity-70";
+                            } else {
+                              btnClass += "border-transparent text-slate-400 opacity-50 cursor-default";
+                            }
+                          }
+
+                          return (
+                            <button
+                              key={oIndex}
+                              onClick={() => !isAnswered && handleQuizAnswer(qIndex, oIndex)}
+                              disabled={isAnswered}
+                              className={btnClass}
+                            >
+                              <span>{option}</span>
+                              {isAnswered && oIndex === quiz.correctIndex && <Icons.CheckCircle className="text-green-600" size={20} />}
+                              {isAnswered && state.selected === oIndex && !state.isCorrect && <Icons.XCircle className="text-red-500" size={20} />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      {isAnswered && (
+                        <div className={`p-5 mx-4 mb-4 rounded-xl text-sm ${state.isCorrect ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                          <p className="font-bold mb-1">{state.isCorrect ? '🎉 答對了！' : '💡 再想一下...'}</p>
+                          <p>{quiz.explanation}</p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+                {showConfetti && (
+                  <div className="text-center p-4 bg-teal-100 text-teal-800 font-bold rounded-xl animate-pulse">
+                    太棒了！您已經掌握了 T 檢定的核心觀念！
+                  </div>
+                )}
+              </div>
+            )}
+
+          </main>
+        </div>
+      );
+    }
+
+    // 渲染到頁面
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<InteractiveTTest />);
+  </script>
+</body>
+</html>
