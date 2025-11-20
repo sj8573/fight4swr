@@ -4,39 +4,28 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Descriptive Statistics Interactive</title>
+  
   <!-- 1. 載入 Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   
-  <!-- 2. 載入 React 和 ReactDOM (指定版本) -->
+  <!-- 2. 載入 React 相關 (核心) -->
   <script crossorigin src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
-  
-  <!-- 3. 載入 Prop-types (Recharts 的依賴) -->
   <script src="https://unpkg.com/prop-types/prop-types.min.js"></script>
   
-  <!-- 4. 載入 Recharts (指定穩定版本 2.8.0) -->
+  <!-- 3. 載入 Recharts (圖表庫) -->
   <script src="https://unpkg.com/recharts@2.8.0/umd/Recharts.min.js"></script>
   
-  <!-- 5. 載入 Babel -->
+  <!-- 4. 載入 Babel (JSX 編譯器) -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   
   <style>
-    /* 隱藏捲軸但保持功能 */
-    .no-scrollbar::-webkit-scrollbar {
-      display: none;
-    }
-    .no-scrollbar {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     .range-slider::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 20px;
-      height: 20px;
-      border-radius: 50%; 
-      background: #4f46e5;
-      cursor: pointer;
+      -webkit-appearance: none; appearance: none;
+      width: 20px; height: 20px;
+      border-radius: 50%; background: #4f46e5; cursor: pointer;
     }
   </style>
 </head>
@@ -45,8 +34,6 @@
 
   <script type="text/babel">
     const { useState, useMemo, useEffect } = React;
-    // 確保 Recharts 已載入，若無則使用空物件避免報錯，但通常指定版本後會正常
-    const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Cell } = window.Recharts || {};
 
     // --- 簡易圖示組件 ---
     const Icons = {
@@ -56,7 +43,6 @@
       HelpCircle: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>,
       CheckCircle: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>,
       XCircle: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>,
-      TrendingUp: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>,
       Users: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
       ArrowRight: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
     };
@@ -66,29 +52,15 @@
       const n = data.length;
       const sum = data.reduce((a, b) => a + b, 0);
       const mean = sum / n;
-
       const sorted = [...data].sort((a, b) => a - b);
       const mid = Math.floor(n / 2);
       const median = n % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
-
-      // Mode (眾數)
-      const counts = {};
-      let maxCount = 0;
-      data.forEach(val => {
-        counts[val] = (counts[val] || 0) + 1;
-        if (counts[val] > maxCount) maxCount = counts[val];
-      });
-      const mode = Object.keys(counts).filter(key => counts[key] === maxCount).map(Number);
-      
-      // SD (樣本標準差)
       const variance = data.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / (n - 1);
       const sd = Math.sqrt(variance);
-
-      return { mean, median, mode, sd, n };
+      return { mean, median, sd, n };
     };
 
     const generateNormalPoints = (mean, sd, n) => {
-      // Box-Muller transform
       const points = [];
       for (let i = 0; i < n; i++) {
         let u = 0, v = 0;
@@ -100,152 +72,120 @@
       return points;
     };
 
-    // --- 資料 ---
     const PAGE_DATA = {
       title: "描述性統計：資料的素描",
       subtitle: "基礎統計學互動講義",
       intro: "在進行複雜的推論之前，我們必須先「描述」資料的長相。就像畫素描一樣，我們用「集中趨勢」找出資料的中心，用「離散趨勢」描繪資料的胖瘦。",
       concepts: [
-        {
-          title: "集中趨勢 (Central Tendency)",
-          content: "告訴我們資料的「中心」在哪裡。\n● 平均數 (Mean)：總和除以個數。最常用，但易受極端值影響。\n● 中位數 (Median)：排序後最中間的數。不受極端值影響。\n● 眾數 (Mode)：出現次數最多的數。"
-        },
-        {
-          title: "離散趨勢 (Dispersion)",
-          content: "告訴我們資料「分散」的程度。\n● 全距 (Range)：最大值減最小值。\n● 標準差 (SD)：平均而言，每個數據距離平均數多遠。SD 越大，代表資料越不穩定、個別差異越大。"
-        }
+        { title: "集中趨勢 (Central Tendency)", content: "告訴我們資料的「中心」在哪裡。\n● 平均數 (Mean)：最常用，但易受極端值影響。\n● 中位數 (Median)：排序後最中間的數。不受極端值影響。\n● 眾數 (Mode)：出現次數最多的數。" },
+        { title: "離散趨勢 (Dispersion)", content: "告訴我們資料「分散」的程度。\n● 全距 (Range)：最大值減最小值。\n● 標準差 (SD)：平均而言，每個數據距離平均數多遠。SD 越大，代表資料越不穩定、個別差異越大。" }
       ],
       quizzes: [
-        {
-          question: "某社區有 5 戶人家，年收入分別為 30, 30, 30, 30, 300 (萬元)。請問哪一個指標最能代表這個社區的一般收入水準？",
-          options: [
-            "平均數 (Mean = 84萬)",
-            "中位數 (Median = 30萬)",
-            "眾數 (Mode = 30萬)",
-            "標準差"
-          ],
-          correctIndex: 1,
-          explanation: "正確！因為有一戶極端高收入 (300萬) 拉高了平均數，使其失去代表性。中位數不受極端值影響，更能反映一般狀況。"
-        },
-        {
-          question: "如果兩個班級的期中考平均分數都是 80 分，但 A 班的標準差是 5 分，B 班的標準差是 20 分。這代表什麼？",
-          options: [
-            "A 班的成績比較好",
-            "B 班的成績比較好",
-            "A 班同學的程度比較整齊（差異小）",
-            "B 班同學的程度比較整齊（差異小）"
-          ],
-          correctIndex: 2,
-          explanation: "正確！標準差越小，代表數據越集中在平均數附近，個別差異越小。"
-        },
-        {
-          question: "在常態分佈中，大約有多少比例的數據會落在「平均數 ± 1 個標準差」的範圍內？",
-          options: [
-            "50%",
-            "68%",
-            "95%",
-            "99%"
-          ],
-          correctIndex: 1,
-          explanation: "正確！這是經驗法則 (Empirical Rule)：約 68% 數據在 1 SD 內，95% 在 2 SD 內。"
-        }
+        { question: "某社區有 5 戶人家，年收入分別為 30, 30, 30, 30, 300 (萬元)。請問哪一個指標最能代表這個社區的一般收入水準？", options: ["平均數 (Mean = 84萬)", "中位數 (Median = 30萬)", "眾數 (Mode = 30萬)", "標準差"], correctIndex: 1, explanation: "正確！因為有一戶極端高收入 (300萬) 拉高了平均數，使其失去代表性。中位數不受極端值影響，更能反映一般狀況。" },
+        { question: "如果兩個班級的期中考平均分數都是 80 分，但 A 班的標準差是 5 分，B 班的標準差是 20 分。這代表什麼？", options: ["A 班的成績比較好", "B 班的成績比較好", "A 班同學的程度比較整齊（差異小）", "B 班同學的程度比較整齊（差異小）"], correctIndex: 2, explanation: "正確！標準差越小，代表數據越集中在平均數附近，個別差異越小。" },
+        { question: "在常態分佈中，大約有多少比例的數據會落在「平均數 ± 1 個標準差」的範圍內？", options: ["50%", "68%", "95%", "99%"], correctIndex: 1, explanation: "正確！這是經驗法則 (Empirical Rule)：約 68% 數據在 1 SD 內，95% 在 2 SD 內。" }
       ]
     };
 
     // --- 主程式 ---
     function InteractiveDescriptiveStats() {
       const [activeTab, setActiveTab] = useState('concept');
+      const [isRechartsLoaded, setIsRechartsLoaded] = useState(false);
       
-      // 互動 1: 集中趨勢 (5 戶人家)
+      // 檢查 Recharts 是否載入完成
+      useEffect(() => {
+        if (window.Recharts) {
+          setIsRechartsLoaded(true);
+        } else {
+          const checkInterval = setInterval(() => {
+            if (window.Recharts) {
+              setIsRechartsLoaded(true);
+              clearInterval(checkInterval);
+            }
+          }, 500);
+          return () => clearInterval(checkInterval);
+        }
+      }, []);
+      
+      // 互動 1: 集中趨勢
       const [incomes, setIncomes] = useState([30, 35, 40, 45, 50]);
       const stats1 = useMemo(() => calculateStats(incomes), [incomes]);
       
-      const handleIncomeChange = (index, value) => {
-        const newIncomes = [...incomes];
-        newIncomes[index] = Number(value);
-        setIncomes(newIncomes);
-      };
-
-      // 互動 2: 離散趨勢 (兩個班級)
+      // 互動 2: 離散趨勢
       const [sdA, setSdA] = useState(5);
       const [sdB, setSdB] = useState(15);
       
-      // 產生直方圖數據 (固定平均數 80，樣本數 1000)
-      const generateHistData = (mean, sd) => {
-        const points = generateNormalPoints(mean, sd, 1000);
-        // 建立 bins
+      const dataA = useMemo(() => {
+        // Generate histogram data on the fly
+        const points = generateNormalPoints(80, sdA, 1000);
         const bins = {};
-        for(let i=40; i<=120; i+=2) { // 範圍 40-120 分，組距 2
-            bins[i] = 0;
-        }
+        for(let i=40; i<=120; i+=5) bins[i] = 0;
         points.forEach(p => {
-            const bin = Math.floor(p / 2) * 2;
-            if (bins[bin] !== undefined) bins[bin]++;
+           const bin = Math.floor(p / 5) * 5;
+           if (bins[bin] !== undefined) bins[bin]++;
         });
-        return Object.keys(bins).map(key => ({
-            score: Number(key),
-            count: bins[key]
-        }));
-      };
+        return Object.keys(bins).map(k => ({ score: Number(k), count: bins[k] }));
+      }, [sdA]);
 
-      const dataA = useMemo(() => generateHistData(80, sdA), [sdA]);
-      const dataB = useMemo(() => generateHistData(80, sdB), [sdB]);
+      const dataB = useMemo(() => {
+        const points = generateNormalPoints(80, sdB, 1000);
+        const bins = {};
+        for(let i=40; i<=120; i+=5) bins[i] = 0;
+        points.forEach(p => {
+           const bin = Math.floor(p / 5) * 5;
+           if (bins[bin] !== undefined) bins[bin]++;
+        });
+        return Object.keys(bins).map(k => ({ score: Number(k), count: bins[k] }));
+      }, [sdB]);
 
-      // Quiz 狀態
       const [quizState, setQuizState] = useState({});
       const [showConfetti, setShowConfetti] = useState(false);
 
       const handleQuizAnswer = (qIndex, optionIndex) => {
         const isCorrect = optionIndex === PAGE_DATA.quizzes[qIndex].correctIndex;
-        setQuizState(prev => ({
-          ...prev,
-          [qIndex]: { selected: optionIndex, isCorrect }
-        }));
-        
+        setQuizState(prev => ({ ...prev, [qIndex]: { selected: optionIndex, isCorrect } }));
         if (isCorrect && Object.keys(quizState).length + 1 === PAGE_DATA.quizzes.length) {
           setShowConfetti(true);
           setTimeout(() => setShowConfetti(false), 3000);
         }
       };
 
-      if (!window.Recharts) {
+      // 安全地獲取 Recharts 元件
+      const RechartsLib = window.Recharts || {};
+      const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } = RechartsLib;
+
+      // Loading Screen
+      if (!isRechartsLoaded) {
         return (
-          <div className="min-h-screen flex items-center justify-center text-slate-500">
-            載入圖表元件中... (若長時間未顯示，請檢查網路連線)
+          <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-4">
+            <div className="text-indigo-600 mb-4 animate-bounce">
+              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v4"/><path d="m16.2 7.8 2.9-2.9"/><path d="M18 12h4"/><path d="m16.2 16.2 2.9 2.9"/><path d="M12 18v4"/><path d="m4.9 19.1 2.9-2.9"/><path d="M2 12h4"/><path d="m4.9 4.9 2.9 2.9"/></svg>
+            </div>
+            <div className="text-slate-600 font-medium">正在載入互動圖表，請稍候...</div>
+            <div className="text-slate-400 text-sm mt-2">若此畫面停留過久，請重新整理網頁</div>
           </div>
         );
       }
 
       return (
         <div className="min-h-screen bg-slate-50 text-slate-800 font-sans selection:bg-indigo-100 selection:text-indigo-900 p-2">
-          {/* Navigation */}
           <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-slate-200 shadow-sm rounded-xl mb-4">
             <div className="max-w-5xl mx-auto px-4 py-3">
               <div className="flex flex-col md:flex-row justify-between items-center gap-4">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold shadow-lg shadow-indigo-200">
-                    M
-                  </div>
+                  <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold shadow-lg shadow-indigo-200">M</div>
                   <span className="font-bold text-xl tracking-tight text-slate-900">基礎統計：描述性統計</span>
                 </div>
-                <div className="flex space-x-1 bg-slate-100 p-1 rounded-xl">
+                <div className="flex space-x-1 bg-slate-100 p-1 rounded-xl overflow-x-auto w-full md:w-auto">
                   {[
                     { id: 'concept', label: '核心概念', icon: Icons.BookOpen },
                     { id: 'central', label: '集中趨勢', icon: Icons.Target },
                     { id: 'dispersion', label: '離散趨勢', icon: Icons.BarChart },
                     { id: 'quiz', label: '隨堂測驗', icon: Icons.HelpCircle }
                   ].map((tab) => (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
-                      className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                        activeTab === tab.id
-                          ? 'bg-white text-indigo-600 shadow-sm ring-1 ring-black/5'
-                          : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
-                      }`}
-                    >
+                    <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${activeTab === tab.id ? 'bg-white text-indigo-600 shadow-sm ring-1 ring-black/5' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}>
                       <tab.icon />
-                      <span className="hidden sm:inline">{tab.label}</span>
+                      <span>{tab.label}</span>
                     </button>
                   ))}
                 </div>
@@ -254,31 +194,21 @@
           </nav>
 
           <main className="max-w-4xl mx-auto px-2 sm:px-6 py-4">
-            
             <div className="mb-8 text-center">
-              <h1 className="text-3xl font-extrabold text-slate-900 mb-3">
-                {PAGE_DATA.title}
-              </h1>
-              <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-                {PAGE_DATA.intro}
-              </p>
+              <h1 className="text-3xl font-extrabold text-slate-900 mb-3">{PAGE_DATA.title}</h1>
+              <p className="text-lg text-slate-600 max-w-2xl mx-auto">{PAGE_DATA.intro}</p>
             </div>
 
-            {/* TAB 1: CONCEPT */}
             {activeTab === 'concept' && (
               <div className="space-y-6 animate-slide-up">
                 <div className="grid md:grid-cols-2 gap-6">
                   {PAGE_DATA.concepts.map((item, idx) => (
                     <div key={idx} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:border-indigo-200 transition-colors">
                       <div className="flex items-center gap-3 mb-4">
-                        <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center font-bold text-lg">
-                          {idx + 1}
-                        </div>
+                        <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center font-bold text-lg">{idx + 1}</div>
                         <h3 className="font-bold text-lg text-slate-800">{item.title}</h3>
                       </div>
-                      <p className="text-slate-600 text-sm leading-relaxed whitespace-pre-line">
-                        {item.content}
-                      </p>
+                      <p className="text-slate-600 text-sm leading-relaxed whitespace-pre-line">{item.content}</p>
                     </div>
                   ))}
                 </div>
@@ -290,7 +220,6 @@
               </div>
             )}
 
-            {/* TAB 2: CENTRAL TENDENCY */}
             {activeTab === 'central' && (
               <div className="grid lg:grid-cols-12 gap-8">
                 <div className="lg:col-span-5 space-y-6">
@@ -299,73 +228,44 @@
                       <Icons.Users />
                       <h3 className="font-bold text-lg">模擬情境：社區收入調查</h3>
                     </div>
-                    <p className="text-sm text-slate-500 mb-4">
-                      這裡有 5 戶人家。試著將第 5 戶的收入拉到最高（例如 300萬），觀察「平均數」與「中位數」的變化。
-                    </p>
-                    
+                    <p className="text-sm text-slate-500 mb-4">試著將第 5 戶的收入拉到最高（300萬），觀察「平均數」與「中位數」的變化。</p>
                     <div className="space-y-4">
                       {incomes.map((inc, idx) => (
                         <div key={idx} className="flex items-center gap-3">
-                           <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${idx === 4 ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-600'}`}>
-                            {String.fromCharCode(65 + idx)}
-                           </div>
-                           <input 
-                             type="range" min="0" max="300" step="5"
-                             value={inc} onChange={(e) => handleIncomeChange(idx, e.target.value)}
-                             className={`flex-grow h-2 rounded-lg appearance-none cursor-pointer ${idx === 4 ? 'bg-red-200 accent-red-500' : 'bg-indigo-200 accent-indigo-500'}`}
-                           />
+                           <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${idx === 4 ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-600'}`}>{String.fromCharCode(65 + idx)}</div>
+                           <input type="range" min="0" max="300" step="5" value={inc} onChange={(e) => { const newIncomes = [...incomes]; newIncomes[idx] = Number(e.target.value); setIncomes(newIncomes); }} className={`flex-grow h-2 rounded-lg appearance-none cursor-pointer ${idx === 4 ? 'bg-red-200 accent-red-500' : 'bg-indigo-200 accent-indigo-500'}`} />
                            <span className="w-16 text-right font-mono text-sm font-bold">{inc} <span className="text-xs text-slate-400">萬</span></span>
                         </div>
                       ))}
                     </div>
                   </div>
-
                   <div className="p-4 bg-blue-50 rounded-xl border border-blue-100 text-sm text-blue-800">
-                    <strong>觀察重點：</strong> 
-                    當極端值出現時，平均數會被「拉著跑」，不再能代表大眾；而中位數依然穩定在中間。
+                    <strong>觀察重點：</strong> 當極端值出現時，平均數會被「拉著跑」，不再能代表大眾；而中位數依然穩定在中間。
                   </div>
                 </div>
 
                 <div className="lg:col-span-7">
                    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm h-full flex flex-col justify-center items-center relative overflow-hidden">
-                      {/* Visual Indicators */}
                       <div className="w-full max-w-md space-y-8">
-                        
-                        {/* Mean Bar */}
                         <div className="relative pt-6">
-                          <div className="absolute top-0 left-0 text-xs font-bold text-indigo-600 mb-1 flex items-center gap-1">
-                             <div className="w-3 h-3 bg-indigo-500 rounded-sm"></div> 平均數 (Mean)
-                          </div>
+                          <div className="absolute top-0 left-0 text-xs font-bold text-indigo-600 mb-1 flex items-center gap-1"><div className="w-3 h-3 bg-indigo-500 rounded-sm"></div> 平均數 (Mean)</div>
                           <div className="h-12 bg-indigo-50 rounded-r-full border border-indigo-100 relative overflow-visible" style={{width: `${Math.min((stats1.mean / 300) * 100, 100)}%`, transition: 'width 0.3s'}}>
-                             <div className="absolute right-2 top-1/2 -translate-y-1/2 font-bold text-indigo-700 text-lg">
-                               {stats1.mean.toFixed(1)}
-                             </div>
+                             <div className="absolute right-2 top-1/2 -translate-y-1/2 font-bold text-indigo-700 text-lg">{stats1.mean.toFixed(1)}</div>
                           </div>
                         </div>
-
-                        {/* Median Bar */}
                         <div className="relative pt-6">
-                           <div className="absolute top-0 left-0 text-xs font-bold text-emerald-600 mb-1 flex items-center gap-1">
-                             <div className="w-3 h-3 bg-emerald-500 rounded-sm"></div> 中位數 (Median)
-                          </div>
+                           <div className="absolute top-0 left-0 text-xs font-bold text-emerald-600 mb-1 flex items-center gap-1"><div className="w-3 h-3 bg-emerald-500 rounded-sm"></div> 中位數 (Median)</div>
                           <div className="h-12 bg-emerald-50 rounded-r-full border border-emerald-100 relative" style={{width: `${Math.min((stats1.median / 300) * 100, 100)}%`, transition: 'width 0.3s'}}>
-                             <div className="absolute right-2 top-1/2 -translate-y-1/2 font-bold text-emerald-700 text-lg">
-                               {stats1.median.toFixed(1)}
-                             </div>
+                             <div className="absolute right-2 top-1/2 -translate-y-1/2 font-bold text-emerald-700 text-lg">{stats1.median.toFixed(1)}</div>
                           </div>
                         </div>
-
                       </div>
-
-                      <div className="mt-12 w-full text-center text-slate-400 text-xs border-t border-slate-100 pt-4">
-                         數值單位：萬元 (Max: 300)
-                      </div>
+                      <div className="mt-12 w-full text-center text-slate-400 text-xs border-t border-slate-100 pt-4">數值單位：萬元 (Max: 300)</div>
                    </div>
                 </div>
               </div>
             )}
 
-            {/* TAB 3: DISPERSION */}
             {activeTab === 'dispersion' && (
               <div className="grid lg:grid-cols-12 gap-8">
                  <div className="lg:col-span-4 space-y-6">
@@ -374,36 +274,14 @@
                         <Icons.BarChart />
                         <h3 className="font-bold text-lg">模擬情境：兩個班級</h3>
                       </div>
-                      <p className="text-sm text-slate-500 mb-6">
-                        兩個班級的平均分數都是 80 分。試著調整標準差 (SD)，看看分佈圖會如何變化。
-                      </p>
-
-                      {/* Class A Control */}
+                      <p className="text-sm text-slate-500 mb-6">兩個班級的平均分數都是 80 分。試著調整標準差 (SD)，看看分佈圖會如何變化。</p>
                       <div className="mb-8">
-                        <div className="flex justify-between mb-2">
-                          <label className="text-sm font-bold text-blue-600">A 班標準差 (SD)</label>
-                          <span className="text-sm font-mono bg-blue-100 text-blue-800 px-2 rounded">{sdA}</span>
-                        </div>
-                        <input 
-                          type="range" min="1" max="30" step="1" 
-                          value={sdA} onChange={(e) => setSdA(Number(e.target.value))}
-                          className="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
-                        />
-                        <p className="text-xs text-slate-400 mt-1">SD 越小，成績越整齊。</p>
+                        <div className="flex justify-between mb-2"><label className="text-sm font-bold text-blue-600">A 班標準差 (SD)</label><span className="text-sm font-mono bg-blue-100 text-blue-800 px-2 rounded">{sdA}</span></div>
+                        <input type="range" min="1" max="30" step="1" value={sdA} onChange={(e) => setSdA(Number(e.target.value))} className="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer accent-blue-600" />
                       </div>
-
-                      {/* Class B Control */}
                       <div className="mb-2">
-                        <div className="flex justify-between mb-2">
-                          <label className="text-sm font-bold text-orange-600">B 班標準差 (SD)</label>
-                          <span className="text-sm font-mono bg-orange-100 text-orange-800 px-2 rounded">{sdB}</span>
-                        </div>
-                        <input 
-                          type="range" min="1" max="30" step="1" 
-                          value={sdB} onChange={(e) => setSdB(Number(e.target.value))}
-                          className="w-full h-2 bg-orange-200 rounded-lg appearance-none cursor-pointer accent-orange-600"
-                        />
-                        <p className="text-xs text-slate-400 mt-1">SD 越大，成績落差越大（雙峰或扁平）。</p>
+                        <div className="flex justify-between mb-2"><label className="text-sm font-bold text-orange-600">B 班標準差 (SD)</label><span className="text-sm font-mono bg-orange-100 text-orange-800 px-2 rounded">{sdB}</span></div>
+                        <input type="range" min="1" max="30" step="1" value={sdB} onChange={(e) => setSdB(Number(e.target.value))} className="w-full h-2 bg-orange-200 rounded-lg appearance-none cursor-pointer accent-orange-600" />
                       </div>
                     </div>
                  </div>
@@ -411,8 +289,6 @@
                  <div className="lg:col-span-8">
                     <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm h-full flex flex-col">
                        <h3 className="text-center font-bold text-slate-700 mb-2">成績分佈直方圖 (Mean = 80)</h3>
-                       
-                       {/* Chart Area */}
                        <div className="flex-grow h-[300px] w-full">
                           <ResponsiveContainer width="100%" height="100%">
                             <BarChart margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
@@ -426,39 +302,24 @@
                             </BarChart>
                           </ResponsiveContainer>
                        </div>
-
                        <div className="mt-4 flex justify-center gap-6 text-sm">
-                          <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 bg-blue-500 opacity-60"></div>
-                            <span>A 班 (SD={sdA})</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 bg-orange-500 opacity-60"></div>
-                            <span>B 班 (SD={sdB})</span>
-                          </div>
+                          <div className="flex items-center gap-2"><div className="w-3 h-3 bg-blue-500 opacity-60"></div><span>A 班 (SD={sdA})</span></div>
+                          <div className="flex items-center gap-2"><div className="w-3 h-3 bg-orange-500 opacity-60"></div><span>B 班 (SD={sdB})</span></div>
                        </div>
                     </div>
                  </div>
               </div>
             )}
 
-            {/* TAB 4: QUIZ */}
             {activeTab === 'quiz' && (
               <div className="animate-slide-up max-w-2xl mx-auto space-y-6">
                  <div className="bg-indigo-50 rounded-xl p-6 border border-indigo-100 mb-6 flex gap-4">
-                    <div className="bg-indigo-100 p-3 rounded-full h-fit">
-                      <Icons.HelpCircle />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-indigo-900 text-lg">隨堂測驗</h3>
-                      <p className="text-indigo-700 mt-1">確認您是否理解描述性統計的核心概念。</p>
-                    </div>
+                    <div className="bg-indigo-100 p-3 rounded-full h-fit"><Icons.HelpCircle /></div>
+                    <div><h3 className="font-bold text-indigo-900 text-lg">隨堂測驗</h3><p className="text-indigo-700 mt-1">確認您是否理解描述性統計的核心概念。</p></div>
                   </div>
-
                 {PAGE_DATA.quizzes.map((quiz, qIndex) => {
                   const state = quizState[qIndex];
                   const isAnswered = state !== undefined;
-                  
                   return (
                     <div key={qIndex} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                       <div className="p-6 border-b border-slate-100 bg-slate-50/50">
@@ -468,26 +329,9 @@
                       <div className="p-4 space-y-2">
                         {quiz.options.map((option, oIndex) => {
                           let btnClass = "w-full text-left p-4 rounded-xl border-2 transition-all duration-200 flex justify-between items-center ";
-                          
-                          if (!isAnswered) {
-                            btnClass += "border-slate-100 hover:border-indigo-200 hover:bg-indigo-50 text-slate-600";
-                          } else {
-                            if (oIndex === quiz.correctIndex) {
-                              btnClass += "border-green-500 bg-green-50 text-green-800 font-medium";
-                            } else if (state.selected === oIndex && !state.isCorrect) {
-                              btnClass += "border-red-300 bg-red-50 text-red-800 opacity-70";
-                            } else {
-                              btnClass += "border-transparent text-slate-400 opacity-50 cursor-default";
-                            }
-                          }
-
+                          if (!isAnswered) { btnClass += "border-slate-100 hover:border-indigo-200 hover:bg-indigo-50 text-slate-600"; } else { if (oIndex === quiz.correctIndex) { btnClass += "border-green-500 bg-green-50 text-green-800 font-medium"; } else if (state.selected === oIndex && !state.isCorrect) { btnClass += "border-red-300 bg-red-50 text-red-800 opacity-70"; } else { btnClass += "border-transparent text-slate-400 opacity-50 cursor-default"; } }
                           return (
-                            <button
-                              key={oIndex}
-                              onClick={() => !isAnswered && handleQuizAnswer(qIndex, oIndex)}
-                              disabled={isAnswered}
-                              className={btnClass}
-                            >
+                            <button key={oIndex} onClick={() => !isAnswered && handleQuizAnswer(qIndex, oIndex)} disabled={isAnswered} className={btnClass}>
                               <span>{option}</span>
                               {isAnswered && oIndex === quiz.correctIndex && <Icons.CheckCircle />}
                               {isAnswered && state.selected === oIndex && !state.isCorrect && <Icons.XCircle />}
@@ -495,23 +339,13 @@
                           );
                         })}
                       </div>
-                      {isAnswered && (
-                        <div className={`p-5 mx-4 mb-4 rounded-xl text-sm ${state.isCorrect ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                          <p className="font-bold mb-1">{state.isCorrect ? '🎉 答對了！' : '💡 再想一下...'}</p>
-                          <p>{quiz.explanation}</p>
-                        </div>
-                      )}
+                      {isAnswered && <div className={`p-5 mx-4 mb-4 rounded-xl text-sm ${state.isCorrect ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}><p className="font-bold mb-1">{state.isCorrect ? '🎉 答對了！' : '💡 再想一下...'}</p><p>{quiz.explanation}</p></div>}
                     </div>
                   );
                 })}
-                {showConfetti && (
-                  <div className="text-center p-4 bg-indigo-100 text-indigo-800 font-bold rounded-xl animate-pulse">
-                    太棒了！您已經掌握了描述性統計的基礎！
-                  </div>
-                )}
+                {showConfetti && <div className="text-center p-4 bg-indigo-100 text-indigo-800 font-bold rounded-xl animate-pulse">太棒了！您已經掌握了描述性統計的基礎！</div>}
               </div>
             )}
-
           </main>
         </div>
       );
