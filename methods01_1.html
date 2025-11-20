@@ -1,0 +1,507 @@
+import React, { useState } from 'react';
+import { BookOpen, CheckSquare, ChevronRight, ChevronLeft, Info, List, Menu, X, Award, HelpCircle, CheckCircle, XCircle } from 'lucide-react';
+
+// ==========================================
+// 內容資料庫 (Content Data)
+// ==========================================
+const PAGE_DATA = {
+  title: "為何要學習研究方法？",
+  subtitle: "社會工作研究方法論",
+  intro: "許多社工學生會問：「我未來要當助人者，為什麼要學研究方法？」答案很簡單：熱情與善意不足以保證服務有效。學習研究方法能幫助我們超越直覺、評估成效、負責任地運用資源，並避免對案主造成無意的傷害。",
+  
+  // Tab 1: 核心知識 (Reading)
+  sections: [
+    {
+      id: "science",
+      title: "🧪 科學方法的四大特性",
+      content: `科學並非指特定的學科，而是一種「追求知識的態度與程序」。
+      
+1. **系統性 (Systematic)**：
+   研究是有計畫、有步驟的。不能憑感覺，必須設計嚴謹的程序（如前測、後測、控制組）。
+
+2. **經驗性 (Empirical)**：
+   結論建立在「可觀察、可測量」的證據上。例如：「數據顯示憂鬱分數下降5分」優於「我覺得他變好了」。
+
+3. **可驗證性 / 可複製性 (Verifiable / Replicable)**：
+   研究過程必須透明，讓他人能在相同條件下「複製」並檢驗結果，確保發現不是偶然。
+
+4. **暫定性 (Tentative)**：
+   科學知識是暫時的，永遠對新的證據保持開放。例如：我們對最佳安置模式的理解，隨著依附理論的研究而改變。`
+    },
+    {
+      id: "errors",
+      title: "🧐 常見的觀察謬誤",
+      content: `人類的直覺常充滿偏誤，研究方法能幫助我們克服這些陷阱：
+
+1. **過度概化 (Overgeneralization)**：
+   僅根據少數特例（如2個個案）就草率對全體下結論。
+
+2. **選擇性觀察 (Selective Observation)**：
+   心中已有定見，只看見支持自己的證據，自動忽略反駁的證據（如只看成功的個案，忽略失敗者）。
+
+3. **月暈效應 (Halo Effect)**：
+   因為某人的一個正面特質（如外表得體），就錯誤推論他在其他方面（如親職能力）也很優秀。
+
+4. **非邏輯推論 (Illogical Reasoning)**：
+   使用錯誤邏輯解釋事件，例如「賭徒謬誤」（覺得倒楣久了下次一定會成功）。`
+    },
+    {
+      id: "ebp_intro",
+      title: "💡 證據本位實務 (EBP)",
+      content: `EBP (Evidence-Based Practice) 是整合性的決策過程。社工的最佳決策應是以下三者的交集：
+      
+1. **最佳研究證據** (Best Research Evidence)
+2. **實務專業與經驗** (Practitioner Expertise)
+3. **案主價值與偏好** (Client Values & Preferences)
+
+EBP 強調我們不應盲目跟隨證據，而應結合專業判斷與案主意願。`
+    }
+  ],
+
+  // Tab 2: EBP 執行步驟 (Steps)
+  steps: [
+    {
+      title: "Step 1: 提問 (Ask)",
+      description: "將實務上遇到的難題，轉化為一個結構化、可回答的問題 (PICO)。",
+      tips: "例如：對於PTSD青少年(P)，認知行為治療(I)是否比一般諮商(C)更能降低焦慮(O)？"
+    },
+    {
+      title: "Step 2: 尋找 (Acquire)",
+      description: "利用關鍵字在學術資料庫（如 Cochrane, Airiti）中系統性地搜尋最佳的研究證據。",
+      tips: "盡量尋找等級較高證據，如系統性回顧 (Systematic Review) 或隨機對照試驗 (RCT)。"
+    },
+    {
+      title: "Step 3: 評估 (Appraise)",
+      description: "不僅是閱讀，還要嚴格評估這份證據的「可信度」(Validity) 與「適用性」。",
+      tips: "這份研究的方法嚴謹嗎？它的結果能應用在我的案主身上嗎？"
+    },
+    {
+      title: "Step 4: 應用 (Apply)",
+      description: "將評估後的證據，結合社工的專業經驗以及案主的價值觀，共同做出決策。",
+      tips: "如果案主排斥某種療法，即使證據說它最有效，我們也應調整或尋找替代方案。"
+    },
+    {
+      title: "Step 5: 評鑑 (Assess)",
+      description: "執行介入後，必須客觀評估執行的成效，並進行反思與修正。",
+      tips: "使用量表或具體指標來確認問題是否解決，作為下一次循環的基礎。"
+    }
+  ],
+
+  // Tab 3: 隨堂測驗 (Quizzes) - New Feature
+  quizzes: [
+    {
+      question: "一位社工依照期刊上的步驟，在自己的機構完全重複了該研究，並得到相似結果。這展現了科學方法的哪一特性？",
+      options: [
+        "經驗性 (Empirical)",
+        "可驗證性 / 可複製性 (Verifiable)",
+        "暫定性 (Tentative)",
+        "系統性 (Systematic)"
+      ],
+      correctIndex: 1,
+      explanation: "答對了！這正是「可複製性」的定義：其他研究者能重複程序並驗證結果。"
+    },
+    {
+      question: "社工在期末報告只呈現「進步顯著」的個案，對「中途退出」的個案輕描淡寫。這符合哪種謬誤？",
+      options: [
+        "過度概化 (Overgeneralization)",
+        "選擇性觀察 (Selective Observation)",
+        "月暈效應 (Halo Effect)",
+        "非邏輯推論 (Illogical Reasoning)"
+      ],
+      correctIndex: 1,
+      explanation: "正確！只看見想看的（成功的），忽略不想看的（失敗的），就是選擇性觀察。"
+    },
+    {
+      question: "根據 EBP，若證據顯示 A 療法最有效，但案主強烈排斥並偏好 B 療法，社工不應怎麼做？",
+      options: [
+        "強迫案主接受 A 療法，因為證據最強",
+        "尊重案主，討論 B 療法的證據與風險",
+        "評估是否能修改 A 療法以符合案主需求",
+        "重新尋找 B 療法的相關證據"
+      ],
+      correctIndex: 0,
+      explanation: "沒錯！EBP 強調「案主價值」是三大基石之一，強迫案主違反了 EBP 精神與倫理。"
+    }
+  ],
+
+  // Tab 4: 自我檢核 (Checklist)
+  checklist: [
+    "我能區分「科學方法」與「直覺」的差異",
+    "我能列舉科學方法的四大特性（系統、經驗、可驗證、暫定）",
+    "我能辨識常見的觀察謬誤（如過度概化、月暈效應）",
+    "我理解 EBP 的三大基石（證據、專業、案主價值）",
+    "我記得 EBP 的五個執行步驟 (Ask, Acquire, Appraise, Apply, Assess)"
+  ]
+};
+
+// ==========================================
+// 應用程式邏輯 (Application Logic)
+// ==========================================
+
+export default function InteractivePage() {
+  const [activeTab, setActiveTab] = useState('read');
+  const [currentStep, setCurrentStep] = useState(0);
+  const [quizState, setQuizState] = useState({}); // Store answers for each quiz question
+  const [checkedItems, setCheckedItems] = useState({});
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
+
+  // Checklist Logic
+  const toggleCheck = (index) => {
+    const nextState = { ...checkedItems, [index]: !checkedItems[index] };
+    setCheckedItems(nextState);
+    if (PAGE_DATA.checklist.every((_, i) => nextState[i])) {
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 3000);
+    }
+  };
+
+  // Quiz Logic
+  const handleQuizAnswer = (qIndex, optionIndex) => {
+    setQuizState(prev => ({
+      ...prev,
+      [qIndex]: {
+        selected: optionIndex,
+        isCorrect: optionIndex === PAGE_DATA.quizzes[qIndex].correctIndex
+      }
+    }));
+  };
+
+  const stepProgress = ((currentStep + 1) / PAGE_DATA.steps.length) * 100;
+
+  return (
+    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans selection:bg-blue-100 selection:text-blue-900">
+      {/* Navigation */}
+      <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-slate-200 shadow-sm">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-16 items-center">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold shadow-lg shadow-blue-200">
+                RM
+              </div>
+              <span className="font-bold text-xl tracking-tight text-slate-900 hidden sm:block">Research Methods</span>
+              <span className="font-bold text-xl tracking-tight text-slate-900 sm:hidden">Res. Meth.</span>
+            </div>
+            
+            {/* Desktop Tabs */}
+            <div className="hidden md:flex space-x-1 bg-slate-100 p-1 rounded-xl">
+              {[
+                { id: 'read', label: '核心知識', icon: BookOpen },
+                { id: 'steps', label: 'EBP 步驟', icon: List },
+                { id: 'quiz', label: '隨堂測驗', icon: HelpCircle },
+                { id: 'check', label: '自我檢核', icon: CheckSquare }
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    activeTab === tab.id
+                      ? 'bg-white text-blue-600 shadow-sm ring-1 ring-black/5'
+                      : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
+                  }`}
+                >
+                  <tab.icon size={16} />
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Mobile Menu Toggle */}
+            <div className="md:hidden">
+              <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg">
+                {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile Menu */}
+        {isMenuOpen && (
+          <div className="md:hidden bg-white border-b border-slate-200 px-4 py-4 space-y-2 shadow-lg">
+            {[
+              { id: 'read', label: '核心知識', icon: BookOpen },
+              { id: 'steps', label: 'EBP 步驟', icon: List },
+              { id: 'quiz', label: '隨堂測驗', icon: HelpCircle },
+              { id: 'check', label: '自我檢核', icon: CheckSquare }
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => { setActiveTab(tab.id); setIsMenuOpen(false); }}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-base font-medium ${
+                  activeTab === tab.id ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                <tab.icon size={18} />
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </nav>
+
+      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+        {/* Header */}
+        <div className="mb-10 text-center animate-fade-in">
+          <span className="inline-block px-3 py-1 mb-3 text-xs font-semibold tracking-wider text-blue-600 uppercase bg-blue-50 rounded-full border border-blue-100">
+            {PAGE_DATA.subtitle}
+          </span>
+          <h1 className="text-2xl sm:text-4xl font-extrabold text-slate-900 mb-4 leading-tight">
+            {PAGE_DATA.title}
+          </h1>
+          <p className="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
+            {PAGE_DATA.intro}
+          </p>
+        </div>
+
+        <div className="min-h-[400px]">
+          
+          {/* TAB 1: READ */}
+          {activeTab === 'read' && (
+            <div className="space-y-8 animate-slide-up">
+              {PAGE_DATA.sections.map((section, idx) => (
+                <div key={idx} className="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-100">
+                  <div className="flex items-center gap-3 mb-6 border-b border-slate-100 pb-4">
+                    <h2 className="text-xl font-bold text-slate-800">{section.title}</h2>
+                  </div>
+                  <div className="prose prose-slate prose-blue max-w-none text-slate-600 leading-relaxed whitespace-pre-line">
+                    {section.content}
+                  </div>
+                </div>
+              ))}
+              <div className="flex justify-center pt-4">
+                <button 
+                  onClick={() => setActiveTab('steps')}
+                  className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-full font-medium shadow-lg shadow-blue-200 hover:bg-blue-700 transition-colors"
+                >
+                  下一步：學習 EBP 步驟 <ChevronRight size={18} />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 2: STEPS (EBP) */}
+          {activeTab === 'steps' && (
+            <div className="animate-slide-up max-w-2xl mx-auto">
+              <div className="mb-8">
+                <div className="flex justify-between text-xs font-medium text-slate-500 mb-2">
+                  <span>Step {currentStep + 1}</span>
+                  <span>{PAGE_DATA.steps.length} Steps</span>
+                </div>
+                <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-blue-600 transition-all duration-500 ease-out"
+                    style={{ width: `${stepProgress}%` }}
+                  />
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl shadow-xl shadow-slate-200/50 overflow-hidden border border-slate-100 relative">
+                <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
+                  <span className="text-9xl font-bold text-blue-900">{currentStep + 1}</span>
+                </div>
+                
+                <div className="p-8 min-h-[320px] flex flex-col justify-center relative z-10">
+                  <span className="text-blue-600 font-bold tracking-wider text-sm uppercase mb-2">
+                    EBP Process
+                  </span>
+                  <h2 className="text-3xl font-bold text-slate-900 mb-6">
+                    {PAGE_DATA.steps[currentStep].title}
+                  </h2>
+                  <p className="text-slate-600 text-lg leading-relaxed mb-8">
+                    {PAGE_DATA.steps[currentStep].description}
+                  </p>
+                  
+                  {PAGE_DATA.steps[currentStep].tips && (
+                    <div className="bg-amber-50 text-amber-800 px-5 py-4 rounded-xl text-sm flex gap-3 items-start border border-amber-100">
+                      <Info className="flex-shrink-0 w-5 h-5 text-amber-600" />
+                      <span className="leading-relaxed">{PAGE_DATA.steps[currentStep].tips}</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="bg-slate-50 px-8 py-5 flex justify-between items-center border-t border-slate-100">
+                  <button
+                    onClick={() => setCurrentStep(Math.max(0, currentStep - 1))}
+                    disabled={currentStep === 0}
+                    className={`flex items-center gap-1 px-4 py-2 rounded-lg font-medium transition-colors ${
+                      currentStep === 0 ? 'text-slate-300 cursor-not-allowed' : 'text-slate-600 hover:bg-white hover:shadow-sm'
+                    }`}
+                  >
+                    <ChevronLeft size={18} /> 上一步
+                  </button>
+                  
+                  <div className="flex gap-1.5">
+                    {PAGE_DATA.steps.map((_, idx) => (
+                      <div 
+                        key={idx}
+                        className={`w-2 h-2 rounded-full transition-colors ${
+                          idx === currentStep ? 'bg-blue-600' : 'bg-slate-300'
+                        }`}
+                      />
+                    ))}
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      if (currentStep === PAGE_DATA.steps.length - 1) {
+                        setActiveTab('quiz');
+                      } else {
+                        setCurrentStep(Math.min(PAGE_DATA.steps.length - 1, currentStep + 1));
+                      }
+                    }}
+                    className="flex items-center gap-1 px-5 py-2.5 rounded-lg font-medium bg-blue-600 text-white hover:bg-blue-700 shadow-md shadow-blue-200 transition-all"
+                  >
+                    {currentStep === PAGE_DATA.steps.length - 1 ? '去測驗' : '下一步'} <ChevronRight size={18} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 3: QUIZ (New) */}
+          {activeTab === 'quiz' && (
+            <div className="animate-slide-up max-w-2xl mx-auto space-y-8">
+              <div className="bg-blue-50 rounded-xl p-6 border border-blue-100 mb-6 flex gap-4">
+                <div className="bg-blue-100 p-3 rounded-full h-fit">
+                  <HelpCircle className="text-blue-600 w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-blue-900 text-lg">隨堂測驗</h3>
+                  <p className="text-blue-700 mt-1">請根據前面學到的觀念，回答以下問題。點擊選項即可查看解答。</p>
+                </div>
+              </div>
+
+              {PAGE_DATA.quizzes.map((quiz, qIndex) => {
+                const state = quizState[qIndex];
+                const isAnswered = state !== undefined;
+                
+                return (
+                  <div key={qIndex} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div className="p-6 border-b border-slate-100 bg-slate-50/50">
+                      <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Question {qIndex + 1}</span>
+                      <h3 className="text-lg font-semibold text-slate-800 mt-2 leading-relaxed">{quiz.question}</h3>
+                    </div>
+                    <div className="p-4 space-y-3">
+                      {quiz.options.map((option, oIndex) => {
+                        let btnClass = "w-full text-left p-4 rounded-xl border-2 transition-all duration-200 flex justify-between items-center ";
+                        
+                        if (!isAnswered) {
+                          btnClass += "border-slate-100 hover:border-blue-200 hover:bg-blue-50 text-slate-600";
+                        } else {
+                          if (oIndex === quiz.correctIndex) {
+                            btnClass += "border-green-500 bg-green-50 text-green-800 font-medium";
+                          } else if (state.selected === oIndex && !state.isCorrect) {
+                            btnClass += "border-red-300 bg-red-50 text-red-800 opacity-70";
+                          } else {
+                            btnClass += "border-transparent text-slate-400 opacity-50 cursor-default";
+                          }
+                        }
+
+                        return (
+                          <button
+                            key={oIndex}
+                            onClick={() => !isAnswered && handleQuizAnswer(qIndex, oIndex)}
+                            disabled={isAnswered}
+                            className={btnClass}
+                          >
+                            <span>{option}</span>
+                            {isAnswered && oIndex === quiz.correctIndex && <CheckCircle className="text-green-600" size={20} />}
+                            {isAnswered && state.selected === oIndex && !state.isCorrect && <XCircle className="text-red-500" size={20} />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    
+                    {isAnswered && (
+                      <div className={`p-5 mx-4 mb-4 rounded-xl text-sm ${state.isCorrect ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                        <p className="font-bold mb-1">{state.isCorrect ? '🎉 答對了！' : '💡 再想一下...'}</p>
+                        <p>{quiz.explanation}</p>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* TAB 4: CHECKLIST */}
+          {activeTab === 'check' && (
+            <div className="animate-slide-up max-w-xl mx-auto">
+              <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div className="p-6 bg-gradient-to-r from-blue-50 to-white border-b border-slate-100">
+                  <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                    <Award className="text-blue-600" />
+                    學習成效檢核
+                  </h2>
+                  <p className="text-slate-500 text-sm mt-1">
+                    完成所有閱讀與測驗後，請勾選以下項目確認。
+                  </p>
+                </div>
+                
+                <div className="divide-y divide-slate-100">
+                  {PAGE_DATA.checklist.map((item, idx) => (
+                    <label 
+                      key={idx} 
+                      className={`flex items-start gap-4 p-5 cursor-pointer hover:bg-slate-50 transition-colors ${
+                        checkedItems[idx] ? 'bg-blue-50/30' : ''
+                      }`}
+                    >
+                      <div className="relative flex items-center mt-0.5">
+                        <input
+                          type="checkbox"
+                          className="peer h-5 w-5 cursor-pointer appearance-none rounded-md border-2 border-slate-300 transition-all checked:border-blue-500 checked:bg-blue-500 hover:border-blue-400"
+                          checked={!!checkedItems[idx]}
+                          onChange={() => toggleCheck(idx)}
+                        />
+                        <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 peer-checked:opacity-100">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                      </div>
+                      <span className={`text-base transition-all ${
+                        checkedItems[idx] ? 'text-slate-400 line-through' : 'text-slate-700'
+                      }`}>
+                        {item}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+                
+                {showConfetti && (
+                  <div className="p-4 bg-green-100 text-green-800 text-center font-medium animate-pulse">
+                    🎉 恭喜！您已完成本章節的所有學習目標！
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+        </div>
+      </main>
+
+      <footer className="border-t border-slate-200 bg-white mt-20 py-8">
+        <div className="max-w-5xl mx-auto px-4 text-center text-slate-400 text-sm">
+          <p>© 研究方法互動講義</p>
+        </div>
+      </footer>
+
+      <style>{`
+        @keyframes slide-up {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fade-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        .animate-slide-up {
+          animation: slide-up 0.4s ease-out forwards;
+        }
+        .animate-fade-in {
+          animation: fade-in 0.6s ease-out forwards;
+        }
+      `}</style>
+    </div>
+  );
+}
