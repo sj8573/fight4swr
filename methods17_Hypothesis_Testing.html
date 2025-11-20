@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hypothesis Testing Interactive</title>
+  
+  <!-- 1. 載入 Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- 2. 載入 React 相關 (核心) -->
+  <script crossorigin src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+  
+  <!-- 3. 載入 Babel (JSX 編譯器) -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  
+  <style>
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .range-slider::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none;
+      width: 20px; height: 20px;
+      border-radius: 50%; background: #ef4444; cursor: pointer;
+    }
+    /* 簡單的動畫 */
+    .fade-in { animation: fadeIn 0.5s ease-in; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .coin { transition: transform 0.5s; transform-style: preserve-3d; }
+    .coin.flip { animation: flip 0.5s ease-out; }
+    @keyframes flip { 0% { transform: rotateY(0); } 100% { transform: rotateY(1800deg); } }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useMemo, useEffect } = React;
+
+    // --- 簡易圖示組件 ---
+    const Icons = {
+      BookOpen: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>,
+      Gavel: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m14 13-7.5 7.5c-.83.83-2.17.83-3 0 0 0 0 0 0 0a2.12 2.12 0 0 1 0-3L11 10"/><path d="m16 16 6-6"/><path d="m8 8 6-6"/><path d="m9 7 8 8"/><path d="m21 11-8-8"/></svg>,
+      Scale: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg>,
+      HelpCircle: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>,
+      CheckCircle: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>,
+      XCircle: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>,
+      ArrowRight: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>,
+      AlertTriangle: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>,
+      Coins: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="8" cy="8" r="6"/><path d="M18.09 10.37A6 6 0 1 1 10.34 18"/><path d="M7 6h1v4"/><path d="m16.71 13.88.7.71-2.82 2.82"/></svg>
+    };
+
+    // --- 數學輔助函式 ---
+    const normalPDF = (x, mean, stdDev) => {
+      return (1 / (stdDev * Math.sqrt(2 * Math.PI))) * Math.exp(-0.5 * Math.pow((x - mean) / stdDev, 2));
+    };
+
+    // --- 組件：兩個常態分佈圖 (H0 vs H1) ---
+    const ErrorVisualizerSVG = ({ alphaZ, effectSize, n }) => {
+      const width = 500;
+      const height = 200;
+      const padding = 20;
+      const bottomY = height - padding;
+
+      // Scale parameters
+      const se = 1 / Math.sqrt(n); // Standard Error
+      const h1Mean = effectSize / se; // H1 visual position relative to H0's SE
+      
+      const rangeX = [-4, Math.max(4, h1Mean + 4)];
+      const scaleX = (val) => ((val - rangeX[0]) / (rangeX[1] - rangeX[0])) * width;
+      const scaleY = (val) => bottomY - (val * 300); // Arbitrary vertical scale
+
+      // Generate Paths
+      const step = 0.1;
+      
+      // H0 Curve
+      let h0Path = "";
+      for (let x = rangeX[0]; x <= rangeX[1]; x += step) {
+        const y = normalPDF(x, 0, 1);
+        h0Path += `${x === rangeX[0] ? 'M' : 'L'} ${scaleX(x)},${scaleY(y)} `;
+      }
+
+      // H1 Curve
+      let h1Path = "";
+      for (let x = rangeX[0]; x <= rangeX[1]; x += step) {
+        const y = normalPDF(x, h1Mean, 1);
+        h1Path += `${x === rangeX[0] ? 'M' : 'L'} ${scaleX(x)},${scaleY(y)} `;
+      }
+
+      // Critical Line X coord
+      const critX = scaleX(alphaZ);
+
+      // Areas
+      // Type I (Alpha): Area under H0 right of critX
+      let type1Path = `M ${critX},${bottomY} `;
+      for (let x = alphaZ; x <= rangeX[1]; x += step) {
+        type1Path += `L ${scaleX(x)},${scaleY(normalPDF(x, 0, 1))} `;
+      }
+      type1Path += `L ${scaleX(rangeX[1])},${bottomY} Z`;
+
+      // Type II (Beta): Area under H1 left of critX
+      let type2Path = `M ${scaleX(rangeX[0])},${bottomY} `;
+      for (let x = rangeX[0]; x <= alphaZ; x += step) {
+        type2Path += `L ${scaleX(x)},${scaleY(normalPDF(x, h1Mean, 1))} `;
+      }
+      type2Path += `L ${critX},${bottomY} Z`;
+
+      return (
+        <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full overflow-visible">
+          <defs>
+            <pattern id="diagonalHatch" width="5" height="5" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+              <line x1="0" y1="0" x2="0" y2="10" style={{stroke:'#ef4444', strokeWidth:1}} />
+            </pattern>
+          </defs>
+          <line x1="0" y1={bottomY} x2={width} y2={bottomY} stroke="#cbd5e1" strokeWidth="2" />
+
+          {/* Type I Area (Red) */}
+          <path d={type1Path} fill="#fecaca" opacity="0.8" />
+          
+          {/* Type II Area (Blue) */}
+          <path d={type2Path} fill="#bfdbfe" opacity="0.6" />
+
+          {/* H0 Curve */}
+          <path d={h0Path} fill="none" stroke="#dc2626" strokeWidth="2" />
+          <text x={scaleX(0)} y={20} textAnchor="middle" fill="#dc2626" fontSize="12" fontWeight="bold">H0: 無罪 (無效)</text>
+
+          {/* H1 Curve */}
+          <path d={h1Path} fill="none" stroke="#2563eb" strokeWidth="2" />
+          <text x={scaleX(h1Mean)} y={20} textAnchor="middle" fill="#2563eb" fontSize="12" fontWeight="bold">H1: 有罪 (有效)</text>
+
+          {/* Critical Line */}
+          <line x1={critX} y1={0} x2={critX} y2={bottomY} stroke="#475569" strokeWidth="2" strokeDasharray="5,5" />
+          <text x={critX} y={bottomY + 15} textAnchor="middle" fontSize="10" fill="#475569">
+            判決標準 (臨界值)
+          </text>
+          
+          {/* Labels */}
+          <text x={width - 50} y={bottomY - 10} fill="#dc2626" fontSize="10">α (Type I)</text>
+          <text x={50} y={bottomY - 10} fill="#2563eb" fontSize="10">β (Type II)</text>
+
+        </svg>
+      );
+    };
+
+    // --- 資料內容 ---
+    const PAGE_DATA = {
+      title: "假設檢定與統計顯著性",
+      subtitle: "證據的法庭",
+      intro: "假設檢定就像是一場「法庭審判」。在沒有足夠證據證明有罪之前，我們都假設被告是「無罪的」（虛無假設）。只有當證據顯示「如果他無罪，發生這種事的機率太低了」（P值顯著），我們才會判他有罪。",
+      concepts: [
+        { title: "虛無假設 (H0) vs. 對立假設 (H1)", content: "● H0 (Null)：預設狀況。例如「藥物無效」、「兩組沒差異」、「是被告無罪」。\n● H1 (Alternative)：我們想證明的。例如「藥物有效」、「兩組有差異」、「被告有罪」。" },
+        { title: "P 值 (P-value)", content: "定義：如果 H0 是真的，我們看到「這種（或更極端）數據」的機率。\n意義：P 值越小，代表我們對「H0 是真的」這件事越感到驚訝。當 P < 0.05 (顯著水準)，我們就驚訝到拒絕相信 H0。" },
+        { title: "兩種類型的錯誤", content: "● 型一錯誤 (Type I, α)：錯殺好人。H0 其實是真的，我們卻拒絕它 (False Positive)。\n● 型二錯誤 (Type II, β)：縱放壞人。H1 其實是真的，我們卻沒發現 (False Negative)。" }
+      ],
+      quizzes: [
+        { question: "如果 P 值 = 0.03，且我們的顯著水準設為 0.05，我們應該做出什麼結論？", options: ["接受虛無假設 (H0)", "拒絕虛無假設 (H0)，結果達顯著", "證明虛無假設 (H0) 是錯的", "資料不足，無法判斷"], correctIndex: 1, explanation: "正確！因為 P (0.03) < α (0.05)，代表在 H0 為真的前提下，發生這種事的機率太低了，所以我們拒絕 H0。" },
+        { question: "在法庭審判的比喻中，「將無罪的人判為有罪（冤獄）」對應到統計上的哪種錯誤？", options: ["型一錯誤 (Type I Error)", "型二錯誤 (Type II Error)", "抽樣誤差", "標準誤"], correctIndex: 0, explanation: "正確！H0 是「無罪」，拒絕 H0 (判有罪) 但其實 H0 是真的，這就是型一錯誤。" },
+        { question: "如果我們想降低「縱放壞人」(Type II Error) 的風險，可以怎麼做？（不只一個答案，選最直接的）", options: ["減少樣本數", "降低顯著水準 (例如從 0.05 改為 0.01)", "增加樣本數 (N)", "不做實驗"], correctIndex: 2, explanation: "正確！增加樣本數可以讓我們的「檢定力 (Power)」變強，更容易偵測到真實存在的差異，從而降低 Type II 錯誤。" }
+      ]
+    };
+
+    // --- 主程式 ---
+    function InteractiveHypothesis() {
+      const [activeTab, setActiveTab] = useState('concept');
+      
+      // Tab 2: Coin Toss Logic
+      const [headsCount, setHeadsCount] = useState(0);
+      const [totalFlips, setTotalFlips] = useState(0);
+      const [history, setHistory] = useState([]);
+      
+      // P-value calculation: prob of getting k heads in n tosses (Two-tailed logic roughly)
+      const factorial = (n) => (n <= 1 ? 1 : n * factorial(n - 1));
+      const combinations = (n, k) => factorial(n) / (factorial(k) * factorial(n - k));
+      
+      // P(X >= k) one-tailed p-value equivalent
+      const calculatePValue = (n, k) => {
+        if (n === 0) return 1;
+        let prob = 0;
+        if (k >= n/2) {
+          for(let i=k; i<=n; i++) prob += combinations(n, i) * Math.pow(0.5, n);
+        } else {
+          for(let i=0; i<=k; i++) prob += combinations(n, i) * Math.pow(0.5, n);
+        }
+        return prob; 
+      };
+      
+      const currentP = useMemo(() => calculatePValue(totalFlips, headsCount), [totalFlips, headsCount]);
+
+      const flipCoin = () => {
+        const isHead = Math.random() > 0.5; // Simulate Fair Coin (H0 is TRUE)
+        setHistory([...history, isHead ? 'H' : 'T']);
+        if (isHead) setHeadsCount(h => h + 1);
+        setTotalFlips(t => t + 1);
+      };
+
+      const flipCheatCoin = () => {
+         // Always Head
+         const isHead = true;
+         setHistory([...history, 'H']);
+         setHeadsCount(h => h + 1);
+         setTotalFlips(t => t + 1);
+      };
+      
+      const resetCoin = () => {
+        setHeadsCount(0);
+        setTotalFlips(0);
+        setHistory([]);
+      };
+
+      // Tab 3: Error Visualizer State
+      const [alphaLevel, setAlphaLevel] = useState(1.645); // Z score for alpha=0.05 (one-tailed)
+      const [effectSize, setEffectSize] = useState(0.5); // Cohen's d roughly
+      const [sampleSizeN, setSampleSizeN] = useState(20);
+
+      // Quiz State
+      const [quizState, setQuizState] = useState({});
+      const [showConfetti, setShowConfetti] = useState(false);
+
+      const handleQuizAnswer = (qIndex, optionIndex) => {
+        const isCorrect = optionIndex === PAGE_DATA.quizzes[qIndex].correctIndex;
+        setQuizState(prev => ({ ...prev, [qIndex]: { selected: optionIndex, isCorrect } }));
+        if (isCorrect && Object.keys(quizState).length + 1 === PAGE_DATA.quizzes.length) {
+          setShowConfetti(true);
+          setTimeout(() => setShowConfetti(false), 3000);
+        }
+      };
+
+      return (
+        <div className="min-h-screen bg-slate-50 text-slate-800 font-sans p-2">
+          {/* Navigation */}
+          <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-slate-200 shadow-sm rounded-xl mb-4">
+            <div className="max-w-5xl mx-auto px-4 py-3">
+              <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-red-500 rounded-lg flex items-center justify-center text-white font-bold shadow-lg shadow-red-200">P</div>
+                  <span className="font-bold text-xl tracking-tight text-slate-900">假設檢定與顯著性</span>
+                </div>
+                <div className="flex space-x-1 bg-slate-100 p-1 rounded-xl overflow-x-auto w-full md:w-auto">
+                  {[
+                    { id: 'concept', label: '核心概念', icon: Icons.BookOpen },
+                    { id: 'pvalue', label: 'P 值直覺', icon: Icons.Coins },
+                    { id: 'errors', label: '判決與錯誤', icon: Icons.Scale },
+                    { id: 'quiz', label: '隨堂測驗', icon: Icons.HelpCircle }
+                  ].map((tab) => (
+                    <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${activeTab === tab.id ? 'bg-white text-red-600 shadow-sm ring-1 ring-black/5' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}>
+                      <tab.icon />
+                      <span>{tab.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </nav>
+
+          <main className="max-w-4xl mx-auto px-2 sm:px-6 py-4">
+            <div className="mb-8 text-center">
+              <h1 className="text-3xl font-extrabold text-slate-900 mb-3">{PAGE_DATA.title}</h1>
+              <p className="text-lg text-slate-600 max-w-2xl mx-auto">{PAGE_DATA.intro}</p>
+            </div>
+
+            {/* TAB 1: CONCEPT */}
+            {activeTab === 'concept' && (
+              <div className="space-y-6 fade-in">
+                <div className="grid md:grid-cols-3 gap-6">
+                  {PAGE_DATA.concepts.map((item, idx) => (
+                    <div key={idx} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:border-red-200 transition-colors">
+                      <div className="flex items-center gap-3 mb-4">
+                         <div className="w-10 h-10 bg-red-50 text-red-600 rounded-full flex items-center justify-center font-bold text-lg">{idx + 1}</div>
+                         <h3 className="font-bold text-lg text-slate-800">{item.title}</h3>
+                      </div>
+                      <p className="text-slate-600 text-sm leading-relaxed whitespace-pre-line">{item.content}</p>
+                    </div>
+                  ))}
+                </div>
+                
+                <div className="bg-white p-8 rounded-2xl border-l-4 border-red-500 shadow-sm">
+                  <h3 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2"><Icons.Gavel /> 法庭的比喻</h3>
+                  <div className="grid md:grid-cols-2 gap-8 text-sm">
+                    <div className="bg-slate-50 p-4 rounded-xl">
+                      <h4 className="font-bold text-slate-600 border-b pb-2 mb-2">現狀 (H0: 被告無罪)</h4>
+                      <ul className="space-y-2 text-slate-500">
+                        <li>我們預設這是真的。</li>
+                        <li>檢察官 (研究者) 必須拿出足夠證據來推翻它。</li>
+                        <li>如果證據不足，我們不是證明他清白，只是「無法證明他有罪」。</li>
+                      </ul>
+                    </div>
+                    <div className="bg-red-50 p-4 rounded-xl">
+                      <h4 className="font-bold text-red-600 border-b border-red-200 pb-2 mb-2">挑戰 (H1: 被告有罪)</h4>
+                      <ul className="space-y-2 text-red-500">
+                        <li>這是我們想證明的。</li>
+                        <li>P值 &lt; 0.05 代表：如果他是清白的，卻出現這些指紋和凶器的機率太低了。</li>
+                        <li>所以我們判決：有罪！(拒絕 H0)</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="text-center mt-8">
+                   <button onClick={() => setActiveTab('pvalue')} className="inline-flex items-center gap-2 bg-red-600 text-white px-6 py-3 rounded-full font-medium shadow-lg shadow-red-200 hover:bg-red-700 transition-colors">
+                    體驗 P 值的直覺 <Icons.ArrowRight />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 2: P-VALUE SIMULATION */}
+            {activeTab === 'pvalue' && (
+              <div className="grid lg:grid-cols-12 gap-8 fade-in">
+                <div className="lg:col-span-5 space-y-6">
+                  <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <div className="flex items-center gap-2 mb-4 text-slate-800">
+                      <Icons.Coins />
+                      <h3 className="font-bold text-lg">擲硬幣模擬器</h3>
+                    </div>
+                    <p className="text-sm text-slate-500 mb-4">
+                      假設 H0：這是一枚公正的硬幣 (正面機率 50%)。<br/>
+                      請試著擲硬幣，看看當連續出現正面時，P 值會如何變化。
+                    </p>
+
+                    <div className="flex gap-2 mb-6">
+                      <button onClick={flipCoin} className="flex-1 bg-slate-800 text-white py-3 rounded-xl font-bold shadow hover:bg-slate-700 transition-colors">
+                        擲一枚公正硬幣
+                      </button>
+                      <button onClick={flipCheatCoin} className="flex-1 bg-red-600 text-white py-3 rounded-xl font-bold shadow hover:bg-red-700 transition-colors">
+                        作弊 (必出正面)
+                      </button>
+                    </div>
+
+                    <div className="flex justify-between items-center mb-4 bg-slate-50 p-3 rounded-lg">
+                       <div className="text-center">
+                         <div className="text-xs text-slate-500">總次數</div>
+                         <div className="text-xl font-bold">{totalFlips}</div>
+                       </div>
+                       <div className="text-center">
+                         <div className="text-xs text-slate-500">正面次數</div>
+                         <div className="text-xl font-bold text-red-600">{headsCount}</div>
+                       </div>
+                       <div className="text-center">
+                         <div className="text-xs text-slate-500">正面比例</div>
+                         <div className="text-xl font-bold">{totalFlips > 0 ? ((headsCount/totalFlips)*100).toFixed(0) : 0}%</div>
+                       </div>
+                    </div>
+                    
+                    <button onClick={resetCoin} className="w-full text-sm text-slate-400 hover:text-slate-600 underline">重置</button>
+                  </div>
+                  
+                  <div className={`p-6 rounded-2xl border transition-all duration-500 text-center ${currentP < 0.05 ? 'bg-red-50 border-red-300' : 'bg-green-50 border-green-300'}`}>
+                    <h4 className="text-xs font-bold uppercase tracking-wider mb-1">目前的 P 值</h4>
+                    <div className="text-4xl font-black mb-2">
+                      {currentP < 0.001 ? '< .001' : currentP.toFixed(3)}
+                    </div>
+                    <p className="text-sm font-bold mb-2">
+                      {currentP < 0.05 ? '顯著！(p < .05)' : '不顯著 (p > .05)'}
+                    </p>
+                    <p className="text-xs opacity-80">
+                      {currentP < 0.05 
+                        ? "發生這種事的機率太低了！我有足夠證據懷疑這枚硬幣不單純 (拒絕 H0)。" 
+                        : "這還在合理巧合範圍內，我暫時相信它是公正的 (不拒絕 H0)。"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="lg:col-span-7">
+                   <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm h-full flex flex-col">
+                     <h3 className="font-bold text-slate-700 mb-4">擲幣紀錄</h3>
+                     <div className="flex-grow bg-slate-100 rounded-xl p-4 overflow-y-auto max-h-[300px] flex flex-wrap content-start gap-2">
+                       {history.map((face, i) => (
+                         <div key={i} className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shadow-sm border-2 ${face === 'H' ? 'bg-red-500 border-red-600 text-white' : 'bg-slate-300 border-slate-400 text-slate-700'} animate-[bounce_0.5s_ease-out]`}>
+                           {face}
+                         </div>
+                       ))}
+                       {history.length === 0 && <span className="text-slate-400 text-sm mx-auto mt-10">還沒有紀錄，請開始擲幣...</span>}
+                     </div>
+                     <div className="mt-4 text-xs text-slate-500">
+                       * P 值計算：在公正硬幣(H0)下，出現目前這樣極端(或更極端)正面次數的機率。
+                     </div>
+                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 3: ERROR VISUALIZER */}
+            {activeTab === 'errors' && (
+              <div className="grid lg:grid-cols-12 gap-8 fade-in">
+                 <div className="lg:col-span-4 space-y-6">
+                    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                      <div className="flex items-center gap-2 mb-4 text-slate-800">
+                        <Icons.Scale />
+                        <h3 className="font-bold text-lg">判決控制台</h3>
+                      </div>
+                      
+                      <div className="mb-6">
+                        <div className="flex justify-between mb-2">
+                          <label className="text-sm font-bold text-slate-600">判決標準 (臨界值 Z)</label>
+                          <span className="text-sm font-mono bg-slate-100 px-2 rounded">{alphaLevel.toFixed(2)}</span>
+                        </div>
+                        <input type="range" min="1" max="3" step="0.1" value={alphaLevel} onChange={(e) => setAlphaLevel(Number(e.target.value))} className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-slate-600" />
+                        <p className="text-xs text-slate-500 mt-1">往左移 = 標準寬鬆 (容易判有罪)；往右移 = 標準嚴格。</p>
+                      </div>
+
+                      <div className="mb-6">
+                        <div className="flex justify-between mb-2">
+                          <label className="text-sm font-bold text-blue-600">效果量 (兩者差異)</label>
+                          <span className="text-sm font-mono bg-blue-100 px-2 rounded">{effectSize.toFixed(1)}</span>
+                        </div>
+                        <input type="range" min="0.2" max="1.5" step="0.1" value={effectSize} onChange={(e) => setEffectSize(Number(e.target.value))} className="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer accent-blue-600" />
+                        <p className="text-xs text-slate-500 mt-1">H0 與 H1 真實情況差多少？</p>
+                      </div>
+
+                      <div className="mb-2">
+                        <div className="flex justify-between mb-2">
+                          <label className="text-sm font-bold text-green-600">樣本數 (N)</label>
+                          <span className="text-sm font-mono bg-green-100 px-2 rounded">{sampleSizeN}</span>
+                        </div>
+                        <input type="range" min="10" max="100" step="10" value={sampleSizeN} onChange={(e) => setSampleSizeN(Number(e.target.value))} className="w-full h-2 bg-green-200 rounded-lg appearance-none cursor-pointer accent-green-600" />
+                        <p className="text-xs text-slate-500 mt-1">樣本越多，標準誤越小，H0與H1分得越開。</p>
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-100 p-4 rounded-xl border border-slate-200 text-xs space-y-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-red-200 border border-red-400"></div>
+                        <span>型一錯誤 (α)：冤獄。H0真，卻判有罪。</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-blue-200 border border-blue-400"></div>
+                        <span>型二錯誤 (β)：縱放。H1真，卻判無罪。</span>
+                      </div>
+                    </div>
+                 </div>
+
+                 <div className="lg:col-span-8">
+                    <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm h-full flex flex-col">
+                       <h3 className="text-center font-bold text-slate-700 mb-4">雙峰圖：判決的兩難</h3>
+                       <div className="flex-grow h-[300px]">
+                          <ErrorVisualizerSVG alphaZ={alphaLevel} effectSize={effectSize} n={sampleSizeN} />
+                       </div>
+                       <div className="mt-4 p-4 bg-yellow-50 rounded-xl border border-yellow-100 text-sm text-yellow-800 flex gap-2">
+                         <Icons.AlertTriangle />
+                         <div>
+                           <strong>觀察重點：</strong>
+                           當你把標準（虛線）往右移想減少冤獄 (α變小) 時，縱放壞人的機率 (β, 藍色區域) 就會變大！這就是統計檢定的權衡。
+                           唯有增加 N 或 效果量，才能同時減少兩者。
+                         </div>
+                       </div>
+                    </div>
+                 </div>
+              </div>
+            )}
+
+            {/* TAB 4: QUIZ */}
+            {activeTab === 'quiz' && (
+              <div className="space-y-6 fade-in animate-slide-up">
+                 <div className="bg-red-50 rounded-xl p-6 border border-red-100 mb-6 flex gap-4">
+                    <div className="bg-red-100 p-3 rounded-full h-fit"><Icons.HelpCircle /></div>
+                    <div><h3 className="font-bold text-red-900 text-lg">隨堂測驗</h3><p className="text-red-700 mt-1">確認您是否理解假設檢定的邏輯。</p></div>
+                  </div>
+                {PAGE_DATA.quizzes.map((quiz, qIndex) => {
+                  const state = quizState[qIndex];
+                  const isAnswered = state !== undefined;
+                  return (
+                    <div key={qIndex} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                      <div className="p-6 border-b border-slate-100 bg-slate-50/50">
+                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Question {qIndex + 1}</span>
+                        <h3 className="text-lg font-semibold text-slate-800 mt-2">{quiz.question}</h3>
+                      </div>
+                      <div className="p-4 space-y-2">
+                        {quiz.options.map((option, oIndex) => {
+                          let btnClass = "w-full text-left p-4 rounded-xl border-2 transition-all duration-200 flex justify-between items-center ";
+                          if (!isAnswered) { btnClass += "border-slate-100 hover:border-red-200 hover:bg-red-50 text-slate-600"; } else { if (oIndex === quiz.correctIndex) { btnClass += "border-green-500 bg-green-50 text-green-800 font-medium"; } else if (state.selected === oIndex && !state.isCorrect) { btnClass += "border-red-300 bg-red-50 text-red-800 opacity-70"; } else { btnClass += "border-transparent text-slate-400 opacity-50 cursor-default"; } }
+                          return (
+                            <button key={oIndex} onClick={() => !isAnswered && handleQuizAnswer(qIndex, oIndex)} disabled={isAnswered} className={btnClass}>
+                              <span>{option}</span>
+                              {isAnswered && oIndex === quiz.correctIndex && <Icons.CheckCircle />}
+                              {isAnswered && state.selected === oIndex && !state.isCorrect && <Icons.XCircle />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      {isAnswered && <div className={`p-5 mx-4 mb-4 rounded-xl text-sm ${state.isCorrect ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}><p className="font-bold mb-1">{state.isCorrect ? '🎉 答對了！' : '💡 再想一下...'}</p><p>{quiz.explanation}</p></div>}
+                    </div>
+                  );
+                })}
+                {showConfetti && <div className="text-center p-4 bg-red-100 text-red-800 font-bold rounded-xl animate-pulse">太棒了！您已經具備了科學判斷的能力！</div>}
+              </div>
+            )}
+          </main>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<InteractiveHypothesis />);
+  </script>
+</body>
+</html>
