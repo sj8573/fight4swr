@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Puti-AI 圖片批次修正繁中字</title>
+    <style>
+      :root {
+        --bg-color: #121212;
+        --surface-color: #1e1e1e;
+        --primary-color: #a8c7fa;
+        --text-color: #e3e3e3;
+        --border-color: #333;
+        --accent-color: #4c8df6;
+        --success-color: #81c995;
+        --error-color: #f28b82;
+      }
+      
+      body {
+        margin: 0;
+        font-family: "Microsoft JhengHei", "Heiti TC", 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        -webkit-font-smoothing: antialiased;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      #root {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      /* Scrollbar styling */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: var(--bg-color);
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--border-color);
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #555;
+      }
+
+      .btn {
+        background: var(--accent-color);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: opacity 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-family: inherit;
+      }
+      .btn:hover {
+        opacity: 0.9;
+      }
+      .btn:disabled {
+        background: #444;
+        cursor: not-allowed;
+        opacity: 0.7;
+      }
+      .btn-secondary {
+        background: transparent;
+        border: 1px solid var(--border-color);
+        color: var(--text-color);
+      }
+      .btn-secondary:hover {
+        background: rgba(255,255,255,0.05);
+      }
+
+      .input-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-bottom: 15px;
+      }
+      
+      label {
+        font-size: 0.9rem;
+        color: #aaa;
+      }
+
+      input[type="text"], textarea, select {
+        background: var(--surface-color);
+        border: 1px solid var(--border-color);
+        color: white;
+        padding: 10px;
+        border-radius: 6px;
+        font-family: inherit;
+      }
+
+      input[type="text"]:focus, textarea:focus, select:focus {
+        outline: none;
+        border-color: var(--accent-color);
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+    "react-dom/client": "https://aistudiocdn.com/react-dom@^19.2.0/client",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>
