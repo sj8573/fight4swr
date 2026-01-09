@@ -86,6 +86,9 @@
             z-index: 5;
             transition: background 0.3s ease;
         }
+        .shorts-container:hover .play-button-overlay {
+            background: rgba(0,0,0,0.15);
+        }
         .play-icon-bg {
             width: 5.5rem;
             height: 5.5rem;
@@ -125,9 +128,9 @@
                 <!-- Desktop Menu -->
                 <div class="hidden md:flex space-x-12 items-center text-lg">
                     <a href="#features" class="nav-link text-gray-600 hover:text-brand-600 font-medium transition cursor-pointer">本班特色</a>
-                    <a href="#videos" class="nav-link text-gray-600 hover:text-brand-600 font-medium transition cursor-pointer">備戰觀念</a>
-                    <a href="#feedback" class="nav-link text-gray-600 hover:text-brand-600 font-medium transition cursor-pointer">學員回饋</a>
-                    <a href="#faq" class="nav-link text-gray-600 hover:text-brand-600 font-medium transition cursor-pointer text-brand-600">常見問題</a>
+                    <a href="#videos" class="nav-link text-gray-600 hover:text-brand-600 font-medium transition cursor-pointer text-lg">備戰觀念</a>
+                    <a href="#feedback" class="nav-link text-gray-600 hover:text-brand-600 font-medium transition cursor-pointer text-lg">學員回饋</a>
+                    <a href="#faq" class="nav-link text-gray-600 hover:text-brand-600 font-medium transition cursor-pointer text-lg text-brand-600">常見問題</a>
                     <a href="#pricing" class="nav-link text-gray-600 hover:text-brand-600 font-medium transition cursor-pointer text-brand-600 font-bold border-b-2 border-brand-600">班別方案</a>
                 </div>
 
@@ -143,11 +146,11 @@
         <!-- Mobile Menu Panel -->
         <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-100 absolute w-full shadow-2xl h-screen overflow-y-auto">
             <div class="px-4 pt-6 pb-20 space-y-2">
-                <a href="#features" class="mobile-nav-link block px-6 py-6 text-2xl font-bold text-gray-700 border-b border-gray-50 active:bg-brand-50 transition">本班特色</a>
-                <a href="#videos" class="mobile-nav-link block px-6 py-6 text-2xl font-bold text-gray-700 border-b border-gray-50 active:bg-brand-50 transition">備戰觀念</a>
-                <a href="#feedback" class="mobile-nav-link block px-6 py-6 text-2xl font-bold text-gray-700 border-b border-gray-50 active:bg-brand-50 transition">學員回饋</a>
-                <a href="#faq" class="mobile-nav-link block px-6 py-6 text-2xl font-bold text-gray-700 border-b border-gray-50 active:bg-brand-50 transition">常見問題</a>
-                <a href="#pricing" class="mobile-nav-link block px-6 py-6 text-2xl font-bold text-brand-600 border-b border-gray-50 active:bg-brand-50 transition">班別方案</a>
+                <a href="#features" class="mobile-nav-link block px-6 py-6 text-2xl font-bold text-gray-700 border-b border-gray-50 active:bg-brand-50 transition text-2xl">本班特色</a>
+                <a href="#videos" class="mobile-nav-link block px-6 py-6 text-2xl font-bold text-gray-700 border-b border-gray-50 active:bg-brand-50 transition text-2xl">備戰觀念</a>
+                <a href="#feedback" class="mobile-nav-link block px-6 py-6 text-2xl font-bold text-gray-700 border-b border-gray-50 active:bg-brand-50 transition text-2xl">學員回饋</a>
+                <a href="#faq" class="mobile-nav-link block px-6 py-6 text-2xl font-bold text-gray-700 border-b border-gray-50 active:bg-brand-50 transition text-2xl">常見問題</a>
+                <a href="#pricing" class="mobile-nav-link block px-6 py-6 text-2xl font-bold text-brand-600 border-b border-gray-50 active:bg-brand-50 transition text-2xl">班別方案</a>
                 
                 <div class="pt-10 px-6">
                     <span class="block w-full text-center bg-gray-300 text-gray-600 py-5 rounded-2xl font-black text-xl shadow-md cursor-not-allowed">二月底開放報名</span>
@@ -168,13 +171,14 @@
                         </span>
                         別再花冤枉錢上昂貴衝刺班！
                     </div>
-                    <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-gray-900 leading-[1.3] mb-10">
-                        <span class="block">打破時空限制</span>
+                    <!-- 錯開式標題 -->
+                    <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-gray-900 leading-[1.3] mb-10 text-center lg:text-left">
+                        <span class="block text-gray-900">打破時空限制</span>
                         <span class="block pl-12 md:pl-20 text-brand-600">社工師國考</span>
                         <span class="block text-gray-800">隨時隨地備戰</span>
                         <span class="block pl-12 md:pl-20 text-brand-600">線上總複習</span>
                     </h1>
-                    <p class="text-xl text-gray-600 mb-10 leading-relaxed max-w-2xl mx-auto lg:mx-0">
+                    <p class="text-xl text-gray-600 mb-10 leading-relaxed max-w-2xl mx-auto lg:mx-0 text-xl text-center lg:text-left">
                         <span class="font-bold text-gray-900 text-2xl text-brand-600 underline decoration-accent-500">無需參加實體衝刺班！</span><br>影音包含各章節重點精華，隨時點開、不限次數複習，搭配章節歸納題庫，效果遠勝一次性實體課。
                     </p>
                     <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
@@ -220,7 +224,7 @@
                         <i data-lucide="repeat" class="w-8 h-8"></i>
                     </div>
                     <h3 class="text-2xl font-bold text-gray-900 mb-4">複習影音 讓你隨時聽隨處看</h3>
-                    <p class="text-gray-600 leading-relaxed text-lg">超過50小時全科全章節深度複習影音。想看幾遍就看幾遍！暫停、回放完全由你控制，直到弄懂為止。</p>
+                    <p class="text-gray-600 leading-relaxed text-lg text-lg">超過50小時全科全章節深度複習影音。想看幾遍就看幾遍！暫停、回放完全由你控制，直到弄懂為止。</p>
                 </div>
                 
                 <div class="p-10 rounded-3xl bg-white border border-gray-200 hover:border-brand-300 hover:shadow-xl transition group text-center mx-4 md:mx-0">
@@ -228,7 +232,7 @@
                         <i data-lucide="database" class="w-8 h-8"></i>
                     </div>
                     <h3 class="text-2xl font-bold text-gray-900 mb-4">考古題庫 依照章節歸納整理</h3>
-                    <p class="text-gray-600 leading-relaxed text-lg">全國獨家，絕無僅有。我們最強大的武器！看聽完複習影音，馬上刷考古題，讓觀念直接變分數。</p>
+                    <p class="text-gray-600 leading-relaxed text-lg text-lg">全國獨家，絕無僅有。我們最強大的武器！看聽完複習影音，馬上刷考古題，讓觀念直接變分數。</p>
                 </div>
 
                 <div class="p-10 rounded-3xl bg-brand-50 border border-brand-100 hover:shadow-xl transition group text-center mx-4 md:mx-0">
@@ -236,7 +240,7 @@
                         <i data-lucide="piggy-bank" class="w-8 h-8"></i>
                     </div>
                     <h3 class="text-2xl font-bold text-gray-900 mb-4">費用平實 免花大錢輕鬆上岸</h3>
-                    <p class="text-gray-600 leading-relaxed text-lg">相比動輒數千元的實體衝刺班，省下的錢拿去買更多營養品補充體力更實在！</p>
+                    <p class="text-gray-600 leading-relaxed text-lg text-lg">相比動輒數千元的實體衝刺班，省下的錢拿去買更多營養品補充體力更實在！</p>
                 </div>
             </div>
         </div>
@@ -246,7 +250,7 @@
     <section id="videos" class="py-24 bg-gray-900 text-white relative text-center">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div class="text-center mb-16">
-                <h2 class="text-3xl md:text-5xl font-black mb-4">備戰策略與觀念分享</h2>
+                <h2 class="text-3xl md:text-5xl font-black mb-4 text-3xl">備戰策略與觀念分享</h2>
                 <p class="text-gray-400 max-w-2xl mx-auto text-xl leading-relaxed px-4">
                     了解為什麼<span class="text-brand-500 font-bold">「影音複習法」</span>與<span class="text-brand-500 font-bold">「專精化刷題」</span>是上榜關鍵！
                 </p>
@@ -266,7 +270,8 @@
                 </div>
 
                 <div class="w-full max-w-[340px] flex flex-col items-center group">
-                    <a href="https://www.youtube.com/shorts/ojtH3BZlNc8?autoplay=1" target="_blank" class="shorts-container border-4 border-gray-800 group-hover:border-brand-600">
+                    <!-- 更新：更新連結網址，但預覽圖片維持原狀 (ID: ojtH3BZlNc8) -->
+                    <a href="https://youtube.com/shorts/5mZQ5m-dCKU" target="_blank" class="shorts-container border-4 border-gray-800 group-hover:border-brand-600">
                         <img src="https://img.youtube.com/vi/ojtH3BZlNc8/maxresdefault.jpg" alt="刷考古題的重要性" onerror="this.src='https://img.youtube.com/vi/ojtH3BZlNc8/hqdefault.jpg'">
                         <div class="play-button-overlay">
                             <div class="play-icon-bg">
@@ -274,7 +279,7 @@
                             </div>
                         </div>
                     </a>
-                    <h3 class="mt-8 text-2xl font-bold text-center group-hover:text-brand-500 transition px-2">刷考古題的重要性</h3>
+                    <h3 class="mt-8 text-2xl font-bold text-center group-hover:text-brand-500 transition px-2 text-2xl">刷考古題的重要性</h3>
                 </div>
             </div>
         </div>
@@ -287,7 +292,7 @@
                 <span class="text-brand-600 font-bold tracking-wider uppercase text-sm">Success Stories</span>
                 <h2 class="text-3xl md:text-4xl font-black text-gray-900 mt-2 mb-4">學員心得與回饋</h2>
                 <div class="w-20 h-1.5 bg-brand-600 mx-auto rounded-full mb-6"></div>
-                <p class="text-gray-600 text-xl px-4">聽聽成功考取學長姊的真實評價：</p>
+                <p class="text-gray-600 text-xl px-4 text-xl">聽聽成功考取學長姊的真實評價：</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8 text-gray-700 px-4 max-w-7xl mx-auto">
@@ -330,7 +335,7 @@
                         </p>
                     </div>
                     <div class="flex items-center gap-4 pt-6 border-t border-brand-100/50">
-                        <div class="w-14 h-14 bg-pink-200 rounded-full flex items-center justify-center text-pink-700 font-black text-2xl">愛</div>
+                        <div class="w-14 h-14 bg-pink-200 rounded-full flex items-center justify-center text-pink-700 font-black text-xl">愛</div>
                         <div>
                             <div class="font-bold text-gray-900">愛傳</div>
                             <div class="text-sm text-gray-500 italic">初考即上榜學員</div>
@@ -369,7 +374,7 @@
                             <i data-lucide="star" class="w-5 h-5 fill-current"></i>
                             <i data-lucide="star" class="w-5 h-5 fill-current"></i>
                             <i data-lucide="star" class="w-5 h-5 fill-current"></i>
-                            <i data-lucide="star" class="w-5 h-5 fill-current"></i>
+                            <i data-lucide="star" class="w-5 h-5 fill-current text-xl"></i>
                         </div>
                         <p class="text-gray-800 leading-relaxed italic mb-6 font-medium">
                             「感謝你們的考古題幫助我考上。我是兩年前私大語文科系畢業，不是本科完全沒有基礎，看到嘉藥題庫班就去參加，我要打工到晚上，只有依照建議反覆刷題和聽影音，應該是運氣很好。感謝嘉藥推我一大把。」
@@ -385,7 +390,7 @@
                 </div>
 
                 <!-- 5. Lois -->
-                <div class="bg-brand-50 p-8 rounded-[2rem] border border-brand-100 shadow-sm text-left flex flex-col justify-between transition hover:shadow-md">
+                <div class="bg-brand-50 p-8 rounded-[2rem] border border-brand-100 shadow-sm text-left flex flex-col justify-between transition hover:shadow-md text-xl">
                     <div>
                         <div class="flex text-accent-500 mb-4">
                             <i data-lucide="star" class="w-5 h-5 fill-current"></i>
@@ -422,7 +427,7 @@
                         </p>
                     </div>
                     <div class="flex items-center gap-4 pt-6 border-t border-brand-100/50">
-                        <div class="w-14 h-14 bg-green-200 rounded-full flex items-center justify-center text-green-700 font-black text-2xl">Z</div>
+                        <div class="w-14 h-14 bg-green-200 rounded-full flex items-center justify-center text-green-700 font-black text-xl">Z</div>
                         <div>
                             <div class="font-bold text-gray-900">阿珠</div>
                             <div class="text-sm text-gray-500 italic">私校假日班應屆畢業生</div>
@@ -431,7 +436,7 @@
                 </div>
 
                 <!-- 7. 李同學 -->
-                <div class="bg-brand-50 p-8 rounded-[2rem] border border-brand-100 shadow-sm text-left flex flex-col justify-between transition hover:shadow-md">
+                <div class="bg-brand-50 p-8 rounded-[2rem] border border-brand-100 shadow-sm text-left flex flex-col justify-between transition hover:shadow-md text-xl">
                     <div>
                         <div class="flex text-accent-500 mb-4">
                             <i data-lucide="star" class="w-5 h-5 fill-current"></i>
@@ -478,7 +483,7 @@
 
             </div>
             
-            <div class="mt-16 text-center">
+            <div class="mt-16 text-center text-xl">
                 <p class="text-gray-400 font-black tracking-[0.2em] text-xl animate-pulse">精彩見證持續增加中...</p>
             </div>
         </div>
@@ -610,10 +615,10 @@
 
                 <!-- 2 -->
                 <div class="bg-white rounded-[3rem] p-10 shadow-sm border border-gray-200 text-left flex flex-col transition hover:shadow-2xl scale-105 ring-4 ring-brand-100 z-10">
-                    <h3 class="text-5xl font-black text-brand-600 mb-6 uppercase tracking-wider text-xl">全科班</h3>
+                    <h3 class="text-5xl font-black text-gray-900 mb-6 uppercase tracking-wider text-xl">全科班</h3>
                     <p class="text-5xl font-black text-brand-600 mb-8 tracking-tighter">NT$ 1,200</p>
                     <ul class="space-y-5 text-gray-700 mb-12 border-t pt-10 text-xl flex-grow">
-                        <li class="flex gap-4 font-bold text-gray-900 leading-tight"><i data-lucide="check-circle" class="text-brand-600 w-6 h-6 flex-shrink-0 mt-1"></i>章節重點複習+考前衝刺影音</li>
+                        <li class="flex gap-4 font-bold text-gray-900 leading-tight"><i data-lucide="check-circle" class="text-brand-600 w-6 h-6 flex-shrink-0 mt-1 text-2xl"></i>章節重點複習+考前衝刺影音</li>
                         <li class="flex gap-4 font-bold text-gray-900 leading-tight"><i data-lucide="check-circle" class="text-brand-600 w-6 h-6 flex-shrink-0 mt-1"></i>歸納整理選擇題+申論題擬答</li>
                         <li class="border-t border-gray-100 my-4 list-none"></li>
                         <li class="flex gap-4 text-lg text-brand-600"><i data-lucide="check" class="text-brand-600 w-6 h-6 flex-shrink-0 mt-1"></i>社會工作</li>
@@ -631,7 +636,6 @@
                     <p class="text-5xl font-black text-brand-600 mb-8 tracking-tighter">NT$ 1,000</p>
                     <ul class="space-y-5 text-gray-700 mb-12 border-t pt-10 text-xl flex-grow">
                         <li class="flex gap-4 font-bold text-gray-900 leading-tight"><i data-lucide="check-circle" class="text-brand-600 w-6 h-6 flex-shrink-0 mt-1"></i>章節重點複習+考前衝刺影音</li>
-                        <!-- 修正：修正拼寫錯誤 -->
                         <li class="flex gap-4 font-bold text-gray-900 leading-tight"><i data-lucide="check-circle" class="text-brand-600 w-6 h-6 flex-shrink-0 mt-1"></i>歸納整理選擇題+申論題擬答</li>
                         <li class="border-t border-gray-100 my-4 list-none"></li>
                         <li class="flex gap-4 text-lg"><i data-lucide="check" class="text-brand-600 w-6 h-6 flex-shrink-0 mt-1"></i>社會工作</li>
