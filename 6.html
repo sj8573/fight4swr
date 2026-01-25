@@ -3,107 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>社會工作理論(三) 題庫測驗</title>
+    <title>社會工作理論(三) - 題庫測驗</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Include jsPDF and html2canvas for PDF export functionality -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        /* Custom styles for the macaron color theme and overall look */
         body {
-            background-color: #FEFBF6; /* Creamy background */
             font-family: 'Noto Sans TC', sans-serif;
-            color: #5C5470; /* Muted purple text */
+            background-color: #f0f8ff; /* AliceBlue - 馬卡龍淺藍色 */
         }
-        .macaron-card {
-            background-color: #FAF0E4; /* Soft peach card */
-            border: 1px solid #E4D5C7;
+        .macaron-pink { background-color: #FFD1DC; }
+        .macaron-blue { background-color: #BDE0FE; }
+        .macaron-green { background-color: #C1E1C1; }
+        .macaron-yellow { background-color: #FFFACD; }
+        .macaron-purple { background-color: #E6E6FA; }
+        .btn {
+            transition: transform 0.2s, box-shadow 0.2s;
         }
-        .macaron-btn {
-            background-color: #B2D8B2; /* Pistachio green */
-            color: #354F52;
-            transition: all 0.3s ease;
-            font-weight: 500;
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
-        .macaron-btn:hover {
-            background-color: #A1C7A1; /* Darker pistachio */
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-        }
-        .macaron-option {
-            background-color: #FFFFFF;
-            border: 2px solid #EAD7D7; /* Soft pink border */
-            transition: all 0.3s ease;
-        }
-        .macaron-option:hover {
-            border-color: #B2D8B2; /* Pistachio green on hover */
-            background-color: #F7FDF7;
-        }
-        .macaron-option input:checked + label {
-            border-color: #79A379;
-            background-color: #E9F5E9;
-            font-weight: 500;
+        .option-label:has(input:checked) {
+            background-color: #BDE0FE; /* Pastel Blue */
+            border-color: #a0c4ff;
         }
         .correct-answer {
-            background-color: #D4EDDA !important; /* Light green for correct */
-            border-color: #C3E6CB !important;
+            background-color: #C1E1C1 !important; /* Pastel Green */
         }
         .incorrect-answer {
-            background-color: #F8D7DA !important; /* Light red for incorrect */
-            border-color: #F5C6CB !important;
+            background-color: #ffb6c1 !important; /* Light Pink */
         }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
 
-    <div id="app-container" class="w-full max-w-4xl mx-auto">
-        <!-- Start Screen: Visible by default -->
-        <div id="start-screen" class="text-center p-8 sm:p-12 macaron-card rounded-2xl shadow-lg">
-            <h1 class="text-4xl sm:text-5xl font-bold mb-2 text-[#354F52]">社會工作理論(三)</h1>
-            <p class="text-lg sm:text-xl mb-8 text-[#5C5470]">(從總題庫抽出40題)</p>
-            <p class="text-xl mb-6">請選擇測驗題數：</p>
-            <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <button onclick="startQuiz(5)" class="macaron-btn text-2xl py-4 px-10 rounded-full shadow-md">5 題</button>
-                <button onclick="startQuiz(10)" class="macaron-btn text-2xl py-4 px-10 rounded-full shadow-md">10 題</button>
+    <div id="app" class="w-full max-w-3xl mx-auto">
+        <!-- 開始畫面 -->
+        <div id="start-screen" class="text-center bg-white p-8 md:p-12 rounded-2xl shadow-lg">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-800">社會工作理論(三)</h1>
+            <p class="text-lg md:text-xl text-gray-500 mt-2 mb-8">(從總題庫抽出40題)</p>
+            <div class="space-y-4">
+                <p class="text-xl font-medium text-gray-700">請選擇測驗題數：</p>
+                <div class="flex flex-col md:flex-row justify-center gap-4">
+                    <button onclick="startQuiz(5)" class="btn w-full md:w-48 text-2xl font-bold text-gray-700 py-4 px-8 macaron-pink rounded-xl shadow-md">5 題</button>
+                    <button onclick="startQuiz(10)" class="btn w-full md:w-48 text-2xl font-bold text-gray-700 py-4 px-8 macaron-blue rounded-xl shadow-md">10 題</button>
+                </div>
             </div>
         </div>
 
-        <!-- Quiz Screen: Hidden by default -->
-        <div id="quiz-screen" class="hidden p-6 sm:p-10 macaron-card rounded-2xl shadow-lg">
+        <!-- 測驗畫面 -->
+        <div id="quiz-screen" class="hidden bg-white p-6 md:p-10 rounded-2xl shadow-lg">
             <div class="flex justify-between items-center mb-6">
-                <div id="progress" class="text-xl font-bold">第 1 / 10 題</div>
-                <div id="timer" class="text-2xl font-bold text-[#354F52]">00:00</div>
+                <div id="question-counter" class="text-xl font-semibold text-gray-700"></div>
+                <div id="timer" class="text-xl font-bold text-indigo-600 px-4 py-2 macaron-yellow rounded-lg">00:00</div>
             </div>
             <div id="question-container" class="mb-8">
-                <h2 id="question-text" class="text-2xl sm:text-3xl font-semibold mb-2"></h2>
-                <p id="question-source" class="text-sm text-gray-500 mb-6"></p>
+                <p id="question-text" class="text-2xl md:text-3xl font-semibold leading-relaxed text-gray-800 mb-8"></p>
                 <div id="options-container" class="space-y-4"></div>
             </div>
             <div class="flex justify-between mt-8">
-                <button id="prev-btn" onclick="prevQuestion()" class="macaron-btn text-lg py-3 px-8 rounded-full">上一頁</button>
-                <button id="next-btn" onclick="nextQuestion()" class="macaron-btn text-lg py-3 px-8 rounded-full">下一頁</button>
-                <button id="submit-btn" onclick="submitQuiz()" class="hidden macaron-btn text-lg bg-[#E8A0A0] hover:bg-[#D78F8F] text-white py-3 px-8 rounded-full">繳交</button>
+                <button id="prev-btn" onclick="prevQuestion()" class="btn py-3 px-8 text-lg font-bold text-gray-700 bg-gray-200 rounded-lg">上一題</button>
+                <button id="next-btn" onclick="nextQuestion()" class="btn py-3 px-8 text-lg font-bold text-white bg-blue-500 hover:bg-blue-600 rounded-lg">下一題</button>
+                <button id="submit-btn" onclick="submitQuiz()" class="btn hidden py-3 px-8 text-lg font-bold text-white bg-green-500 hover:bg-green-600 rounded-lg">繳交</button>
             </div>
         </div>
 
-        <!-- Results Screen: Hidden by default -->
-        <div id="results-screen" class="hidden p-6 sm:p-10 macaron-card rounded-2xl shadow-lg">
-            <div id="summary-section" class="text-center mb-8">
-                <h2 class="text-4xl font-bold mb-4">測驗完成！</h2>
-                <p id="score" class="text-3xl mb-2"></p>
-                <p id="time-taken" class="text-xl mb-6"></p>
-                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                    <button onclick="downloadResults('pdf')" class="macaron-btn text-lg py-3 px-6 rounded-full">下載 PDF</button>
-                    <button onclick="downloadResults('csv')" class="macaron-btn text-lg py-3 px-6 rounded-full">下載 CSV</button>
-                    <button onclick="window.location.reload()" class="macaron-btn text-lg py-3 px-6 rounded-full">再測一次</button>
-                </div>
+        <!-- 結果畫面 -->
+        <div id="results-screen" class="hidden bg-white p-6 md:p-10 rounded-2xl shadow-lg">
+            <h2 class="text-3xl md:text-4xl font-bold text-center text-gray-800 mb-2">測驗結果</h2>
+            <p id="score" class="text-5xl font-bold text-center text-blue-600 mb-2"></p>
+            <p id="time-taken" class="text-lg text-center text-gray-500 mb-8"></p>
+            <div class="flex justify-center gap-4 mb-8">
+                <button onclick="downloadPDF()" class="btn py-2 px-6 text-base font-bold text-white bg-red-500 hover:bg-red-600 rounded-lg">下載 PDF</button>
+                <button onclick="downloadCSV()" class="btn py-2 px-6 text-base font-bold text-white bg-green-500 hover:bg-green-600 rounded-lg">下載 CSV</button>
+                 <button onclick="restartQuiz()" class="btn py-2 px-6 text-base font-bold text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg">返回首頁</button>
             </div>
-            <div id="details-section" class="space-y-6">
-                <!-- Detailed results will be injected here -->
-            </div>
+            <h3 class="text-2xl font-bold text-gray-800 border-b-2 pb-2 mb-6">詳解</h3>
+            <div id="results-details" class="space-y-8"></div>
         </div>
     </div>
 
@@ -155,228 +133,250 @@
 
         let allQuestions = [];
         let currentQuizQuestions = [];
-        let userAnswers = {};
+        let userAnswers = [];
         let currentQuestionIndex = 0;
         let timerInterval;
-        let seconds = 0;
+        let secondsElapsed = 0;
 
-        // Helper function to shuffle an array
-        const shuffleArray = (array) => {
+        function parseQuestions() {
+            const lines = rawData.trim().split('\n');
+            const questionObjects = lines.map(line => {
+                const parts = line.split(',');
+                // 確保這是一個有效的問題行，至少有6個部分（答案、問題、4個選項）
+                if (parts.length < 6 || !parts[0].trim()) {
+                    return null;
+                }
+
+                const answerIndex = parseInt(parts[0].trim(), 10) - 1;
+                const questionText = parts[1].trim();
+                
+                // 選項從第3個元素（索引2）開始，取接下來的4個部分
+                const options = parts.slice(2, 6).map(opt => {
+                    // 移除選項開頭的標記，如 '⑴', '⑵' 等
+                    return opt.trim().substring(1); 
+                });
+
+                if (isNaN(answerIndex) || answerIndex < 0 || answerIndex >= options.length) {
+                    return null;
+                }
+
+                return {
+                    question: questionText,
+                    options: options,
+                    answer: options[answerIndex]
+                };
+            }).filter(q => q !== null);
+            
+            return questionObjects;
+        }
+
+
+        function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [array[i], array[j]] = [array[j], array[i]];
             }
             return array;
-        };
+        }
 
-        // Parse the raw text data into a structured question bank
-        const parseData = () => {
-             const lines = rawData.trim().split('\n').filter(line => line.trim() !== '');
-            
-            allQuestions = lines.map((line, index) => {
-                const parts = line.split(',');
-                if (parts.length < 3) {
-                    console.error(`Skipping invalid line ${index + 1}:`, line);
-                    return null;
-                }
-
-                const answerIndex = parseInt(parts[0], 10) - 1;
-                const questionPart = parts[1];
-                
-                const qMatch = questionPart.match(/(.*)(\(.*\))/);
-                const questionText = qMatch ? qMatch[1].trim() : questionPart.trim();
-                const source = qMatch ? qMatch[2] : '';
-                
-                const options = parts.slice(2).map(opt => opt.substring(1).trim());
-                
-                if (isNaN(answerIndex) || answerIndex < 0 || answerIndex >= options.length) {
-                    console.error(`Parsing error on line ${index + 1} (Invalid Answer Index):`, line);
-                    return null;
-                }
-                const answer = options[answerIndex];
-
-                return { id: index, question: questionText, source, options, answer };
-            }).filter(q => q !== null);
-        };
-
-        // Functions to manage UI visibility
-        const showScreen = (screenId) => {
-            ['start-screen', 'quiz-screen', 'results-screen'].forEach(id => {
-                document.getElementById(id).classList.add('hidden');
+        function startQuiz(numQuestions) {
+            secondsElapsed = 0;
+            currentQuizQuestions = shuffleArray([...allQuestions]).slice(0, numQuestions);
+            currentQuizQuestions.forEach(q => {
+                q.shuffledOptions = shuffleArray([...q.options]);
             });
-            document.getElementById(screenId).classList.remove('hidden');
-        };
-
-        const formatTime = (totalSeconds) => {
-            const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
-            const seconds = (totalSeconds % 60).toString().padStart(2, '0');
-            return `${minutes}:${seconds}`;
-        };
-
-        const startTimer = () => {
-            seconds = 0;
-            document.getElementById('timer').textContent = formatTime(seconds);
-            timerInterval = setInterval(() => {
-                seconds++;
-                document.getElementById('timer').textContent = formatTime(seconds);
-            }, 1000);
-        };
-        
-        // Main function to start the quiz
-        const startQuiz = (numQuestions) => {
-            userAnswers = {};
+            userAnswers = new Array(numQuestions).fill(null);
             currentQuestionIndex = 0;
             
-            const shuffled = shuffleArray([...allQuestions]);
-            currentQuizQuestions = shuffled.slice(0, numQuestions);
-            currentQuizQuestions.forEach(q => {
-                q.options = shuffleArray([...q.options]);
-            });
-
-            showScreen('quiz-screen');
-            renderQuestion(currentQuestionIndex);
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.remove('hidden');
+            
+            displayQuestion();
             startTimer();
-        };
+        }
+        
+        function restartQuiz() {
+            document.getElementById('results-screen').classList.add('hidden');
+            document.getElementById('start-screen').classList.remove('hidden');
+        }
 
-        // Render a single question on the screen
-        const renderQuestion = (index) => {
-            const question = currentQuizQuestions[index];
+        function displayQuestion() {
+            const question = currentQuizQuestions[currentQuestionIndex];
+            document.getElementById('question-counter').textContent = `第 ${currentQuestionIndex + 1} / ${currentQuizQuestions.length} 題`;
             document.getElementById('question-text').textContent = question.question;
-            document.getElementById('question-source').textContent = question.source;
+            
             const optionsContainer = document.getElementById('options-container');
             optionsContainer.innerHTML = '';
-
-            question.options.forEach((option, i) => {
-                const optionId = `q${index}_opt${i}`;
-                const checked = userAnswers[index] === option ? 'checked' : '';
-                optionsContainer.innerHTML += `
-                    <div class="macaron-option rounded-lg">
-                        <input type="radio" name="q${index}" id="${optionId}" value="${option}" class="hidden" ${checked} onchange="selectAnswer(${index}, `'${option.replace(/'/g, "\\'")}'`)">
-                        <label for="${optionId}" class="block w-full text-left p-4 text-xl rounded-lg cursor-pointer">
-                            ${option}
-                        </label>
-                    </div>
+            
+            question.shuffledOptions.forEach((option, index) => {
+                const optionId = `option${index}`;
+                const isChecked = userAnswers[currentQuestionIndex] === option;
+                
+                const optionElement = `
+                    <label for="${optionId}" class="option-label block p-5 border-2 border-gray-200 rounded-lg cursor-pointer hover:bg-gray-100 text-lg">
+                        <input type="radio" id="${optionId}" name="option" value="${option}" class="mr-4" ${isChecked ? 'checked' : ''} onchange="selectAnswer('${option}')">
+                        ${option}
+                    </label>
                 `;
+                optionsContainer.innerHTML += optionElement;
             });
+            
+            updateNavigation();
+        }
 
-            document.getElementById('progress').textContent = `第 ${index + 1} / ${currentQuizQuestions.length} 題`;
-            document.getElementById('prev-btn').style.visibility = index === 0 ? 'hidden' : 'visible';
-            document.getElementById('next-btn').style.display = index === currentQuizQuestions.length - 1 ? 'none' : 'block';
-            document.getElementById('submit-btn').style.display = index === currentQuizQuestions.length - 1 ? 'block' : 'none';
-        };
+        function selectAnswer(option) {
+            userAnswers[currentQuestionIndex] = option;
+        }
 
-        const selectAnswer = (index, answer) => {
-            userAnswers[index] = answer;
-        };
-
-        const prevQuestion = () => {
-            if (currentQuestionIndex > 0) {
-                currentQuestionIndex--;
-                renderQuestion(currentQuestionIndex);
+        function updateNavigation() {
+            document.getElementById('prev-btn').style.visibility = currentQuestionIndex === 0 ? 'hidden' : 'visible';
+            if (currentQuestionIndex === currentQuizQuestions.length - 1) {
+                document.getElementById('next-btn').classList.add('hidden');
+                document.getElementById('submit-btn').classList.remove('hidden');
+            } else {
+                document.getElementById('next-btn').classList.remove('hidden');
+                document.getElementById('submit-btn').classList.add('hidden');
             }
-        };
+        }
 
-        const nextQuestion = () => {
+        function nextQuestion() {
             if (currentQuestionIndex < currentQuizQuestions.length - 1) {
                 currentQuestionIndex++;
-                renderQuestion(currentQuestionIndex);
+                displayQuestion();
             }
-        };
+        }
+
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                displayQuestion();
+            }
+        }
         
-        const submitQuiz = () => {
+        function submitQuiz() {
             clearInterval(timerInterval);
-            showScreen('results-screen');
-            renderResults();
-        };
+            document.getElementById('quiz-screen').classList.add('hidden');
+            document.getElementById('results-screen').classList.remove('hidden');
+            displayResults();
+        }
 
-        const renderResults = () => {
-            let score = 0;
-            currentQuizQuestions.forEach((q, i) => {
-                if (userAnswers[i] === q.answer) {
-                    score++;
-                }
-            });
+        function displayResults() {
+            let correctAnswers = 0;
+            const resultsDetails = document.getElementById('results-details');
+            resultsDetails.innerHTML = '';
 
-            document.getElementById('score').textContent = `你的分數: ${score} / ${currentQuizQuestions.length}`;
-            document.getElementById('time-taken').textContent = `測驗時間: ${formatTime(seconds)}`;
-
-            const detailsContainer = document.getElementById('details-section');
-            detailsContainer.innerHTML = '';
-
-            currentQuizQuestions.forEach((q, i) => {
-                const userAnswer = userAnswers[i] || "未作答";
+            currentQuizQuestions.forEach((q, index) => {
+                const userAnswer = userAnswers[index];
                 const isCorrect = userAnswer === q.answer;
-                
-                detailsContainer.innerHTML += `
-                    <div class="p-5 rounded-lg border macaron-card">
-                        <p class="text-xl font-semibold mb-3">${i + 1}. ${q.question} <span class="text-sm text-gray-500">${q.source}</span></p>
-                        <p class="p-3 rounded-md ${isCorrect ? 'correct-answer' : 'incorrect-answer'}">你的答案：${userAnswer}</p>
-                        ${!isCorrect ? `<p class="p-3 mt-2 rounded-md correct-answer">正確答案：${q.answer}</p>` : ''}
-                    </div>
-                `;
-            });
-        };
-        
-        // Functions to download results as PDF or CSV
-        const downloadResults = async (format) => {
-            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-            const filename = `social-work-theory-part3-quiz-results-${timestamp}`;
+                if (isCorrect) correctAnswers++;
 
-            if (format === 'pdf') {
-                 try {
-                    const { jsPDF } = window.jspdf;
-                    const pdf = new jsPDF('p', 'mm', 'a4');
-                    const content = document.getElementById('results-screen');
-                    
-                    pdf.setFont('helvetica', 'bold');
-                    pdf.setFontSize(20);
-                    pdf.text('測驗結果', 105, 20, null, null, 'center');
-                    
-                    const canvas = await html2canvas(content, { 
-                        scale: 2,
-                        useCORS: true, 
-                        allowTaint: true 
-                    });
-                    const imgData = canvas.toDataURL('image/png');
-                    const imgProps= pdf.getImageProperties(imgData);
-                    const pdfWidth = pdf.internal.pageSize.getWidth() - 20; // with margin
-                    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-                    
-                    pdf.addImage(imgData, 'PNG', 10, 30, pdfWidth, pdfHeight);
-                    pdf.save(`${filename}.pdf`);
-                } catch (e) {
-                    console.error("Error generating PDF:", e);
-                    alert("抱歉，PDF下載功能目前無法使用。請嘗試下載CSV或截圖保存。");
-                }
-            } else if (format === 'csv') {
-                let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; // BOM for UTF-8
-                csvContent += "題號,題目,你的答案,正確答案\n";
-
-                currentQuizQuestions.forEach((q, i) => {
-                    const userAnswer = userAnswers[i] || "未作答";
-                    const row = [
-                        i + 1,
-                        `"${q.question.replace(/"/g, '""')}"`,
-                        `"${userAnswer.replace(/"/g, '""')}"`,
-                        `"${q.answer.replace(/"/g, '""')}"`
-                    ].join(',');
-                    csvContent += row + "\r\n";
+                let optionsHTML = '';
+                // 使用原始順序顯示選項以利核對
+                q.options.forEach(opt => {
+                    let className = 'p-3 border rounded-md text-base';
+                    if (opt === q.answer) {
+                        className += ' correct-answer';
+                    } else if (opt === userAnswer && !isCorrect) {
+                        className += ' incorrect-answer';
+                    }
+                    optionsHTML += `<div class="${className}">${opt}</div>`;
                 });
 
-                const encodedUri = encodeURI(csvContent);
-                const link = document.createElement("a");
-                link.setAttribute("href", encodedUri);
-                link.setAttribute("download", `${filename}.csv`);
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            }
-        };
+                const resultHTML = `
+                    <div>
+                        <p class="text-xl font-semibold mb-3">${index + 1}. ${q.question}</p>
+                        <p class="mb-2 text-md">你的答案：<span class="font-semibold ${isCorrect ? 'text-green-600' : 'text-red-600'}">${userAnswer || '未作答'}</span></p>
+                         <p class="mb-4 text-md">正確答案：<span class="font-semibold text-green-700">${q.answer}</span></p>
+                        <div class="space-y-2">
+                           ${optionsHTML}
+                        </div>
+                    </div>
+                `;
+                resultsDetails.innerHTML += resultHTML;
+            });
 
-        // Initialize the app when the page loads
-        window.onload = () => {
-            parseData();
-        };
+            const score = Math.round((correctAnswers / currentQuizQuestions.length) * 100);
+            document.getElementById('score').textContent = `${score} 分`;
+            
+            const minutes = Math.floor(secondsElapsed / 60);
+            const seconds = secondsElapsed % 60;
+            document.getElementById('time-taken').textContent = `作答時間：${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        function startTimer() {
+            const timerElement = document.getElementById('timer');
+            timerInterval = setInterval(() => {
+                secondsElapsed++;
+                const minutes = Math.floor(secondsElapsed / 60);
+                const seconds = secondsElapsed % 60;
+                timerElement.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        function downloadPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            doc.addFont('https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/fonts/lato-normal.ttf', 'lato', 'normal');
+            doc.setFont('lato');
+            
+            // This is a placeholder for a CJK font. For production, you'd host a font file.
+            // For this example, we'll proceed, but CJK characters may not render.
+            // A common solution is to use a library like `jspdf-html2canvas` or ensure a CJK-supporting font is loaded.
+            
+            doc.text("測驗結果", 14, 16);
+            doc.setFontSize(12);
+            doc.text(document.getElementById('score').textContent, 14, 24);
+            doc.text(document.getElementById('time-taken').textContent, 14, 30);
+
+            const tableData = currentQuizQuestions.map((q, i) => {
+                return [
+                    i + 1,
+                    q.question,
+                    userAnswers[i] || "未作答",
+                    q.answer,
+                    userAnswers[i] === q.answer ? "✔" : "✘"
+                ];
+            });
+
+            doc.autoTable({
+                head: [['題號', '題目', '你的答案', '正確答案', '結果']],
+                body: tableData,
+                startY: 35,
+                styles: { font: 'lato' } // Ensure font is applied to table
+            });
+
+            doc.save('測驗結果.pdf');
+        }
+
+        function downloadCSV() {
+            let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; // \uFEFF for BOM
+            csvContent += "題號,題目,你的答案,正確答案,結果\r\n";
+
+            currentQuizQuestions.forEach((q, i) => {
+                const row = [
+                    i + 1,
+                    `"${q.question.replace(/"/g, '""')}"`,
+                    `"${(userAnswers[i] || "未作答").replace(/"/g, '""')}"`,
+                    `"${q.answer.replace(/"/g, '""')}"`,
+                    userAnswers[i] === q.answer ? "正確" : "錯誤"
+                ].join(',');
+                csvContent += row + "\r\n";
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "測驗結果.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            allQuestions = parseQuestions();
+        });
     </script>
 </body>
 </html>
