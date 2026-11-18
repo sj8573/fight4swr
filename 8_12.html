@@ -1,0 +1,2523 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="artifact-type" content="dashboard">
+  <meta name="design-style" content="briefing">
+  <title>婦女福利政策與社會立法｜社工師・公職社政國考互動複習儀表板</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: light;
+
+      /* Page and surfaces: warm stone-white paper */
+      --background: #faf9f5;
+      --surface-container-low: #ffffff;
+      --surface-container: #f1efe8;
+      --surface-container-high: #e6e2d6;
+
+      /* Ink */
+      --on-surface: #17181a;
+      --on-surface-variant: #56585c;
+
+      /* Rules */
+      --outline: #17181a;
+      --outline-variant: #dedad0;
+      --border-subtle: #c8c4b8;
+
+      /* Accents */
+      --primary: #17181a;
+      --on-primary: #faf9f5;
+      --primary-container: #f2b705;
+      --on-primary-container: #17181a;
+      --secondary: #1f4e5f;
+      --on-secondary: #ffffff;
+      --tertiary: #785008;
+      --error: #b42318;
+      --on-error: #ffffff;
+
+      /* Semantic & Soft Tints */
+      --positive: #2b6e52;
+      --on-positive: #ffffff;
+      --warning: #d99000;
+      --positive-bg: #eaf3ee;
+      --error-bg: #fdeceb;
+      --warning-bg: #fcf4df;
+      --secondary-bg: #e8f1f4;
+      --gold-chip-bg: #f5e6c4;
+
+      /* Focus ring */
+      --focus: #1f4e5f;
+
+      /* Data series */
+      --data-1: #1f4e5f;
+      --data-2: #d99000;
+      --data-3: #2b6e52;
+      --data-4: #b84a39;
+      --data-context: #c4bfb2;
+
+      /* Fonts (CJK listed first per non-Latin guidelines) */
+      --font-headline: 'Noto Serif TC', 'Source Serif 4', serif;
+      --font-body: 'Noto Sans TC', 'Plus Jakarta Sans', sans-serif;
+      --font-label: 'Geist Mono', 'Noto Sans TC', monospace;
+
+      /* Shape */
+      --rounded: 0.25rem;
+      --rounded-lg: 0.375rem;
+      --rounded-full: 0.25rem;
+
+      /* Style effects */
+      --section-rule: 1.5px solid var(--outline);
+      --card-border: 1px solid var(--outline-variant);
+      --badge-radius: 2px;
+      --heading-tracking: -0.02em;
+      --label-tracking: 0.06em;
+
+      /* Type scale (Dashboard / Data Explorer) */
+      --display-size: clamp(1.625rem, 1.35rem + 1.1vw, 2.15rem);
+      --headline-size: clamp(1.25rem, 1.1rem + 0.45vw, 1.5rem);
+      --subhead-size: clamp(1.0625rem, 1rem + 0.2vw, 1.1875rem);
+      --body-size: clamp(0.9375rem, 0.9rem + 0.12vw, 1rem);
+      --label-size: 0.75rem;
+
+      /* Spacing scale (4pt base) */
+      --space-xs: 0.25rem;
+      --space-sm: 0.5rem;
+      --space-md: 1rem;
+      --space-lg: 1.5rem;
+      --space-xl: 2.5rem;
+      --space-2xl: 4rem;
+
+      /* Motion */
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+      --dur-micro: 120ms;
+      --dur-short: 220ms;
+      --dur-long: 420ms;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body {
+      overflow-x: clip;
+      margin: 0;
+      padding: 0;
+      background-color: var(--background);
+      color: var(--on-surface);
+      font-family: var(--font-body);
+      font-size: var(--body-size);
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+    }
+    header { position: static !important; }
+    button, input, select, textarea { font-family: inherit; }
+
+    /* Focus visibility */
+    :focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    .page-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-lg);
+      padding: var(--space-lg);
+      max-width: 1240px;
+      margin: 0 auto;
+    }
+    .page-grid * { min-width: 0; }
+
+    /* Dossier Bar & Header */
+    .dossier-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      border-bottom: var(--section-rule);
+      padding-bottom: var(--space-sm);
+      margin-bottom: var(--space-md);
+    }
+    .dossier-bar-left {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+    .dossier-pill {
+      background: var(--primary-container);
+      color: var(--on-primary-container);
+      font-weight: 700;
+      font-size: var(--label-size);
+      padding: var(--space-xs) var(--space-sm);
+      border-radius: var(--badge-radius);
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-xs);
+    }
+    .dossier-meta {
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      color: var(--on-surface-variant);
+      letter-spacing: 0;
+      text-transform: none;
+    }
+    .dossier-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+      align-items: center;
+    }
+
+    .title {
+      font-family: var(--font-headline);
+      font-weight: 700;
+      font-size: var(--display-size);
+      letter-spacing: var(--heading-tracking);
+      line-height: 1.18;
+      color: var(--on-surface);
+      margin: 0;
+    }
+    .standfirst {
+      font-weight: 500;
+      font-size: var(--subhead-size);
+      color: var(--secondary);
+      margin: var(--space-xs) 0 0 0;
+      max-width: 72ch;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-xs);
+      min-height: 44px;
+      padding: var(--space-xs) var(--space-md);
+      border-radius: var(--rounded);
+      font-size: var(--label-size);
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid var(--border-subtle);
+      background: var(--surface-container-low);
+      color: var(--on-surface);
+      transition: background-color var(--dur-micro) var(--ease-out), color var(--dur-micro) var(--ease-out), transform var(--dur-micro) var(--ease-out);
+    }
+    .btn:hover { background: var(--surface-container); }
+    .btn:active { transform: translateY(1px); }
+    .btn--primary {
+      background: var(--primary);
+      color: var(--on-primary);
+      border-color: var(--primary);
+    }
+    .btn--primary:hover { background: var(--secondary); border-color: var(--secondary); }
+    .btn--secondary {
+      background: var(--secondary);
+      color: var(--on-secondary);
+      border-color: var(--secondary);
+    }
+    .btn--secondary:hover { opacity: 0.92; }
+    .btn--danger-armed {
+      background: var(--error);
+      color: var(--on-error);
+      border-color: var(--error);
+    }
+    .btn--sm {
+      min-height: 36px;
+      padding: var(--space-xs) var(--space-sm);
+    }
+    .btn[disabled] {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Status toast message */
+    .status-note {
+      font-size: var(--label-size);
+      color: var(--positive);
+      font-weight: 600;
+      min-height: 1.2em;
+    }
+
+    /* KPI Top Row */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+      gap: var(--space-md);
+    }
+    .figure-card {
+      background: var(--surface-container-low);
+      border: var(--card-border);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-md) var(--space-lg);
+    }
+    .kpi-label {
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      color: var(--on-surface-variant);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: var(--space-xs);
+    }
+    .kpi-value {
+      font-family: var(--font-headline);
+      font-weight: 700;
+      font-size: var(--headline-size);
+      font-variant-numeric: lining-nums tabular-nums;
+      color: var(--on-surface);
+      margin: var(--space-xs) 0;
+      line-height: 1.2;
+    }
+    .kpi-value--accent { color: var(--secondary); }
+    .kpi-sub {
+      font-size: var(--label-size);
+      color: var(--on-surface-variant);
+      margin: 0;
+    }
+    .progress-track {
+      width: 100%;
+      height: 6px;
+      background: var(--surface-container);
+      border-radius: var(--rounded);
+      overflow: hidden;
+      margin-top: var(--space-sm);
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--secondary);
+      transition: width var(--dur-short) var(--ease-out);
+    }
+
+    /* Tab Navigation */
+    .tab-nav-wrap {
+      border-bottom: var(--section-rule);
+      padding-bottom: var(--space-sm);
+    }
+    .tab-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .tab-btn {
+      min-height: 44px;
+      padding: var(--space-xs) var(--space-md);
+      border: var(--card-border);
+      border-radius: var(--rounded);
+      background: var(--surface-container-low);
+      color: var(--on-surface);
+      font-size: var(--body-size);
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-sm);
+      transition: background-color var(--dur-micro) var(--ease-out), color var(--dur-micro) var(--ease-out);
+    }
+    .tab-btn:hover { background: var(--surface-container); }
+    .tab-btn[aria-selected="true"] {
+      background: var(--primary);
+      color: var(--on-primary);
+      border-color: var(--primary);
+      box-shadow: inset 0 -3px 0 var(--primary-container);
+    }
+    .tab-num {
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      color: var(--secondary);
+      font-weight: 600;
+    }
+    .tab-btn[aria-selected="true"] .tab-num {
+      color: var(--primary-container);
+    }
+
+    /* Tab Panels */
+    .tab-panel { display: none; }
+    .tab-panel.is-active {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-lg);
+      animation: fadePanel var(--dur-short) var(--ease-out);
+    }
+    @keyframes fadePanel {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Section Headings inside tabs */
+    .section-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      border-bottom: var(--section-rule);
+      padding-bottom: var(--space-xs);
+    }
+    .section-title {
+      font-family: var(--font-headline);
+      font-weight: 700;
+      font-size: var(--headline-size);
+      margin: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+    .index-num {
+      font-family: var(--font-label);
+      font-weight: 600;
+      font-size: var(--label-size);
+      color: var(--secondary);
+      background: var(--surface-container);
+      padding: var(--space-xs) var(--space-sm);
+      border-radius: var(--badge-radius);
+    }
+    .section-desc {
+      color: var(--on-surface-variant);
+      font-size: var(--body-size);
+      margin: 0;
+    }
+
+    /* Tags / Badges */
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.125rem var(--space-sm);
+      border-radius: var(--rounded);
+      font-size: var(--label-size);
+      font-weight: 700;
+      background: var(--gold-chip-bg);
+      color: var(--tertiary);
+    }
+    .tag--info { background: var(--secondary-bg); color: var(--secondary); }
+    .tag--positive { background: var(--positive-bg); color: var(--positive); }
+    .tag--error { background: var(--error-bg); color: var(--error); }
+    .tag--gold { background: var(--primary-container); color: var(--on-primary-container); }
+
+    /* Aside / Callout Boxes */
+    .aside-box {
+      background: var(--surface-container);
+      border-top: var(--section-rule);
+      padding: var(--space-md) var(--space-lg);
+      border-radius: 0 0 var(--rounded-lg) var(--rounded-lg);
+    }
+    .aside-box--trap {
+      background: var(--warning-bg);
+      border-top: 2px solid var(--tertiary);
+    }
+    .aside-box-title {
+      font-weight: 700;
+      color: var(--on-surface);
+      margin: 0 0 var(--space-xs) 0;
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+
+    /* Grid Splits */
+    .split-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr));
+      gap: var(--space-lg);
+    }
+    .split-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+      gap: var(--space-md);
+    }
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(290px, 100%), 1fr));
+      gap: var(--space-md);
+    }
+
+    /* Filter Bars */
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+    .filter-chip {
+      min-height: 44px;
+      padding: var(--space-xs) var(--space-md);
+      border: var(--card-border);
+      border-radius: var(--rounded);
+      background: var(--surface-container-low);
+      color: var(--on-surface);
+      font-size: var(--label-size);
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color var(--dur-micro) var(--ease-out), color var(--dur-micro) var(--ease-out);
+    }
+    .filter-chip:hover { background: var(--surface-container); }
+    .filter-chip[aria-pressed="true"] {
+      background: var(--secondary);
+      color: var(--on-secondary);
+      border-color: var(--secondary);
+    }
+
+    /* Flashcards */
+    .flashcard {
+      background: var(--surface-container-low);
+      border: var(--card-border);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-md);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: var(--space-md);
+      transition: background-color var(--dur-short) var(--ease-out);
+    }
+    .flashcard.is-mastered {
+      border-color: var(--positive);
+      background: var(--positive-bg);
+    }
+    .flashcard-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: var(--space-xs);
+    }
+    .flashcard-body {
+      cursor: pointer;
+      padding: var(--space-sm) 0;
+      min-height: 112px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .flashcard-number {
+      font-family: var(--font-headline);
+      font-weight: 700;
+      font-size: var(--headline-size);
+      color: var(--secondary);
+      font-variant-numeric: tabular-nums;
+      margin-bottom: var(--space-xs);
+    }
+    .flashcard-prompt {
+      font-weight: 700;
+      color: var(--on-surface);
+      margin: 0;
+    }
+    .flashcard-answer {
+      margin: 0;
+      font-size: var(--body-size);
+      color: var(--on-surface);
+      line-height: 1.55;
+    }
+    .flashcard-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: var(--space-sm);
+      border-top: 1px solid var(--outline-variant);
+      padding-top: var(--space-sm);
+    }
+
+    /* Tables */
+    .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+      background: var(--surface-container-low);
+      border: var(--card-border);
+      border-radius: var(--rounded-lg);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: var(--body-size);
+    }
+    th {
+      background: var(--surface-container);
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      font-weight: 700;
+      color: var(--on-surface);
+      padding: var(--space-sm) var(--space-md);
+      border-bottom: var(--section-rule);
+      white-space: nowrap;
+    }
+    td {
+      padding: var(--space-sm) var(--space-md);
+      border-bottom: 1px solid var(--outline-variant);
+      vertical-align: top;
+    }
+    tr:last-child td { border-bottom: none; }
+    .td-num {
+      font-family: var(--font-label);
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      color: var(--secondary);
+    }
+    .tr-highlight { background: var(--warning-bg); }
+
+    /* Interactive Scale Explorer (Tab 2) */
+    .scale-step-btn {
+      flex: 1 1 140px;
+      min-height: 48px;
+      padding: var(--space-sm) var(--space-md);
+      background: var(--surface-container-low);
+      border: var(--card-border);
+      border-radius: var(--rounded);
+      cursor: pointer;
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+    }
+    .scale-step-btn:hover { background: var(--surface-container); }
+    .scale-step-btn[aria-pressed="true"] {
+      background: var(--primary);
+      color: var(--on-primary);
+      border-color: var(--primary);
+      box-shadow: inset 0 -3px 0 var(--primary-container);
+    }
+    .scale-step-btn[aria-pressed="true"] .scale-sub { color: var(--primary-container); }
+    .scale-sub {
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      color: var(--on-surface-variant);
+    }
+
+    /* Timeline Steps (Tab 4) */
+    .timeline-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+      gap: var(--space-md);
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .timeline-item {
+      background: var(--surface-container-low);
+      border: var(--card-border);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-md);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+    }
+    .timeline-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-sm);
+    }
+
+    /* Trap Distinguisher Cards (Tab 5) */
+    .item-check-btn {
+      background: var(--surface-container-low);
+      border: var(--card-border);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-md);
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+      min-height: 44px;
+      transition: background-color var(--dur-micro) var(--ease-out);
+    }
+    .item-check-btn:hover { background: var(--surface-container); }
+    .item-check-btn.is-statutory {
+      border-color: var(--positive);
+      background: var(--positive-bg);
+    }
+    .item-check-btn.is-distractor {
+      border-color: var(--error);
+      background: var(--error-bg);
+    }
+
+    /* Quiz Styling (Tab 7) */
+    .quiz-card {
+      background: var(--surface-container-low);
+      border: var(--card-border);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-lg);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+    }
+    .quiz-q-header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+    .quiz-q-title {
+      font-weight: 700;
+      font-size: var(--subhead-size);
+      margin: 0;
+      color: var(--on-surface);
+    }
+    .quiz-options {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-sm);
+    }
+    .quiz-opt {
+      width: 100%;
+      min-height: 44px;
+      padding: var(--space-sm) var(--space-md);
+      border: var(--card-border);
+      border-radius: var(--rounded);
+      background: var(--background);
+      color: var(--on-surface);
+      text-align: left;
+      font-size: var(--body-size);
+      cursor: pointer;
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-sm);
+      transition: background-color var(--dur-micro) var(--ease-out);
+    }
+    .quiz-opt:hover:not(:disabled) { background: var(--surface-container); }
+    .quiz-opt.is-correct {
+      background: var(--positive-bg);
+      border-color: var(--positive);
+      font-weight: 700;
+    }
+    .quiz-opt.is-wrong {
+      background: var(--error-bg);
+      border-color: var(--error);
+    }
+    .quiz-explain {
+      padding: var(--space-md);
+      border-radius: var(--rounded);
+      background: var(--surface-container);
+      border-left: 4px solid var(--secondary);
+      font-size: var(--body-size);
+    }
+    .quiz-explain.is-wrong-box {
+      border-left-color: var(--error);
+      background: var(--error-bg);
+    }
+    .quiz-explain.is-correct-box {
+      border-left-color: var(--positive);
+      background: var(--positive-bg);
+    }
+
+    /* Data list clean */
+    .fact-list {
+      margin: 0;
+      padding-left: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+    }
+
+    /* Source Footer */
+    .source-footer {
+      border-top: var(--section-rule);
+      padding-top: var(--space-md);
+      margin-top: var(--space-lg);
+      font-size: var(--label-size);
+      color: var(--on-surface-variant);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+    }
+
+    @media (max-width: 640px) {
+      .page-grid {
+        padding: var(--space-md);
+        gap: var(--space-md);
+      }
+      .figure-card, .quiz-card { padding: var(--space-md); }
+      .tab-btn { flex: 1 1 calc(50% - var(--space-sm)); justify-content: flex-start; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-grid">
+    <!-- Top Header / Dossier Bar -->
+    <header>
+      <div class="dossier-bar">
+        <div class="dossier-bar-left">
+          <span class="dossier-pill">國考衝刺備忘錄</span>
+          <span class="dossier-meta">社工師・公職社政｜婦女福利政策與社會立法（含 115 年最新修法）</span>
+        </div>
+        <div class="dossier-actions">
+          <span id="save-status" class="status-note" aria-live="polite"></span>
+          <button type="button" class="btn btn--secondary btn--sm" onclick="exportStudyNotes()">匯出重點筆記 (.txt)</button>
+          <button type="button" id="reset-progress-btn" class="btn btn--sm" onclick="resetAllProgress(this)">重設學習進度</button>
+        </div>
+      </div>
+      <h1 class="title">婦女福利政策與社會立法：國考核心互動複習儀表板</h1>
+      <p class="standfirst">整合《性別平等工作法》最新三讀修正、防暴與性平三法矩陣、115 年職場霸凌新制、《特境條例》、CEDAW 施行法與人口對策新戰略。</p>
+    </header>
+
+    <!-- Top-Line KPI Summary Cards -->
+    <section aria-label="複習進度與核心指標" class="kpi-grid">
+      <div class="figure-card">
+        <div class="kpi-label">
+          <span>數字記憶卡熟記率</span>
+          <span class="tag tag--info">FLASHCARDS</span>
+        </div>
+        <div class="kpi-value" id="kpi-flashcard">0 / 18</div>
+        <p class="kpi-sub">點擊記憶卡翻面並標記「已熟記」，自動儲存進度</p>
+        <div class="progress-track"><div class="progress-fill" id="kpi-flashcard-bar" style="width: 0%;"></div></div>
+      </div>
+
+      <div class="figure-card">
+        <div class="kpi-label">
+          <span>國考陷阱測驗成績</span>
+          <span class="tag tag--gold">QUIZ SCORE</span>
+        </div>
+        <div class="kpi-value kpi-value--accent" id="kpi-quiz">0 / 15</div>
+        <p class="kpi-sub" id="kpi-quiz-sub">尚未作答，切換至「陷阱自我測驗」開始實戰</p>
+        <div class="progress-track"><div class="progress-fill" id="kpi-quiz-bar" style="width: 0%;"></div></div>
+      </div>
+
+      <div class="figure-card">
+        <div class="kpi-label">
+          <span>性工法假別與留停新制</span>
+          <span class="tag tag--positive">115.11 三讀</span>
+        </div>
+        <div class="kpi-value">14 週 / 14 日</div>
+        <p class="kpi-sub">產假 14 週・陪產檢及陪產假 14 日・育兒留停放寬至 8 歲</p>
+      </div>
+
+      <div class="figure-card">
+        <div class="kpi-label">
+          <span>職場霸凌準則施行日</span>
+          <span class="tag">115.07.01</span>
+        </div>
+        <div class="kpi-value">15 工作日</div>
+        <p class="kpi-sub">100 人以上企業組調查小組：外專 ≥ 1/2・性別 ≥ 1/3</p>
+      </div>
+    </section>
+
+    <!-- Interactive Switching Tabs -->
+    <nav class="tab-nav-wrap" aria-label="複習單元切換">
+      <div class="tab-list" role="tablist">
+        <button type="button" class="tab-btn" role="tab" id="tab-btn-cards" aria-selected="true" aria-controls="panel-cards" onclick="switchTab('cards')">
+          <span class="tab-num">01</span><span>數字記憶卡</span>
+        </button>
+        <button type="button" class="tab-btn" role="tab" id="tab-btn-genderwork" aria-selected="false" aria-controls="panel-genderwork" onclick="switchTab('genderwork')">
+          <span class="tab-num">02</span><span>性工法新制</span>
+        </button>
+        <button type="button" class="tab-btn" role="tab" id="tab-btn-matrix" aria-selected="false" aria-controls="panel-matrix" onclick="switchTab('matrix')">
+          <span class="tab-num">03</span><span>防暴與性平矩陣</span>
+        </button>
+        <button type="button" class="tab-btn" role="tab" id="tab-btn-harassment" aria-selected="false" aria-controls="panel-harassment" onclick="switchTab('harassment')">
+          <span class="tab-num">04</span><span>霸凌與性騷準則</span>
+        </button>
+        <button type="button" class="tab-btn" role="tab" id="tab-btn-special" aria-selected="false" aria-controls="panel-special" onclick="switchTab('special')">
+          <span class="tab-num">05</span><span>特境家庭條例</span>
+        </button>
+        <button type="button" class="tab-btn" role="tab" id="tab-btn-cedaw" aria-selected="false" aria-controls="panel-cedaw" onclick="switchTab('cedaw')">
+          <span class="tab-num">06</span><span>CEDAW與人口新戰略</span>
+        </button>
+        <button type="button" class="tab-btn" role="tab" id="tab-btn-quiz" aria-selected="false" aria-controls="panel-quiz" onclick="switchTab('quiz')">
+          <span class="tab-num">07</span><span>陷阱自我測驗</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- PANEL 1: 重要數字記憶卡 -->
+    <section id="panel-cards" class="tab-panel is-active" role="tabpanel" aria-labelledby="tab-btn-cards">
+      <div class="section-header">
+        <h2 class="section-title"><span class="index-num">01</span>國考重要數字翻轉記憶卡（18 張高頻考點）</h2>
+        <p class="section-desc">點擊卡片即可翻看完整法條規定與常考陷阱，並標記熟記狀態。</p>
+      </div>
+
+      <div class="filter-bar" role="group" aria-label="記憶卡主題篩選">
+        <button type="button" class="filter-chip" aria-pressed="true" data-cat="all" onclick="filterCards('all')">全部 (18)</button>
+        <button type="button" class="filter-chip" aria-pressed="false" data-cat="work" onclick="filterCards('work')">性工法與人口新戰略</button>
+        <button type="button" class="filter-chip" aria-pressed="false" data-cat="violence" onclick="filterCards('violence')">防暴與性平三法</button>
+        <button type="button" class="filter-chip" aria-pressed="false" data-cat="bully" onclick="filterCards('bully')">職場霸凌與性騷準則</button>
+        <button type="button" class="filter-chip" aria-pressed="false" data-cat="special" onclick="filterCards('special')">特境家庭條例</button>
+        <button type="button" class="filter-chip" aria-pressed="false" data-cat="cedaw" onclick="filterCards('cedaw')">CEDAW 與女孩日</button>
+        <button type="button" class="filter-chip" id="toggle-unmastered-btn" aria-pressed="false" onclick="toggleUnmasteredOnly()">僅顯示待複習</button>
+      </div>
+
+      <div id="flashcards-grid" class="card-grid"></div>
+    </section>
+
+    <!-- PANEL 2: 性別平等工作法最新重點 -->
+    <section id="panel-genderwork" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-genderwork">
+      <div class="section-header">
+        <h2 class="section-title"><span class="index-num">02</span>《性別平等工作法》最新重點（含 115 年 11 月三讀新制）</h2>
+        <span class="tag tag--info">中央主管機關：勞動部</span>
+      </div>
+
+      <!-- 企業規模階梯式互動模擬器 -->
+      <div class="figure-card">
+        <h3 style="margin: 0 0 var(--space-sm) 0; font-family: var(--font-headline);">企業規模階梯式防治與照顧門檻檢核器</h3>
+        <p class="section-desc" style="margin-bottom: var(--space-md);">點選不同僱用人數規模，即時檢視《性工法》、《性騷擾防治法》與《職場霸凌防治措施準則》的階梯式法定義務：</p>
+        <div class="filter-bar" role="group" aria-label="選擇企業僱用人數規模" style="margin-bottom: var(--space-md);">
+          <button type="button" class="scale-step-btn" aria-pressed="false" data-scale="under10" onclick="selectScale('under10')">
+            <strong>未滿 10 人</strong>
+            <span class="scale-sub">微型事業單位</span>
+          </button>
+          <button type="button" class="scale-step-btn" aria-pressed="true" data-scale="10" onclick="selectScale('10')">
+            <strong>10 人以上</strong>
+            <span class="scale-sub">申訴管道門檻</span>
+          </button>
+          <button type="button" class="scale-step-btn" aria-pressed="false" data-scale="30" onclick="selectScale('30')">
+            <strong>30 人以上</strong>
+            <span class="scale-sub">規範與減工時門檻</span>
+          </button>
+          <button type="button" class="scale-step-btn" aria-pressed="false" data-scale="100" onclick="selectScale('100')">
+            <strong>100 人以上</strong>
+            <span class="scale-sub">托兒哺乳與職霸小組</span>
+          </button>
+          <button type="button" class="scale-step-btn" aria-pressed="false" data-scale="500" onclick="selectScale('500')">
+            <strong>500 人以上</strong>
+            <span class="scale-sub">心理諮商強制門檻</span>
+          </button>
+        </div>
+        <div id="scale-detail-box" class="aside-box"></div>
+      </div>
+
+      <!-- 假別與給薪對照表 -->
+      <div>
+        <h3 style="margin: 0 0 var(--space-sm) 0; font-family: var(--font-headline);">法定假別天數、給薪與政府補助一覽表</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>假別 / 措施</th>
+                <th>法定天數 / 時數</th>
+                <th>給薪與補助規範</th>
+                <th>併計與年資影響 / 考點陷阱</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>生理假</strong><br><span class="tag">性工法 §14</span></td>
+                <td class="td-num">每月 1 日</td>
+                <td><strong>一律減半發給</strong>（比照病假折半）</td>
+                <td>全年未逾 <strong>3 日</strong> 不併入病假計算；第 4 日起併入病假，但無論是否併入均減半發薪。不得扣發全勤獎金。</td>
+              </tr>
+              <tr class="tr-highlight">
+                <td><strong>產假（分娩）</strong><br><span class="tag tag--gold">115.11 修法</span></td>
+                <td class="td-num">14 週（原 8 週）</td>
+                <td>受僱滿 6 個月工資照給；未滿 6 個月減半發給。<br><strong>新增第 9–14 週由政府全薪補貼雇主</strong></td>
+                <td>前 <strong>8 週為強制休假</strong>（不得提前復職）；新增第 9–14 週得依女性勞工個人意願選擇提前銷假復職。</td>
+              </tr>
+              <tr class="tr-highlight">
+                <td><strong>流產產假</strong><br><span class="tag tag--gold">115.11 修法</span></td>
+                <td class="td-num">滿 3 月：4 週<br>2–3 月：2 週（原 1 週）<br>未滿 2 月：10 日（原 5 日）</td>
+                <td>滿 3 月以上依工作年資全薪或半薪；妊娠未滿 3 個月流產假延長日數依規定給假與政府補貼</td>
+                <td>妊娠 3 個月以下流產假天數增加後，勞工可依個人意願及身體狀況選擇請假或提前銷假。</td>
+              </tr>
+              <tr>
+                <td><strong>產檢假</strong><br><span class="tag">性工法 §15</span></td>
+                <td class="td-num">7 日</td>
+                <td><strong>薪資照給</strong>（超過 5 日之第 6–7 日由政府補助雇主薪資）</td>
+                <td><strong>新制亮點</strong>：未休完之產檢假，可於產假後的「工作日」接著請休，讓母體恢復與育嬰更充裕。</td>
+              </tr>
+              <tr class="tr-highlight">
+                <td><strong>陪產檢及陪產假</strong><br><span class="tag tag--gold">115.11 修法</span></td>
+                <td class="td-num">合計 14 日（原 7 日）</td>
+                <td><strong>薪資照給</strong>（第 6–14 日由勞保局補助雇主薪資）</td>
+                <td>涵蓋陪伴配偶妊娠產檢、孕產教育課程、照顧新生兒與陪伴出院。</td>
+              </tr>
+              <tr>
+                <td><strong>家庭照顧假</strong><br><span class="tag">性工法 §20</span></td>
+                <td class="td-num">全年 7 日</td>
+                <td><strong>不給薪</strong>（依事假規定辦理）</td>
+                <td>併入事假計算，但不影響全勤獎金與考績。照顧對象<strong>不限子女</strong>（含配偶、父母等家庭成員）。</td>
+              </tr>
+              <tr class="tr-highlight">
+                <td><strong>育兒假（按日）</strong><br><span class="tag tag--gold">115.11 修法</span></td>
+                <td class="td-num">60 日（原 30 日）<br>雙親合計 120 日</td>
+                <td>可按日申請；期間留職停薪津貼比照就業保險給付標準</td>
+                <td><strong>國考新考點</strong>：僅限育有 <strong>8 歲以下</strong> 子女者；屬「請假」性質，勞雇契約維持、<strong>年資不中斷</strong>（併入 2 年留停期間計）。</td>
+              </tr>
+              <tr>
+                <td><strong>哺（集）乳時間</strong><br><span class="tag">性工法 §18</span></td>
+                <td class="td-num">每日 60 分鐘<br>加班 ≥1 小時另給 30 分</td>
+                <td><strong>視為工作時間</strong>（照常給薪）</td>
+                <td>限子女<strong>未滿 2 歲</strong>須親自哺（集）乳者。</td>
+              </tr>
+              <tr>
+                <td><strong>減少 / 調整工時</strong><br><span class="tag">性工法 §19</span></td>
+                <td class="td-num">每日減 1 小時或調整</td>
+                <td>依法減少之時間<strong>不得請求報酬</strong>（另見人口新戰略減工時不減薪補助）</td>
+                <td>限受僱於僱用 <strong>30 人以上</strong> 雇主，撫育<strong>未滿 3 歲</strong>子女（另獎勵措施延伸至 12 歲）。</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 育嬰留停 + 申訴時效 + 主管機關 -->
+      <div class="split-2">
+        <div class="figure-card">
+          <h3 style="margin-top: 0; font-family: var(--font-headline);">育嬰留職停薪、津貼「6+3」與遞延保費</h3>
+          <ul class="fact-list">
+            <li><strong>申請資格：</strong>任職滿 <strong>6 個月</strong> 後，於每一子女 <strong>8 歲以下（未滿 9 歲）</strong> 前（由原未滿 3 歲放寬），得申請育嬰留職停薪，最長不得逾 <strong>2 年</strong>。同時撫育 2 人以上合併計算最長 2 年。</li>
+            <li><strong>年資差異：</strong>塊狀「育嬰留職停薪」屬暫時中止契約，<strong>年資中斷</strong>；按日「育兒假」屬請假性質，<strong>年資不中斷</strong>。</li>
+            <li><strong>社會保險與遞延保費：</strong>留停期間得續保原有社會保險；雇主免繳應負擔保費，受僱者自付保費得 <strong>遞延 3 年</strong> 繳納。</li>
+            <li><strong>津貼來源與 6+3 新制：</strong>依《就業保險法》發給育嬰留停津貼（投保薪資分級上限提高）；雙親各領滿 <strong>6 個月</strong> 後，可各再多請領 <strong>3 個月</strong>，每人最高 9 月、雙親合計最高 <strong>18 個月</strong>。</li>
+            <li><strong>企業托育租稅優惠（§23-1）：</strong>雇主提供托兒設施或措施，支出金額於 <strong>200%</strong> 限度內自當年度所得額減除。</li>
+          </ul>
+        </div>
+
+        <div class="figure-card">
+          <h3 style="margin-top: 0; font-family: var(--font-headline);">職場性騷擾申訴時效、舉證責任與勞動部權責</h3>
+          <ul class="fact-list">
+            <li><strong>申訴時效（與性騷法同步）：</strong>
+              一般性騷擾：知悉後 <strong>2 年</strong> 內，或事件終了起 <strong>5 年</strong> 內。<br>
+              權勢性騷擾：知悉後 <strong>3 年</strong> 內，或事件終了起 <strong>7 年</strong> 內。<br>
+              最高負責人／僱用人性騷：得於 <strong>離職日起 1 年</strong> 內申訴（行為終了逾 <strong>10 年</strong> 不受理）。<br>
+              被害人未成年：得於 <strong>成年後 3 年</strong> 內提出（有較長者從其規定）。</li>
+            <li><strong>逕向地方主管機關申訴事由：</strong>①被申訴人屬最高負責人或僱用人；②雇主未處理或不服雇主之調查/懲戒結果。</li>
+            <li><strong>舉證責任倒置（§31）：</strong>雇主應就差別待遇之「非性別、性傾向因素」或特定性別工作性質負舉證責任。</li>
+            <li><strong>勞動部與地方主管機關權責：</strong>設「性別工作平等會」，置委員 <strong>5–11 人</strong>（任期 2 年），勞工團體、女性團體推薦各 2 人，<strong>女性委員應占全體 1/2 以上</strong>；禁止歧視與性騷防治納入勞動檢查；<strong>實習生</strong>於實習期間遭受性騷擾亦適用本法。</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- PANEL 3: 防暴三法與性平三法體系矩陣 -->
+    <section id="panel-matrix" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-matrix">
+      <div class="section-header">
+        <h2 class="section-title"><span class="index-num">03</span>防暴三法與性平三法體系矩陣</h2>
+        <p class="section-desc">快速切換對照主管機關、保護對象、24 小時通報義務、偵訊陪同權利與救濟保護令。</p>
+      </div>
+
+      <div class="filter-bar" role="group" aria-label="法規體系分類篩選">
+        <button type="button" class="filter-chip" aria-pressed="true" data-lawgrp="all" onclick="filterMatrix('all')">全部六法 (6)</button>
+        <button type="button" class="filter-chip" aria-pressed="false" data-lawgrp="violence" onclick="filterMatrix('violence')">防暴三法 (家暴/性侵/跟騷)</button>
+        <button type="button" class="filter-chip" aria-pressed="false" data-lawgrp="equality" onclick="filterMatrix('equality')">性平三法 (性工/性平教/性騷)</button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>法規名稱</th>
+              <th>體系定位 / 主管機關</th>
+              <th>適用場域與保護對象</th>
+              <th>責任通報與媒體 / 性影像規範</th>
+              <th>偵訊陪同 / 調查與救濟機制</th>
+            </tr>
+          </thead>
+          <tbody id="matrix-tbody"></tbody>
+        </table>
+      </div>
+
+      <!-- 民事保護令與恐怖情人比較 -->
+      <div class="section-header" style="margin-top: var(--space-sm);">
+        <h3 class="section-title"><span class="index-num">03-B</span>民事保護令（通常・暫時・緊急）vs 恐怖情人 vs 跟騷保護令</h3>
+      </div>
+
+      <div class="split-3">
+        <div class="figure-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--space-xs);">
+            <strong>通常保護令</strong>
+            <span class="tag tag--info">書面審理・最長 2 年</span>
+          </div>
+          <ul class="fact-list">
+            <li><strong>聲請人：</strong>被害人、法定代理人、三親等內血親或姻親、檢察官、警察機關、直轄市/縣(市)主管機關（免裁判費）。</li>
+            <li><strong>審理程序：</strong>須經法院審理終結核發（14 款法定款項：禁暴力、禁騷擾接觸、遷出、遠離、暫定親權、扶養費、加害人處遇計畫、交付刪除性影像等）。</li>
+            <li><strong>效期：</strong>自核發時起生效，最長 <strong>2 年</strong>；屆滿前得聲請延長，每次 <strong>2 年以下</strong>（不限延長次數）。</li>
+            <li><strong>發送：</strong>核發後 <strong>24 小時內</strong> 發送當事人、被害人、警察機關及主管機關。</li>
+          </ul>
+        </div>
+
+        <div class="figure-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--space-xs);">
+            <strong>暫時保護令</strong>
+            <span class="tag">書面・可不經審理</span>
+          </div>
+          <ul class="fact-list">
+            <li><strong>聲請人：</strong>同通常保護令（被害人、三親等內親屬、檢、警、主管機關皆可書面聲請）。</li>
+            <li><strong>要件與程序：</strong>保護被害人或家庭成員安全，法院於審理終結前得「不經審理程序」依書面資料核發。</li>
+            <li><strong>擬制效力（§16）：</strong>於聲請通常保護令前聲請暫時保護令經准許核發者，<strong>視為已有通常保護令之聲請</strong>。</li>
+            <li><strong>失效時點：</strong>核發時生效；撤回、核發通常保護令或駁回聲請時失效。</li>
+          </ul>
+        </div>
+
+        <div class="figure-card" style="border-color: var(--error);">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--space-xs);">
+            <strong>緊急保護令</strong>
+            <span class="tag tag--error">4 小時核發・被害人不得自訴</span>
+          </div>
+          <ul class="fact-list">
+            <li><strong>國考最大陷阱（聲請人限制）：</strong>僅限 <strong>檢察官、警察機關或直轄市、縣(市)主管機關</strong> 聲請；<strong>被害人本人及親屬不得直接聲請</strong>！</li>
+            <li><strong>要件與方式：</strong>有受家暴之「急迫危險」時，可於夜間（日出前日沒後）或休息日以言詞、電信傳真或科技設備傳送聲請。</li>
+            <li><strong>核發時效：</strong>法院依到庭或電話陳述足認有急迫危險者，應於 <strong>4 小時內</strong> 以書面核發並傳送警察機關。</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="aside-box aside-box--trap">
+        <p class="aside-box-title">高頻競合考點：「恐怖情人條款（家暴法 §63-1）」vs「跟蹤騷擾防制法（§5 第 4 項）」</p>
+        <ul class="fact-list">
+          <li><strong>家暴法 §63-1 恐怖情人條款（105.2.4 施行）：</strong>被害人年滿 <strong>16 歲</strong>，遭受現有或曾有親密關係之「未同居」伴侶施以身體或精神上不法侵害，準用家暴法保護令等規定（注意：不準用「經濟上騷擾控制」及「同居遷出」等僅限同居家庭成員之規定）。</li>
+          <li><strong>跟騷法 §5 第 4 項排除原則：</strong>家暴法所定家庭成員間、現有或曾有親密關係之未同居伴侶間的跟蹤騷擾行為，<strong>應直接依《家暴法》聲請民事保護令</strong>，不適用跟騷法之保護令（免去「先書面告誡、2 年內再犯」的門檻）。</li>
+          <li><strong>跟騷法保護令特殊流程：</strong>非親密伴侶之「與性或性別有關」反覆持續跟騷（8 類態樣），須先經警察機關核發 <strong>書面告誡</strong>（不服於 10 日內表示異議），行為人於書面告誡後 <strong>2 年內</strong> 再犯，被害人、檢、警始得向法院聲請保護令（有效最長 <strong>2 年</strong>，抗告中不停止執行）。</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- PANEL 4: 職場霸凌與性騷擾防治準則 -->
+    <section id="panel-harassment" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-harassment">
+      <div class="section-header">
+        <h2 class="section-title"><span class="index-num">04</span>《職場霸凌防治措施準則》與《工作場所性騷擾防治措施準則》</h2>
+        <span class="tag tag--positive">職霸準則 115.07.01 施行</span>
+      </div>
+
+      <div class="aside-box">
+        <p class="aside-box-title">《職場霸凌防治措施準則》認定四大樣態（依職安法 §22-2 第 4 項訂定）</p>
+        <p style="margin: 0;">審酌事件背景、頻率、場所、行為人動機及目的，包含：①對特定人刻意排擠、忽視、冷落或不讓參與必要會議事務；②破壞或刻意阻礙工作、利用職務刁難、隱瞞或提供不實資訊；③以權力欺壓、分配不合理工作目標或與能力明顯不符之工作；④刻意散布謠言或揭露隱私。</p>
+      </div>
+
+      <div>
+        <h3 style="margin: 0 0 var(--space-sm) 0; font-family: var(--font-headline);">內部申訴、協調與調查時效流程（100 人以上企業標準程序）</h3>
+        <ol class="timeline-list">
+          <li class="timeline-item">
+            <div class="timeline-head">
+              <span class="index-num">STEP 01</span>
+              <span class="tag">門檻規範</span>
+            </div>
+            <strong>設置申訴管道與公開揭示</strong>
+            <p style="margin:0;">僱用 <strong>10 人以上</strong> 設專線、專用信箱或指定通訊軟體；<strong>30 人以上</strong> 訂定防治規範並公開揭示。涉工作場所性騷擾者，應依當事人意願併予調查避免重複詢問（§27）。</p>
+          </li>
+          <li class="timeline-item">
+            <div class="timeline-head">
+              <span class="index-num">STEP 02</span>
+              <span class="tag tag--info">協調 ≤ 1 個月</span>
+            </div>
+            <strong>合意協調程序（§13）</strong>
+            <p style="margin:0;">安排雙方同意之協調人員。任一方無意願或自協調日起 <strong>逾 1 個月</strong> 無共識應停止協調並續行調查。<strong>協調期間不計入 2 個月調查期間</strong>。</p>
+          </li>
+          <li class="timeline-item">
+            <div class="timeline-head">
+              <span class="index-num">STEP 03</span>
+              <span class="tag tag--gold">15 工作日內組小組</span>
+            </div>
+            <strong>調查小組黃金比例（§14）</strong>
+            <p style="margin:0;">100 人以上雇主應於受理申訴日起 <strong>15 個工作日內</strong> 組成至少 <strong>3 人</strong> 之調查小組；<strong>外部專業人士不得少於 1/2</strong>、<strong>任一性別不得少於 1/3</strong>。內部成員須完成教育訓練 <strong>至少 3 小時</strong>。</p>
+          </li>
+          <li class="timeline-item">
+            <div class="timeline-head">
+              <span class="index-num">STEP 04</span>
+              <span class="tag tag--info">2 個月 (+1 月)</span>
+            </div>
+            <strong>調查報告完成期限（§17）</strong>
+            <p style="margin:0;">自調查小組成立後 <strong>翌日</strong> 起 <strong>2 個月內</strong> 完成調查報告；必要時得延長 <strong>1 個月</strong> 並通知當事人。無正當理由拒配合屆期未配合者，得逕行作成報告。</p>
+          </li>
+          <li class="timeline-item">
+            <div class="timeline-head">
+              <span class="index-num">STEP 05</span>
+              <span class="tag tag--positive">1 個月審議・10 日通知</span>
+            </div>
+            <strong>審議決定、申復與登錄（§§18–19）</strong>
+            <p style="margin:0;">申訴處理單位至遲於報告完成日起 <strong>1 個月內</strong> 作成決定（成員 1/2 以上出席、出席者過半數同意）；雇主於決定日起 <strong>10 個工作日內</strong> 書面附理由通知當事人、教示申復救濟，並登錄系統。</p>
+          </li>
+          <li class="timeline-item">
+            <div class="timeline-head">
+              <span class="index-num">STEP 06</span>
+              <span class="tag">留存 3 年</span>
+            </div>
+            <strong>禁止不利處分與紀錄留存（§§20, 25–26）</strong>
+            <p style="margin:0;">不得對申訴或協助者解僱、降調、減薪（惡意虛構除外）。採取追蹤考核避免報復與再犯，所有執行紀錄應 <strong>留存 3 年</strong>。</p>
+          </li>
+        </ol>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>比較項目</th>
+              <th>《職場霸凌防治措施準則》（115.7.1 施行）</th>
+              <th>《工作場所性騷擾防治措施準則》（113.3.8 施行）</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>母法與中央主管機關</strong></td>
+              <td>《職業安全衛生法》§22-2（勞動部）</td>
+              <td>《性別平等工作法》§13（勞動部）</td>
+            </tr>
+            <tr>
+              <td><strong>調查啟動與小組組成</strong></td>
+              <td>100 人以上於受理起 <strong>15 工作日</strong> 內組成 ≥3 人小組；外部專業人士 ≥ <strong>1/2</strong>、任一性別 ≥ <strong>1/3</strong>；內部成員受訓 ≥3 小時。</td>
+              <td>接獲申訴應啟動調查（與性工法同步於 7 日內開始、2 個月+1 個月完成），情節重大具權勢地位者調查期間得暫停或調整職務（未認定時應補發薪資）。</td>
+            </tr>
+            <tr>
+              <td><strong>未提申訴但雇主知悉</strong></td>
+              <td>釐清事實並徵詢勞工無申訴意願但有意願協調者，得進行合意協調程序。</td>
+              <td><strong>強制立即有效糾正補救義務（§6）</strong>：即使被害人無意願申訴，雇主仍應訪談釐清、告知權益、適度調整工作內容場所、依意願轉介醫療/心理/社福資源。</td>
+            </tr>
+            <tr>
+              <td><strong>心理諮商與外部通報</strong></td>
+              <td>調查屬實懲戒後，於決定日起 <strong>10 個工作日內</strong> 依規定登錄系統。</td>
+              <td>僱用 <strong>500 人以上</strong> 應提供 <strong>至少 2 次</strong> 心理諮商；調查屬實應將處理結果通知地方主管機關（§19）；結案後不得就同一事由再提申訴（§18）。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- PANEL 5: 特殊境遇家庭扶助條例 -->
+    <section id="panel-special" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-special">
+      <div class="section-header">
+        <h2 class="section-title"><span class="index-num">05</span>《特殊境遇家庭扶助條例》：資格、雙門檻、專戶與七大扶助</h2>
+        <span class="tag tag--info">中央主管機關：衛福部</span>
+      </div>
+
+      <div class="split-2">
+        <div class="figure-card">
+          <h3 style="margin-top:0; font-family: var(--font-headline);">法定七大身分資格（§4，設籍實際居住且未重複領取）</h3>
+          <ol class="fact-list">
+            <li><strong>配偶死亡／失蹤：</strong>65 歲以下，配偶死亡，或失蹤經向警察機關報案協尋未獲達 <strong>6 個月以上</strong>。</li>
+            <li><strong>惡意遺棄／虐待離婚：</strong>因配偶惡意遺棄或受配偶不堪同居之虐待，經判決離婚確定或已完成協議離婚登記。</li>
+            <li><strong>家庭暴力受害。</strong></li>
+            <li><strong>未婚懷孕婦女：</strong>懷胎 <strong>3 個月以上至分娩 2 個月內</strong>。（國考常考時間區間！）</li>
+            <li><strong>單親或隔代獨力扶養：</strong>因離婚、喪偶、未婚生子獨自扶養 <strong>18 歲以下</strong> 子女（或祖父母扶養父母無力扶養之 18 歲以下孫子女），無工作能力，或因重大傷病／照顧 <strong>6 歲以下</strong> 子女（孫子女）致不能工作。</li>
+            <li><strong>配偶服刑／保安處分：</strong>配偶處 <strong>1 年以上</strong> 之徒刑或受拘束人身自由之保安處分 <strong>1 年以上</strong>，且在執行中。</li>
+            <li><strong>重大變故：</strong>其他經地方政府評估因 <strong>3 個月內</strong> 生活發生重大變故致生活、經濟困難（非因個人責任、債務、非自願失業等事由）。</li>
+          </ol>
+        </div>
+
+        <div class="figure-card">
+          <h3 style="margin-top:0; font-family: var(--font-headline);">財力雙門檻標準與專戶不得扣押原則</h3>
+          <div class="aside-box" style="margin-bottom: var(--space-md);">
+            <p class="aside-box-title">財力雙門檻（兩項均須未超過）</p>
+            <ul class="fact-list">
+              <li><strong>家庭總收入平均分配：</strong>每人每月未超過政府當年公布最低生活費 <strong>2.5 倍</strong> <strong>及</strong> 臺灣地區平均每人每月消費支出 <strong>1.5 倍</strong>。</li>
+              <li><strong>家庭財產：</strong>動產及不動產未超過中央主管機關公告之一定金額。</li>
+            </ul>
+          </div>
+          <div class="aside-box aside-box--trap">
+            <p class="aside-box-title">§13-1 專戶不得扣押原則（高頻必考）</p>
+            <p style="margin:0;">申請人得檢具地方主管機關出具之證明文件，於金融機構開立專戶，專供存入本條例各項扶助給付；專戶內之存款，<strong>不得作為抵銷、扣押、供擔保或強制執行之標的</strong>。</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 七大法定扶助項目明細表 -->
+      <div>
+        <h3 style="margin: 0 0 var(--space-sm) 0; font-family: var(--font-headline);">七大法定扶助項目給付標準與申請時效矩陣</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>法定項目（條號）</th>
+                <th>對象限制</th>
+                <th>給付標準</th>
+                <th>申請時效與重要限制</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>1. 緊急生活扶助</strong>（§6）</td>
+                <td>符合 §4 資格者</td>
+                <td class="td-num">最低生活費 1 倍 / 月 × 3 個月</td>
+                <td>應於事實發生後 <strong>6 個月內</strong> 申請；同一事由以補助 <strong>1 次</strong> 為限。</td>
+              </tr>
+              <tr>
+                <td><strong>2. 子女生活津貼</strong>（§7）</td>
+                <td>15 歲以下子女或孫子女</td>
+                <td class="td-num">每人每月最低（基本）工資之 1/10</td>
+                <td>每年申請 1 次（初次請領須於事實發生後檢附資料，並與低收等津貼擇優領取）。</td>
+              </tr>
+              <tr class="tr-highlight">
+                <td><strong>3. 子女教育補助</strong>（§8）</td>
+                <td>就讀國內公立或立案私立 <strong>高中職、大專院校</strong> 子女或孫子女</td>
+                <td class="td-num">學雜費減免 60%</td>
+                <td><strong>大陷阱：不包含國中、國小！</strong>（國中小屬義務教育已免學費，僅高中職及大專院校得減免 60%）。</td>
+              </tr>
+              <tr>
+                <td><strong>4. 傷病醫療補助</strong>（§9）</td>
+                <td>本人及 6 歲以下子女或孫子女（健保自行負擔醫療費）</td>
+                <td class="td-num">6 歲以下全額核實（年最高 12 萬）；本人逾 3 萬元部分補助 70%（年最高 12 萬）</td>
+                <td>應於傷病醫療發生後 <strong>3 個月內</strong> 提出申請；不包含掛號費、膳食費、指定病房等非健保自付項目。</td>
+              </tr>
+              <tr>
+                <td><strong>5. 兒童托育津貼</strong>（§10）</td>
+                <td>未滿 6 歲子女或孫子女</td>
+                <td class="td-num">就讀私立機構每人每月 1,500 元</td>
+                <td>優先進入公立幼兒園或托嬰中心；應於事實發生後 <strong>6 個月內</strong> 申請。</td>
+              </tr>
+              <tr>
+                <td><strong>6. 法律訴訟補助</strong>（§11）</td>
+                <td>家庭暴力受害者無力負擔訴訟費用</td>
+                <td class="td-num">最高補助 5 萬元</td>
+                <td>應於事實發生後 <strong>3 個月內</strong> 提出申請（含律師費、裁判費等訴訟必要費用）。</td>
+              </tr>
+              <tr>
+                <td><strong>7. 創業貸款補助</strong>（§12）</td>
+                <td>具工作能力之申請人（成年 / 20 歲以上）</td>
+                <td class="td-num">政府創業貸款利息補貼（如微型創業鳳凰貸款）</td>
+                <td>提供前 2 年免息或利息補貼（不含本金貸款金額直接由縣市政府發放）。</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 國考干擾選項辨識器 -->
+      <div class="figure-card">
+        <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:var(--space-sm); margin-bottom:var(--space-sm);">
+          <h3 style="margin:0; font-family: var(--font-headline);">互動辨識器：特境條例「法定七項」vs「國考非法定干擾選項」</h3>
+          <button type="button" class="btn btn--secondary btn--sm" onclick="revealAllSpecialItems()">全部揭曉辨識結果</button>
+        </div>
+        <p class="section-desc" style="margin-bottom: var(--space-md);">點擊下列選項測試自己是否能分辨哪些是《特殊境遇家庭扶助條例》明定的七大扶助項目，哪些是命題老師常用的干擾陷阱：</p>
+        <div id="special-items-grid" class="split-3"></div>
+      </div>
+    </section>
+
+    <!-- PANEL 6: CEDAW 與性別主流化 + 人口對策新戰略 -->
+    <section id="panel-cedaw" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-cedaw">
+      <div class="section-header">
+        <h2 class="section-title"><span class="index-num">06-A</span>《CEDAW》施行法、性別主流化工具與典範移轉</h2>
+        <span class="tag tag--gold">臺灣女孩日：每年 10 月 11 日</span>
+      </div>
+
+      <div class="split-3">
+        <div class="figure-card">
+          <div class="kpi-label"><span>CEDAW 國際與國內效力</span><span class="tag tag--info">1979.12.18 UN 通過</span></div>
+          <ul class="fact-list" style="margin-top: var(--space-sm);">
+            <li><strong>公約規模：</strong>共 <strong>30 條</strong>（1–16 實質權利、17–22 CEDAW 委員會、23–30 行政管理），截至 2025 年全球 <strong>189 國</strong> 批准。</li>
+            <li><strong>《CEDAW 施行法》：</strong><strong>101 年 1 月 1 日</strong> 施行；具 <strong>國內法律之效力</strong>（§2）。</li>
+            <li><strong>4 年國家報告（§6）：</strong>每 <strong>4 年</strong> 提出國家報告，邀專家學者與民間團體代表審閱。</li>
+            <li><strong>3 年法規檢視（§8）：</strong>不符公約之法規與行政措施，應於施行後 <strong>3 年內</strong> 完成制（訂）定、修正、廢止及改進。</li>
+          </ul>
+        </div>
+
+        <div class="figure-card">
+          <div class="kpi-label"><span>CEDAW 核心理論考點</span><span class="tag">一般性建議・任擇議定書</span></div>
+          <ul class="fact-list" style="margin-top: var(--space-sm);">
+            <li><strong>實質平等：</strong>不止形式機會均等，更要求「同等接近使用」與「平等結果」。</li>
+            <li><strong>直接 vs 間接歧視：</strong>間接歧視指表面無性別差異（如身高體重門檻、偏遠學校通勤安全）卻造成女性實質不利。</li>
+            <li><strong>暫行特別措施（§4）：</strong>加速達成事實平等之措施，<strong>不視為對男性歧視</strong>，目的達成應停止。</li>
+            <li><strong>任擇議定書：</strong>賦予個人/團體向委員會提出申訴權，及針對嚴重系統性侵害啟動調查權。</li>
+          </ul>
+        </div>
+
+        <div class="figure-card">
+          <div class="kpi-label"><span>臺灣女孩日</span><span class="tag tag--positive">每年 10 月 11 日</span></div>
+          <ul class="fact-list" style="margin-top: var(--space-sm);">
+            <li><strong>由來：</strong>聯合國自 2012 年訂 10 月 11 日為「國際女孩日」；我國行政院自 <strong>102 年（2013 年）</strong> 起指定每年 <strong>10 月 11 日</strong> 為「臺灣女孩日」。</li>
+            <li><strong>政策配套：</strong>推動《提升女孩權益行動方案》，涵蓋身心健康、教育人力、人身安全、媒體傳統禮俗等面向，實踐 CRC 與 CEDAW 的跨生命周期保障。</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- WID -> WAD -> GAD 典範移轉 -->
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>典範階段（年代）</th>
+              <th>核心關注焦點</th>
+              <th>政策與干預策略</th>
+              <th>限制與典範批判</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>WID 婦女參與發展</strong><br><span class="tag">1970 年代</span></td>
+              <td>把「女性」視為被發展遺漏的單一群體，著重將婦女納入既有經濟發展。</td>
+              <td>提升女性教育、職業技能、小型信貸與家計生產力。</td>
+              <td>未挑戰既有父權結構與家庭性別分工，反而常加重婦女「雙重負擔」（工作＋家務）。</td>
+            </tr>
+            <tr>
+              <td><strong>WAD 婦女與發展</strong><br><span class="tag">1970 年代末</span></td>
+              <td>受依賴理論與馬克思主義影響，主張婦女早已參與發展但勞動價值遭資本剝削。</td>
+              <td>聚焦階層、階級與全球經濟不平等對女性勞動者的結構性剝削。</td>
+              <td>過度歸因於資本主義階級，仍忽略家庭與文化內的性別權力不對等關係。</td>
+            </tr>
+            <tr class="tr-highlight">
+              <td><strong>GAD 性別與發展</strong><br><span class="tag tag--gold">1980–1990 年代迄今</span></td>
+              <td>從「生理女性」轉向「社會建構之性別關係」，檢視權力、資源與決策分配結構。</td>
+              <td>強調<strong>婦女賦權（Empowerment）</strong>、改變制度結構、納入男性共同參與，並催生 <strong>1995 年北京《行動綱領》性別主流化</strong>。</td>
+              <td>須透過政府各部會跨領域工具落實（即我國推動之性別主流化六大工具）。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 性別主流化六大工具互動檢視 -->
+      <div class="figure-card">
+        <h3 style="margin: 0 0 var(--space-xs) 0; font-family: var(--font-headline);">性別主流化六大工具互動解析</h3>
+        <p class="section-desc" style="margin-bottom: var(--space-md);">點選任一工具查看行政院性別平等處定義與國考關鍵區辨：</p>
+        <div class="filter-bar" role="group" aria-label="選擇性別主流化工具" style="margin-bottom: var(--space-md);" id="gm-tools-bar"></div>
+        <div id="gm-tool-detail" class="aside-box"></div>
+      </div>
+
+      <!-- Part B: 人口對策新戰略與家庭支持政策 -->
+      <div class="section-header" style="margin-top: var(--space-md);">
+        <h2 class="section-title"><span class="index-num">06-B</span>《臺灣人口對策新戰略—家庭支持篇》與育兒政策對照</h2>
+        <span class="tag tag--positive">115.05 政策・115.11 修法・116.01 上路</span>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>政策項目</th>
+              <th>修法前原制</th>
+              <th>《人口對策新戰略》藍圖 / 配套</th>
+              <th>115 年 11 月三讀新制與實施重點</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>產假與陪產假</strong></td>
+              <td>產假 8 週；陪產檢及陪產假 7 日</td>
+              <td>規劃產假延至 12 週、陪產假 14 日、婚假 14 日（政府補貼增加工資）</td>
+              <td><strong>性工法三讀：產假 14 週</strong>（後 6 週可自願銷假）、陪產檢及陪產假 <strong>14 日</strong>；新增日數由政府全薪補貼雇主。</td>
+            </tr>
+            <tr>
+              <td><strong>育兒留職停薪津貼「6+3」</strong></td>
+              <td>雙親各領 6 個月（8 成薪），合計 12 個月</td>
+              <td>雙親領滿 6 月後各再多領 3 月，最高合計 <strong>18 個月</strong>；提高投保薪資上限</td>
+              <td><strong>就保法三讀通過「6+3」</strong>：鼓勵男性共同分擔照顧，投保薪資分級上限調升使津貼可超過 4 萬元。</td>
+            </tr>
+            <tr>
+              <td><strong>子女年齡與按日育兒假</strong></td>
+              <td>未滿 3 歲；30 日以日申請育嬰留停</td>
+              <td>擴大育兒假至 0–6 歲、60 日（雙親 120 日）</td>
+              <td><strong>性工法三讀擴大至 8 歲以下（未滿 9 歲）</strong>；按日育兒假加倍為 <strong>60 日</strong>，屬請假性質、年資不斷。</td>
+            </tr>
+            <tr>
+              <td><strong>9–12 歲照顧與職代補助</strong></td>
+              <td>無專屬彈性減工時補助機制</td>
+              <td>彈性上下班或減工時延至 12 歲（每日減 1 小時不減薪）；職代每日 800 元；200 人以下新聘長期替代人力每名 2 萬元</td>
+              <td>勞動部訂定《友善職場育兒彈性工作安排措施獎勵及補助要點》（預計 <strong>116.1.1 上路</strong>）：<strong>3 大補助</strong>＋<strong>5 項制度獎勵</strong>。</td>
+            </tr>
+            <tr>
+              <td><strong>企業托育與居住減壓</strong></td>
+              <td>企業托育部分補助；免稅額 10.1 萬</td>
+              <td>幼兒學前與 70 歲以上及未成年子女免稅額增加 50%（10.1 萬→15.15 萬）；婚育房屋稅與地價稅最低至 0</td>
+              <td><strong>性工法 §23-1</strong>：企業辦理托兒設施或措施支出於 <strong>200%</strong> 限度內自所得額減除（規劃實施 10 年）。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- PANEL 7: 國考易錯陷阱自我測驗 -->
+    <section id="panel-quiz" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-quiz">
+      <div class="section-header">
+        <h2 class="section-title"><span class="index-num">07</span>國考易錯陷阱自我測驗（15 題高頻實戰）</h2>
+        <p class="section-desc">專攻數字混淆、聲請人資格、非法定干擾項與新修法細節；作答後立即批改並支援錯題複習。</p>
+      </div>
+
+      <div class="figure-card" style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:var(--space-md);">
+        <div class="filter-bar" role="group" aria-label="測驗題目篩選">
+          <button type="button" class="filter-chip" id="quiz-filter-all" aria-pressed="true" onclick="setQuizFilter('all')">全部題目 (15)</button>
+          <button type="button" class="filter-chip" id="quiz-filter-wrong" aria-pressed="false" onclick="setQuizFilter('wrong')">僅看答錯 / 待練題</button>
+        </div>
+        <div style="display:flex; flex-wrap:wrap; align-items:center; gap:var(--space-md);">
+          <span id="quiz-summary-text" style="font-weight:700;">已作答 0 / 15 題｜答對 0 題</span>
+          <button type="button" id="quiz-reset-btn" class="btn btn--sm" onclick="resetQuizAnswers(this)">清空測驗作答</button>
+        </div>
+      </div>
+
+      <div id="quiz-container" style="display:grid; grid-template-columns:minmax(0, 1fr); gap:var(--space-md);"></div>
+    </section>
+
+    <!-- Sources Note Footer -->
+    <footer class="source-footer">
+      <div><strong>資料與法規依據：</strong>《性別平等工作法》（含 115 年 11 月立法院三讀修正條文及勞動部新制 Q&amp;A）、《工作場所性騷擾防治措施準則》（113.3.8 施行）、《職場霸凌防治措施準則》（115.7.1 施行）、《家庭暴力防治法》暨施行細則、《性侵害犯罪防治法》、《性騷擾防治法》、《跟蹤騷擾防制法》、《特殊境遇家庭扶助條例》、《消除對婦女一切形式歧視公約施行法》、UNICEF《CEDAW For Adolescents (2025)》、行政院《臺灣人口對策新戰略—家庭支持篇》。</div>
+      <div>本頁面僅供社工師及公職社政國考複習研讀使用，正式條文與行政解釋以各中央主管機關最新公告為準。</div>
+    </footer>
+  </div>
+
+  <api-shim></api-shim>
+  <script>
+    /* =========================================================================
+       DATA MODELS (Using backtick template literals, no trailing commas)
+       ========================================================================= */
+
+    var FLASHCARDS = [
+      {
+        id: `fc-01`,
+        cat: `work`,
+        catLabel: `性工法與新戰略`,
+        num: `14 週 / 14 日`,
+        prompt: `115 年 11 月《性工法》三讀修正後，分娩產假與陪產檢及陪產假各為幾天？`,
+        answer: `分娩產假由 8 週延長至 14 週（前 8 週強制休假，後 6 週可依意願提前銷假；新增薪資由政府全薪補貼）；陪產檢及陪產假由 7 日延長至 14 日（第 6–14 日由勞保局補助）。`
+      },
+      {
+        id: `fc-02`,
+        cat: `work`,
+        catLabel: `性工法與新戰略`,
+        num: `3 日 / 7 日`,
+        prompt: `生理假與家庭照顧假的併計與給薪標準有何不同？（經典混淆考題）`,
+        answer: `生理假每月 1 日，全年未逾 3 日不併入病假，但無論是否併入「一律減半發薪」。家庭照顧假全年 7 日，併入事假計算且「不給薪」，惟不扣全勤與考績。`
+      },
+      {
+        id: `fc-03`,
+        cat: `work`,
+        catLabel: `性工法與新戰略`,
+        num: `8 歲 / 2 年 / 遞延 3 年`,
+        prompt: `育嬰留職停薪的任職門檻、子女年齡上限、最長期間與自付保費遞延規定？`,
+        answer: `任職滿 6 個月即可於每一子女「8 歲以下（未滿 9 歲）」前申請，期間最長 2 年（2 人以上合併最長 2 年）。續保時雇主免繳保費，受僱者自付保費得「遞延 3 年」繳納。`
+      },
+      {
+        id: `fc-04`,
+        cat: `work`,
+        catLabel: `性工法與新戰略`,
+        num: `6 + 3 月 / 60 日`,
+        prompt: `就保「育嬰留停津貼 6+3」與「按日育兒假」如何搭配與計算年資？`,
+        answer: `雙親各領滿 6 月津貼後可各再領 3 月（每人最高 9 月、合計 18 月）。按日申請之育兒假由 30 日加倍為 60 日（合計 120 日），屬「請假」性質，勞雇關係維持、年資不中斷。`
+      },
+      {
+        id: `fc-05`,
+        cat: `work`,
+        catLabel: `性工法與新戰略`,
+        num: `10 / 30 / 100 / 500 人`,
+        prompt: `企業規模階梯式義務（10、30、100、500 人）分別對應哪些法定門檻？`,
+        answer: `10 人以上設申訴管道；30 人以上訂性騷與職霸防治規範、可請求每日減 1 小時或調整工時（撫育未滿 3 歲）；100 人以上設哺集乳室與托兒設施措施（及職霸調查小組）；500 人以上提供至少 2 次性騷心理諮商。`
+      },
+      {
+        id: `fc-06`,
+        cat: `work`,
+        catLabel: `性工法與新戰略`,
+        num: `200% 租稅減除`,
+        prompt: `115 年《性工法》§23-1 新增企業辦理托兒設施或措施之租稅誘因為何？`,
+        answer: `雇主提供托兒設施或托兒措施者，得就相關支出金額於「200%」限度內，自當年度所得額中減除（規劃實施 10 年）。`
+      },
+      {
+        id: `fc-07`,
+        cat: `violence`,
+        catLabel: `防暴與性平三法`,
+        num: `24 小時 / 180 日`,
+        prompt: `家暴法與性侵法的責任通報時限，以及網路平台性影像資料保留期為何？`,
+        answer: `醫事、社工、教育、教保、警察、移民等人員執行職務知有疑似家暴或性侵害情事，應立即通報至遲不得逾「24 小時」。網路平台知有被害人性影像應先限制瀏覽或移除，並保留網頁資料與行為人個資紀錄「180 日」。`
+      },
+      {
+        id: `fc-08`,
+        cat: `violence`,
+        catLabel: `防暴與性平三法`,
+        num: `4 小時 / 最長 2 年`,
+        prompt: `家暴緊急保護令的核發時限、聲請權人限制，以及通常保護令效期？`,
+        answer: `緊急保護令僅「檢察官、警察機關或地方主管機關」得聲請（被害人不得直接聲請！），法院應於「4 小時內」核發。通常保護令有效期間最長「2 年」，得延長（每次 2 年以下，不限次數）。`
+      },
+      {
+        id: `fc-09`,
+        cat: `violence`,
+        catLabel: `防暴與性平三法`,
+        num: `書面告誡後 2 年內`,
+        prompt: `《跟蹤騷擾防制法》聲請保護令的前提要件，以及與家暴法 §63-1 的界線？`,
+        answer: `一般人跟騷須先經警察核發「書面告誡」（不服 10 日內異議），於告誡後「2 年內」再犯始得聲請保護令（效期最長 2 年）。但若屬家庭成員或年滿 16 歲未同居親密伴侶，應直接依《家暴法》聲請保護令。`
+      },
+      {
+        id: `fc-10`,
+        cat: `bully`,
+        catLabel: `職場霸凌與性騷準則`,
+        num: `2/5 年・3/7 年・1/10 年`,
+        prompt: `職場與一般性騷擾申訴時效，以及最高負責人為行為人時之特別規定？`,
+        answer: `一般性騷：知悉 2 年內、事件終了 5 年內；權勢性騷：知悉 3 年內、終了 7 年內；最高負責人或僱用人為行為人：得於離職日起「1 年內」申訴，但行為終了逾「10 年」不受理；未成年者成年後 3 年內。`
+      },
+      {
+        id: `fc-11`,
+        cat: `bully`,
+        catLabel: `職場霸凌與性騷準則`,
+        num: `15 工作日・外專≥1/2・性別≥1/3`,
+        prompt: `115.7.1 施行之《職場霸凌防治措施準則》，100 人以上企業調查小組有何組成規範？`,
+        answer: `受理申訴日起「15 個工作日內」組成至少 3 人之調查小組；外部專業人士不得少於「1/2」、任一性別比例不得少於「1/3」；事業單位內部成員應受職霸防治教育訓練至少 3 小時。`
+      },
+      {
+        id: `fc-12`,
+        cat: `bully`,
+        catLabel: `職場霸凌與性騷準則`,
+        num: `2+1 月・1 月・10 日・3 年`,
+        prompt: `《職場霸凌防治措施準則》的調查、審議、通知登錄及紀錄保存時效？`,
+        answer: `調查報告於小組成立翌日起「2 個月內」完成（得延長 1 個月；協調逾 1 月停且不計入）；申訴處理單位於報告完成起「1 個月內」決定；決定日起「10 個工作日內」書面通知並登錄系統；執行紀錄留存「3 年」。`
+      },
+      {
+        id: `fc-13`,
+        cat: `special`,
+        catLabel: `特境家庭條例`,
+        num: `2.5 倍 & 1.5 倍`,
+        prompt: `《特殊境遇家庭扶助條例》財力雙門檻如何判定？及 §13-1 專戶效力？`,
+        answer: `全家平均每人每月總收入須未超過最低生活費「2.5 倍」及臺灣地區平均每人每月消費支出「1.5 倍」，且動產不動產未逾公告額。依 §13-1 開立之專戶存款「不得作為抵銷、扣押、供擔保或強制執行之標的」。`
+      },
+      {
+        id: `fc-14`,
+        cat: `special`,
+        catLabel: `特境家庭條例`,
+        num: `6 個月 vs 3 個月`,
+        prompt: `特境條例七大扶助項目中，哪些是事實發生後 6 個月內申請？哪些是 3 個月內？`,
+        answer: `「6 個月內」申請：緊急生活扶助（§6）、兒童托育津貼（§10）。「3 個月內」申請：傷病醫療補助（§9）、法律訴訟補助（§11）。`
+      },
+      {
+        id: `fc-15`,
+        cat: `special`,
+        catLabel: `特境家庭條例`,
+        num: `1 倍×3 月・1/10・60%・1,500・5 萬・12 萬`,
+        prompt: `特境條例各項核心給付數字口訣（緊急、子女、教育、托育、訴訟、醫療）？`,
+        answer: `緊急生活扶助：最低生活費 1 倍 × 3 個月；子女生活津貼（15 歲以下）：最低工資 1/10；子女教育補助（限高中職/大專，不含國中小）：學雜費減免 60%；托育（未滿 6 歲私立）：每月 1,500 元；訴訟最高 5 萬元；傷病醫療年上限 12 萬元。`
+      },
+      {
+        id: `fc-16`,
+        cat: `special`,
+        catLabel: `特境家庭條例`,
+        num: `懷胎 3 月至分娩 2 月・協尋 6 月`,
+        prompt: `特境條例 §4 法定身分高頻數字：未婚懷孕、配偶失蹤、服刑與重大變故門檻？`,
+        answer: `未婚懷孕限「懷胎 3 個月以上至分娩 2 個月內」；配偶失蹤須報案協尋達「6 個月以上」；配偶處徒刑或保安處分「1 年以上」；生活重大變故限發生於「3 個月內」；單親扶養子女以「18 歲以下」計（照顧 6 歲以下致不能工作）。`
+      },
+      {
+        id: `fc-17`,
+        cat: `cedaw`,
+        catLabel: `CEDAW 與女孩日`,
+        num: `101.1.1・4 年・3 年`,
+        prompt: `我國《CEDAW 施行法》施行日、國內法效力與兩大法定週期/期限？`,
+        answer: `中華民國 101 年 1 月 1 日施行，具「國內法律效力」（§2）；每「4 年」提出國家報告並邀學者與民團審閱（§6）；各機關應於施行後「3 年內」完成不符公約之法規修廢與行政改進（§8）。`
+      },
+      {
+        id: `fc-18`,
+        cat: `cedaw`,
+        catLabel: `CEDAW 與女孩日`,
+        num: `10 月 11 日 / 1979.12.18`,
+        prompt: `「臺灣女孩日」為何日？聯合國大會通過 CEDAW 與總條文數為何？`,
+        answer: `行政院自 102 年起定每年「10 月 11 日」為臺灣女孩日（呼應聯合國國際女孩日）。聯合國於「1979 年 12 月 18 日」通過 CEDAW，共計「30 條」（截至 2025 年 189 國批准）。`
+      }
+    ];
+
+    var SCALE_DATA = {
+      under10: {
+        title: `僱用未滿 10 人（微型事業單位）`,
+        badge: `基礎禁止義務`,
+        items: [
+          `《性工法》禁止性別／性傾向／懷孕歧視與雇主性騷擾防治一般義務。`,
+          `知悉職場性騷擾情事時，仍須採取「立即有效之糾正及補救措施」（訪談釐清、告知權益、提供轉介資源等）。`,
+          `《工作場所性騷擾防治措施準則》得參照 30 人以上規範辦理（非強制設立專用申訴管道，但實務建議明確告知窗口）。`,
+          `若行為人為最高負責人／僱用人，受僱者得逕向地方主管機關（縣市政府勞工局／處）提起申訴。`
+        ]
+      },
+      10: {
+        title: `僱用 10 人以上未達 30 人`,
+        badge: `第 1 階梯：申訴管道法定門檻`,
+        items: [
+          `《工作場所性騷擾防治措施準則》§2：應設置處理性騷擾之專線電話、傳真、專用信箱、電子信箱或其他指定申訴管道，並於工作場所顯著處公開揭示。`,
+          `《性騷擾防治法》§7：成員、受僱人或受服務人員達 10 人以上之場所，應設立申訴管道協調處理。`,
+          `《職場霸凌防治措施準則》§5：僱用勞工人數在 10 人以上之雇主，應設置處理職場霸凌之電子信箱、專用信箱、專線電話等申訴管道。`
+        ]
+      },
+      30: {
+        title: `僱用 30 人以上未達 100 人`,
+        badge: `第 2 階梯：防治規範＋減調工時門檻`,
+        items: [
+          `《工作場所性騷擾防治措施準則》§3：除申訴管道外，應訂定「性騷擾防治措施、申訴及懲戒規範」並公開揭示（含教育訓練、保密防報復、懲戒及向地方主管機關申訴告知）。`,
+          `《性騷擾防治法》§7：達 30 人以上者應訂定性騷擾防治措施並公開揭示，並定期舉辦或鼓勵參與防治教育訓練。`,
+          `《職場霸凌防治措施準則》§6：30 人以上應訂定職場霸凌防治措施與規範並公開揭示（未達 30 人則依 §21 簡化處理）。`,
+          `《性工法》§19：受僱者為撫育「未滿 3 歲」子女，得請求每日減少工作時間 1 小時（依法不得請求報酬）或調整工作時間。`
+        ]
+      },
+      100: {
+        title: `僱用 100 人以上未達 500 人`,
+        badge: `第 3 階梯：哺集乳室・托兒・職霸調查小組`,
+        items: [
+          `《性工法》§23：應提供「哺（集）乳室」及「托兒設施或適當之托兒措施」（含員工托兒津貼補助等，搭配 §23-1 200% 租稅優惠）。`,
+          `《職場霸凌防治措施準則》§14（115.7.1 施行）：調查職場霸凌申訴時，應於受理起「15 個工作日內」組成至少 3 人之調查小組，外部專業人士不得少於 1/2、任一性別不得少於 1/3。`,
+          `同時涵蓋 10 人（申訴管道）與 30 人（防治規範、減調工時）所有義務。`
+        ]
+      },
+      500: {
+        title: `僱用 500 人以上`,
+        badge: `第 4 階梯：性騷心理諮商強制門檻`,
+        items: [
+          `《工作場所性騷擾防治措施準則》§6 第 4 項：僱用受僱者 500 人以上之雇主，因申訴人或被害人之請求，應提供「至少 2 次」之心理諮商協助。`,
+          `完整適用 10 人（申訴管道）、30 人（防治規範與減調工時）、100 人（哺集乳室、托兒設施措施、100 人以上職霸外部調查小組）全部法定義務。`
+        ]
+      }
+    };
+
+    var MATRIX_ROWS = [
+      {
+        grp: `violence`,
+        name: `《家庭暴力防治法》`,
+        org: `中央：衛生福利部\n地方：直轄市、縣(市)政府（設家暴防治中心）`,
+        target: `§3 家庭成員（配偶、前配偶、同居、四親等內血親及姻親等）及其未成年子女；\n§63-1 恐怖情人條款：年滿 16 歲未同居親密伴侶。`,
+        report: `責任通報（§50）：至遲不得逾「24 小時」，通報人身分保密。\n媒體禁揭露身分（§50-1）；\n網際網路平台知有性影像應限流移除並保留紀錄「180 日」（§50-2）。`,
+        remedy: `偵訊陪同（§36-1）：親屬、醫師、心理師、輔導人員或社工人員。\n民事保護令（通常 2 年、暫時、緊急 4 小時核發）；原則不得調解和解（§47）。`
+      },
+      {
+        grp: `violence`,
+        name: `《性侵害犯罪防治法》`,
+        org: `中央：衛生福利部\n地方：直轄市、縣(市)政府（得與家暴防治中心合併設立）`,
+        target: `刑法妨害性自主罪章等性侵害被害人；\n準用範圍含 §7 性影像犯罪（刑法 §§319-1 至 319-4）及性騷擾防治法 §25 強制觸摸罪。`,
+        report: `責任通報（§11）：至遲不得逾「24 小時」，保密通報人資訊。\n網路平台限流移除並保留資料與個資「180 日」（§13）；高中職以下每學期至少 2 小時性侵防治課程（§9）。`,
+        remedy: `醫療機構不得無故拒絕診療及開立驗傷單，應有護理人員陪同（§14）。\n偵查審判中得由法定代理人、配偶、親屬、醫師、心理師、社工或信賴之人陪同在場（§16）。`
+      },
+      {
+        grp: `violence`,
+        name: `《跟蹤騷擾防制法》`,
+        org: `中央：內政部（警政署為主責執行；治療性處遇計畫規範由衛福部定之）\n地方：直轄市、縣(市)政府／警察機關`,
+        target: `以人員、車輛、電子通訊或網路等 8 類行為，對特定人（或關係密切之人）反覆持續、違反意願且「與性或性別有關」（關係密切人與性/性別無關亦屬之）使生畏怖。`,
+        report: `警察受理應即調查、製作書面紀錄、告知權利措施（§4）。\n行政與司法公示文書不得揭露足資識別被害人身分之資訊（§10）。`,
+        remedy: `先經警察核發「書面告誡」（不服 10 日內異議）→ 2 年內再犯始得聲請跟騷保護令（最長 2 年）。\n§5 第 4 項排除：家暴親密伴侶逕依家暴法聲請保護令！`
+      },
+      {
+        grp: `equality`,
+        name: `《性別平等工作法》`,
+        org: `中央：勞動部\n地方：直轄市、縣(市)政府（設性別工作平等會，女性委員 ≥ 1/2）`,
+        target: `受僱者、求職者、實習生（於實習期間遭受性騷擾亦適用）；\n保障各行業職場平權，禁止性別/性傾向歧視與懷孕歧視。`,
+        report: `10 人設申訴管道、30 人訂規範、100 人哺集乳與托兒、500 人 ≥2 次心理諮商。\n雇主知悉應採立即有效糾正補救措施。`,
+        remedy: `向雇主申訴（最高負責人為行為人、雇主未處理或不服結果→逕向地方主管機關）。\n7 日內開始調查、2 個月（得延 1 月）完成；舉證責任在雇主（§31）。`
+      },
+      {
+        grp: `equality`,
+        name: `《性別平等教育法》`,
+        org: `中央：教育部\n地方：直轄市、縣(市)政府（設性別平等教育委員會）`,
+        target: `校園性別事件（一方為學校校長、教師、職員、工友或學生，他方為學生者；含跨校、校外實習與寒暑假）。`,
+        report: `校長、教師、職員或工友知悉疑似校園性別事件，應於「24 小時內」向學校及當地主管機關通報（§22）。\n維護受教權與身心隱私保密。`,
+        remedy: `由學校性別平等教育委員會（性平會）受理調查處理；當事人得申請陪同、不得重複訊問；對處理結果不服得依法提出申復。`
+      },
+      {
+        grp: `equality`,
+        name: `《性騷擾防治法》`,
+        org: `中央：衛生福利部\n地方：直轄市、縣(市)政府（設性騷擾防治審議會，外專/公正人士 ≥ 1/2、女性 ≥ 1/2）`,
+        target: `「性工法」與「性平教法」以外之一切公共場所、公眾得出入場所及一般社會互動性騷擾（含權勢性騷擾、§25 乘人不及抗拒觸摸罪）。`,
+        report: `場所成員/受僱/受服務達 10 人設管道、30 人訂措施。\n媒體不得報導識別被害人身分資訊（§10）；禁止不當差別待遇（§9）。`,
+        remedy: `申訴時效：一般 2 年/5 年、權勢 3 年/7 年、未成年成年後 3 年。\n受理 7 日內開始調查、2 個月（得延 1 月）完成；設調解與審議機制，並有 1–3 倍懲罰性賠償金。`
+      }
+    ];
+
+    var SPECIAL_ITEMS = [
+      { id: `sp-1`, name: `緊急生活扶助`, statutory: true, detail: `法定第 1 項（§6）：最低生活費 1 倍，原則補助 3 個月，事實發生後 6 個月內申請。` },
+      { id: `sp-2`, name: `租屋補貼／住宅修繕補助`, statutory: false, detail: `非法定干擾選項！《特殊境遇家庭扶助條例》並無租屋補貼或房屋修繕項目（屬《住宅法》等體系）。` },
+      { id: `sp-3`, name: `子女生活津貼`, statutory: true, detail: `法定第 2 項（§7）：15 歲以下子女或孫子女，每月補助最低（基本）工資之 1/10。` },
+      { id: `sp-4`, name: `國中及國小學雜費減免 60%`, statutory: false, detail: `非法定干擾選項！§8 子女教育補助僅限「高中職及大專院校」減免 60%，國中小屬義務教育免學費不適用。` },
+      { id: `sp-5`, name: `子女教育補助（高中職/大專）`, statutory: true, detail: `法定第 3 項（§8）：就讀國內公私立高中職或大專院校，學雜費減免 60%。` },
+      { id: `sp-6`, name: `喪葬補助費`, statutory: false, detail: `非法定干擾選項！本條例七大扶助項目中並無「喪葬補助」（常與社會救助法急難救助混淆）。` },
+      { id: `sp-7`, name: `傷病醫療補助`, statutory: true, detail: `法定第 4 項（§9）：本人及 6 歲以下子女健保自付醫療費，3 個月內申請，每人每年最高 12 萬元。` },
+      { id: `sp-8`, name: `兒童托育津貼`, statutory: true, detail: `法定第 5 項（§10）：未滿 6 歲就讀私立機構每月補助 1,500 元，6 個月內申請。` },
+      { id: `sp-9`, name: `職業訓練生活津貼`, statutory: false, detail: `非法定干擾選項！職業訓練生活津貼係依《就業服務法》或《就業保險法》向勞政機關申請，非特境條例七大項。` },
+      { id: `sp-10`, name: `法律訴訟補助`, statutory: true, detail: `法定第 6 項（§11）：針對家暴受害者無力負擔訴訟費用，最高補助 5 萬元，3 個月內申請。` },
+      { id: `sp-11`, name: `創業貸款補助`, statutory: true, detail: `法定第 7 項（§12）：申請政府創業貸款（如微型創業鳳凰貸款）之利息補貼。` },
+      { id: `sp-12`, name: `老人安養照顧津貼`, statutory: false, detail: `非法定干擾選項！本條例主要扶助 65 歲以下遭遇特殊境遇或隔代扶養 18 歲以下孫子女者，無老人安養津貼。` }
+    ];
+
+    var GM_TOOLS = [
+      {
+        id: `gm-1`,
+        name: `1. 性別統計`,
+        summary: `依生理性別（及交織年齡、城鄉、身心障礙等變項）蒐集、分類、呈現社會與人口現象之統計資料與性別指標。`,
+        examTip: `是後續「性別分析」與「性別影響評估」的實證基礎；國考常問「若僅有總數而無分性別數據，即缺乏何種工具？」答案為性別統計。`
+      },
+      {
+        id: `gm-2`,
+        name: `2. 性別分析`,
+        summary: `運用性別統計與社會性別觀點，檢視政策、法規或方案在資源取得、參與機會及實際結果上，對不同性別造成的差異影響與成因。`,
+        examTip: `不僅看表面數字差異，更要追問背後的性別刻板印象與制度障礙（如農村女性脆弱就業率 60% 高於都市女性 27% 的結構原因）。`
+      },
+      {
+        id: `gm-3`,
+        name: `3. 性別預算`,
+        summary: `將性別觀點納入政府預算編列、資源配置、審查與執行考核過程，檢視公共財政支出是否真正促進性別實質平等。`,
+        examTip: `並非「把經費平分給男女各 50%」，而是針對不同性別需求進行合理資源重分配（如編列產假補貼、育嬰資源、家暴防治基金）。`
+      },
+      {
+        id: `gm-4`,
+        name: `4. 性別影響評估（GIA）`,
+        summary: `於法律案及中長程個案計畫「研擬階段（事前）」，運用檢視表評估政策對不同性別、性傾向或性別認同者的影響並修正。`,
+        examTip: `關鍵時點在於「事前（Ex-ante）預防」，避免法案通過後才產生「間接歧視」。行政院規定法律案及中長程計畫皆須填具性別影響評估檢視表。`
+      },
+      {
+        id: `gm-5`,
+        name: `5. 性別意識培力`,
+        summary: `透過系統性教育訓練、工作坊與教材，提升公務人員、司法人員、警政及社工專業人員的性別敏感度與實務應用能力。`,
+        examTip: `對應《家暴法》§59（各類專業人員在職教育應納入性別平等課程）及 CEDAW §5 消除性別刻板印象。`
+      },
+      {
+        id: `gm-6`,
+        name: `6. 性別機制／專責組織`,
+        summary: `在各級政府建立跨部會與民間參與之性別平等推進組織（如行政院性別平等處、性別平等會、各部會性別平等專案小組）。`,
+        examTip: `提供制度化督導與課責平台；各委員會常見法定性別比例限制為「任一性別不得少於 1/3」（性騷審議會與性平會則要求女性 ≥ 1/2）。`
+      }
+    ];
+
+    var QUIZ_QUESTIONS = [
+      {
+        id: `q1`,
+        topic: `性工法`,
+        q: `依《性別平等工作法》規定，關於女性受僱者「生理假」的請假與給薪規範，下列何者正確？`,
+        options: [
+          `每月得請 1 日，全年未逾 3 日不併入病假，且該 3 日應全薪照給`,
+          `每月得請 1 日，全年未逾 3 日不併入病假；惟無論是否併入病假，薪資均減半發給`,
+          `每月得請 1 日，全年未逾 7 日不併入病假，併入後才減半發給`,
+          `每月得請 1 日，全部併入病假計算並計入事假上限`
+        ],
+        answer: 1,
+        explain: `【經典給薪陷阱】《性工法》§14 規定：生理假每月 1 日，全年請假日數未逾 3 日不併入病假，其餘併入病假；「生理假薪資，減半發給」（前 3 日雖不併病假仍為半薪，非全薪！）。`
+      },
+      {
+        id: `q2`,
+        topic: `性工法`,
+        q: `依 115 年 11 月立法院三讀修正通過之《性別平等工作法》新制，下列關於「產假與流產假」的敘述何者錯誤？`,
+        options: [
+          `分娩產假由原 8 週延長至 14 週，前 8 週為強制休假`,
+          `新增第 9 週至第 14 週產假，女性受僱者可依個人意願選擇向雇主提前銷假復職`,
+          `妊娠 2 個月以上未滿 3 個月流產者延長為 2 週；未滿 2 個月流產者延長為 10 日`,
+          `新增延長之產假天數薪資由雇主全額自行負擔，政府不予補貼`
+        ],
+        answer: 3,
+        explain: `【新修法重點】為減緩企業負擔並防止懷孕歧視，本次修法新增延長之產假天數（第 9–14 週）及流產假延長部分，雇主依法給付薪資後皆可向政府申請「全薪補貼」（產假薪資公共化）。`
+      },
+      {
+        id: `q3`,
+        topic: `性工法`,
+        q: `依 115 年 11 月《性別平等工作法》修正新制，關於「育嬰留職停薪」與「育兒假」之區別，何者正確？`,
+        options: [
+          `子女年齡限制仍維持未滿 3 歲，僅按日申請天數由 30 日增為 60 日`,
+          `育嬰留職停薪期間受僱者自付社會保險保費得遞延 5 年繳納`,
+          `按日申請之 60 日「育兒假」屬請假性質，勞雇契約維持、勞工年資不會中斷`,
+          `同時撫育 2 名 8 歲以下子女者，育嬰留職停薪期間最長可分別累計達 4 年`
+        ],
+        answer: 2,
+        explain: `【年資與年齡陷阱】修法後子女年齡放寬至「8 歲以下（未滿 9 歲）」；2 人以上合併計算仍以 2 年為限；自付保費遞延「3 年」（非 5 年）。按日育兒假（60 日）屬請假性質故年資不中斷，塊狀留停則年資中斷。`
+      },
+      {
+        id: `q4`,
+        topic: `性工法`,
+        q: `依《性別平等工作法》企業規模階梯式義務，僱用受僱者達多少人以上之雇主應提供「哺（集）乳室」及「托兒設施或適當之托兒措施」？`,
+        options: [
+          `30 人以上`,
+          `50 人以上`,
+          `100 人以上`,
+          `500 人以上`
+        ],
+        answer: 2,
+        explain: `【門檻數字必背】10 人設申訴管道；30 人訂防治規範＋撫育未滿 3 歲減調工時；「100 人以上」提供哺（集）乳室及托兒設施或適當托兒措施（§23）；500 人以上提供至少 2 次心理諮商。`
+      },
+      {
+        id: `q5`,
+        topic: `性平與性騷`,
+        q: `若受僱者遭受事業單位「最高負責人或僱用人」性騷擾，依《性別平等工作法》及《性騷擾防治法》申訴時效規定，下列何者正確？`,
+        options: [
+          `只能向雇主內部申訴委員會申訴，不得逕向地方主管機關提起`,
+          `得逕向地方主管機關申訴，並得於離職日起 1 年內為之，但該行為終了逾 10 年即不受理`,
+          `屬一般性騷擾，知悉起 2 年內或終了 5 年內必須提出，離職後即喪失申訴權`,
+          `被害人若於事件發生時未成年，應於離職後 1 年內申訴，不得延至成年後`
+        ],
+        answer: 1,
+        explain: `【權勢與最高負責人例外】最高負責人／僱用人為行為人時，被害人得逕向「地方主管機關」申訴，且特別放寬得於「離職日起 1 年內」提出（上限行為終了逾 10 年不受理）。未成年人則得於成年後 3 年內提出。`
+      },
+      {
+        id: `q6`,
+        topic: `防暴三法`,
+        q: `關於《家庭暴力防治法》三種民事保護令之比較，下列敘述何者「錯誤」？`,
+        options: [
+          `通常保護令、暫時保護令及緊急保護令之聲請、變更、延長與抗告，均免徵裁判費`,
+          `被害人若遭受緊急急迫危險，得於夜間或休息日親自以電話直接向法院聲請「緊急保護令」`,
+          `法院受理緊急保護令聲請後，足認有急迫危險者應於 4 小時內以書面核發`,
+          `通常保護令有效期間最長 2 年，屆滿前得聲請延長，每次不得超過 2 年`
+        ],
+        answer: 1,
+        explain: `【國考第一名陷阱！】被害人本人「不得」直接向法院聲請緊急保護令！依《家暴法》§12 但書，僅「檢察官、警察機關或直轄市、縣(市)主管機關」得為緊急保護令之聲請權人；被害人僅得聲請通常與暫時保護令。`
+      },
+      {
+        id: `q7`,
+        topic: `防暴三法`,
+        q: `依《家庭暴力防治法》與《性侵害犯罪防治法》，醫事、社工、教育人員執行職務知有疑似家暴或性侵害情事之通報時限，及網路平台保留涉案性影像及行為人個資紀錄之天數各為何？`,
+        options: [
+          `通報 24 小時內；網路平台保留紀錄 180 日`,
+          `通報 48 小時內；網路平台保留紀錄 90 日`,
+          `通報 12 小時內；網路平台保留紀錄 180 日`,
+          `通報 24 小時內；網路平台保留紀錄 60 日`
+        ],
+        answer: 0,
+        explain: `【雙重時間考點】《家暴法》§50 及《性侵法》§11 均明定責任通報至遲不得逾「24 小時」且保密通報人身分；網路平台依《家暴法》§50-2 與《性侵法》§13 應先行限制瀏覽或移除並保留相關資料「180 日」。`
+      },
+      {
+        id: `q8`,
+        topic: `防暴三法`,
+        q: `年滿 18 歲的小美與曾交往但「未同居」的前男友分手後，遭對方反覆跟蹤、守候於公司門口並不斷傳送威脅訊息。小美欲向法院聲請保護令，應適用哪一部法律？`,
+        options: [
+          `須先依《跟蹤騷擾防制法》由警察核發書面告誡，2 年內再犯始得依跟騷法聲請保護令`,
+          `應直接依《家庭暴力防治法》第 63 條之 1（恐怖情人條款）聲請民事保護令`,
+          `因雙方未同居且已分手，不符合家暴法保護對象，僅能提起民事侵權訴訟`,
+          `應依《性騷擾防治法》向社會局申請調解，不得聲請法院保護令`
+        ],
+        answer: 1,
+        explain: `【家暴 vs 跟騷競合】依《跟騷法》§5 第 4 項明文排除：家暴法所定家庭成員間或「現有或曾有親密關係之未同居伴侶（年滿 16 歲，家暴法 §63-1）」間的跟騷行為，應直接依《家暴法》聲請民事保護令，不須先經書面告誡！`
+      },
+      {
+        id: `q9`,
+        topic: `霸凌準則`,
+        q: `依 115 年 7 月 1 日施行之《職場霸凌防治措施準則》第 14 條，僱用勞工人數在 100 人以上之雇主組成調查小組時，下列規定何者正確？`,
+        options: [
+          `應於受理申訴之日起 30 日內組成，成員至少 5 人`,
+          `調查小組成員中外部專業人士不得少於三分之一，任一性別不得少於二分之一`,
+          `應於受理申訴之日起 15 個工作日內組成至少 3 人之小組，外部專業人士不得少於二分之一，任一性別不得少於三分之一`,
+          `事業單位內部成員參與調查小組者，無須接受教育訓練即可進行訪談`
+        ],
+        answer: 2,
+        explain: `【比例極易顛倒】《職場霸凌防治措施準則》§14：100 人以上雇主應於「15 個工作日內」組成「至少 3 人」小組；「外部專業人士 ≥ 1/2」、「任一性別 ≥ 1/3」（常與外專 1/3 搞混！），內部成員須受職霸訓練 ≥3 小時。`
+      },
+      {
+        id: `q10`,
+        topic: `霸凌準則`,
+        q: `關於《職場霸凌防治措施準則》與《工作場所性騷擾防治措施準則》之處理程序，下列何者「錯誤」？`,
+        options: [
+          `職場霸凌調查報告應自調查小組成立後翌日起 2 個月內完成，必要時得延長 1 個月`,
+          `職場霸凌協調程序若自協調日起逾 1 個月仍無共識應停止協調，且協調期間計入 2 個月調查期限內`,
+          `職場霸凌之預防、申訴、協調、調查與申復執行紀錄，雇主應留存 3 年`,
+          `依《工作場所性騷擾防治措施準則》，即使被害人無意願提起申訴，雇主知悉後仍應採立即有效糾正及補救措施`
+        ],
+        answer: 1,
+        explain: `【時效計算細節】依《職場霸凌防治措施準則》§17 第 1 項但書：「但調查過程之協調期間，不予計入（2 個月調查期間）」，選項 B 說「計入」為錯誤！其餘 2+1 個月、留存 3 年、性騷知悉立即補救均正確。`
+      },
+      {
+        id: `q11`,
+        topic: `特境條例`,
+        q: `下列哪一組項目「完全不屬於」《特殊境遇家庭扶助條例》所定之七大法定扶助項目？`,
+        options: [
+          `緊急生活扶助、子女生活津貼`,
+          `兒童托育津貼、創業貸款補助`,
+          `租屋補貼、喪葬補助、職業訓練生活津貼`,
+          `傷病醫療補助、法律訴訟補助`
+        ],
+        answer: 2,
+        explain: `【七大法定項目辨識】《特境條例》七大項目為：緊急生活扶助、子女生活津貼、子女教育補助、傷病醫療補助、兒童托育津貼、法律訴訟補助、創業貸款補助。「租屋補貼、喪葬補助、職訓生活津貼」皆為非法定干擾選項！`
+      },
+      {
+        id: `q12`,
+        topic: `特境條例`,
+        q: `關於《特殊境遇家庭扶助條例》之財力認定與給付保障規定，下列何者正確？`,
+        options: [
+          `全家平均每人每月總收入須未超過最低生活費 1.5 倍及臺灣地區平均每人每月消費支出 2.5 倍`,
+          `專戶內存入之扶助給付，仍得因申請人積欠銀行卡債而被法院強制執行扣押`,
+          `未婚懷孕婦女申請資格，限懷胎 3 個月以上至分娩 2 個月內`,
+          `配偶失蹤經向警察機關報案協尋未獲須達 1 年以上始符合資格`
+        ],
+        answer: 2,
+        explain: `【倍數顛倒與專戶保障】選項 A 倍數顛倒（應為最低生活費「2.5 倍」及平均消費支出「1.5 倍」）；選項 B 違反 §13-1 專戶不得抵銷、扣押、供擔保或強制執行；選項 D 配偶失蹤協尋門檻為「6 個月以上」（服刑才是 1 年以上）。`
+      },
+      {
+        id: `q13`,
+        topic: `特境條例`,
+        q: `某特境家庭扶養一名就讀公立國中二年級的長子與一名就讀私立高職一年級的次女，並申請緊急生活扶助。依《特殊境遇家庭扶助條例》，下列何者正確？`,
+        options: [
+          `長子與次女均可依條例第 8 條獲得學雜費減免 60%`,
+          `僅就讀私立高職的次女可獲學雜費減免 60%；緊急生活扶助應於事實發生後 6 個月內提出申請`,
+          `緊急生活扶助按最低生活費 1 倍核發，每人每次補助 6 個月為原則`,
+          `法律訴訟補助與緊急生活扶助均須於事實發生後 3 個月內申請`
+        ],
+        answer: 1,
+        explain: `【教育階段與時效陷阱】§8 子女教育補助僅限「高中職及大專院校」學雜費減免 60%，國中小屬義務教育免學費不適用！緊急生活扶助每次補助以「3 個月」為原則、時效為「6 個月內」；法律訴訟與傷病醫療時效才為「3 個月內」。`
+      },
+      {
+        id: `q14`,
+        topic: `CEDAW與性別`,
+        q: `關於《消除對婦女一切形式歧視公約（CEDAW）施行法》及性別發展理論之敘述，下列何者「錯誤」？`,
+        options: [
+          `CEDAW 所揭示保障性別人權之規定，在我國具有「國內法律之效力」`,
+          `政府應每 4 年提出國家報告並邀專家與民團審閱；不符公約法規應於施行後 3 年內完成改進`,
+          `1970 年代 WID（婦女參與發展）已全面挑戰父權體制並成功以「性別主流化」取代經濟賦權方案`,
+          `我國自 102 年起定每年 10 月 11 日為「臺灣女孩日」`
+        ],
+        answer: 2,
+        explain: `【WID vs GAD 典範陷阱】WID（婦女參與發展）將女性視為單一被動受助者融入既有體系，並「未挑戰」父權分工結構；直到 1980–90 年代「GAD（性別與發展）」才轉向檢視性別權力關係，並於 1995 年北京大會確立性別主流化策略。`
+      },
+      {
+        id: `q15`,
+        topic: `人口新戰略`,
+        q: `依《臺灣人口對策新戰略—家庭支持篇》與勞動部配套規劃，針對育有「9 至 12 歲」學齡子女之彈性工作支持措施，下列何者正確？`,
+        options: [
+          `直接納入《性別平等工作法》強制所有 10 人以上企業均須給假，且不提供雇主補助`,
+          `由勞動部訂定獎勵及補助要點，補助短期職務代理人力每人每日 800 元，並補助 200 人以下企業新聘長期替代人力每名 2 萬元`,
+          `育嬰留停津貼僅開放母親領取最高 9 個月，父親不得請領額外 3 個月`,
+          `減工時措施規定每日減少 1 小時工時由勞工自行減薪吸收`
+        ],
+        answer: 1,
+        explain: `【最新政策對照】9–12 歲照顧需求係由勞動部推出《友善職場育兒彈性工作安排措施獎勵及補助要點》（預計 116.1.1 上路）：含減工時全額薪資補助、職代津貼每日 800 元、200 人以下企業新聘長期替代人力每名 2 萬元。「6+3」則是雙親各領 6 月後可各再多領 3 月，合計最高 18 個月！`
+      }
+    ];
+
+    /* =========================================================================
+       STATE MANAGEMENT (Persisted via window.notebookAppApi)
+       ========================================================================= */
+    var appState = {
+      activeTab: `cards`,
+      cardCategory: `all`,
+      unmasteredOnly: false,
+      masteredCards: [],
+      flippedCards: {},
+      selectedScale: `10`,
+      matrixFilter: `all`,
+      revealedSpecial: {},
+      selectedGmTool: `gm-1`,
+      quizFilter: `all`,
+      quizAnswers: {}
+    };
+
+    function showSaveNotice(text) {
+      var el = document.getElementById(`save-status`);
+      if (!el) return;
+      el.textContent = text;
+      setTimeout(function() {
+        if (el.textContent === text) el.textContent = ``;
+      }, 2200);
+    }
+
+    async function persistState() {
+      try {
+        if (window.notebookAppApi && typeof window.notebookAppApi.setAppState === `function`) {
+          await window.notebookAppApi.setAppState({
+            activeTab: appState.activeTab,
+            cardCategory: appState.cardCategory,
+            unmasteredOnly: appState.unmasteredOnly,
+            masteredCards: appState.masteredCards,
+            selectedScale: appState.selectedScale,
+            matrixFilter: appState.matrixFilter,
+            revealedSpecial: appState.revealedSpecial,
+            selectedGmTool: appState.selectedGmTool,
+            quizFilter: appState.quizFilter,
+            quizAnswers: appState.quizAnswers
+          });
+          showSaveNotice(`進度已儲存`);
+        }
+      } catch (err) {
+        /* Silent fallback when host shim is unavailable */
+      }
+    }
+
+    /* =========================================================================
+       TAB NAVIGATION
+       ========================================================================= */
+    function switchTab(tabId) {
+      appState.activeTab = tabId;
+      var tabs = [`cards`, `genderwork`, `matrix`, `harassment`, `special`, `cedaw`, `quiz`];
+      tabs.forEach(function(id) {
+        var btn = document.getElementById(`tab-btn-` + id);
+        var panel = document.getElementById(`panel-` + id);
+        var active = (id === tabId);
+        if (btn) btn.setAttribute(`aria-selected`, active ? `true` : `false`);
+        if (panel) {
+          if (active) panel.classList.add(`is-active`);
+          else panel.classList.remove(`is-active`);
+        }
+      });
+      persistState();
+    }
+
+    /* =========================================================================
+       KPI UPDATE
+       ========================================================================= */
+    function updateKpis() {
+      var mCount = appState.masteredCards.length;
+      var totalCards = FLASHCARDS.length;
+      var fcEl = document.getElementById(`kpi-flashcard`);
+      var fcBar = document.getElementById(`kpi-flashcard-bar`);
+      if (fcEl) fcEl.textContent = mCount + ` / ` + totalCards;
+      if (fcBar) fcBar.style.width = Math.round((mCount / totalCards) * 100) + `%`;
+
+      var answeredKeys = Object.keys(appState.quizAnswers);
+      var correctCount = 0;
+      QUIZ_QUESTIONS.forEach(function(q) {
+        if (appState.quizAnswers[q.id] === q.answer) correctCount += 1;
+      });
+      var totalQ = QUIZ_QUESTIONS.length;
+      var qEl = document.getElementById(`kpi-quiz`);
+      var qBar = document.getElementById(`kpi-quiz-bar`);
+      var qSub = document.getElementById(`kpi-quiz-sub`);
+      var sumTxt = document.getElementById(`quiz-summary-text`);
+      if (qEl) qEl.textContent = correctCount + ` / ` + totalQ;
+      if (qBar) qBar.style.width = Math.round((correctCount / totalQ) * 100) + `%`;
+      if (qSub) {
+        if (answeredKeys.length === 0) {
+          qSub.textContent = `尚未作答，切換至「陷阱自我測驗」開始實戰`;
+        } else {
+          var pct = Math.round((correctCount / answeredKeys.length) * 100);
+          qSub.textContent = `已作答 ` + answeredKeys.length + ` / ` + totalQ + ` 題（作答正確率 ` + pct + `%）`;
+        }
+      }
+      if (sumTxt) {
+        sumTxt.textContent = `已作答 ` + answeredKeys.length + ` / ` + totalQ + ` 題｜答對 ` + correctCount + ` 題`;
+      }
+    }
+
+    /* =========================================================================
+       PANEL 1: FLASHCARDS
+       ========================================================================= */
+    function renderFlashcards() {
+      var grid = document.getElementById(`flashcards-grid`);
+      if (!grid) return;
+
+      var list = FLASHCARDS.filter(function(c) {
+        var catMatch = (appState.cardCategory === `all` || c.cat === appState.cardCategory);
+        var masterMatch = (!appState.unmasteredOnly || appState.masteredCards.indexOf(c.id) === -1);
+        return catMatch && masterMatch;
+      });
+
+      if (list.length === 0) {
+        grid.innerHTML = `<div class="figure-card"><p style="margin:0; font-weight:700;">此分類下的記憶卡已全部標記為熟記！</p><p class="section-desc" style="margin-top:var(--space-xs);">您可以關閉「僅顯示待複習」或切換至「陷阱自我測驗」檢驗實力。</p></div>`;
+        return;
+      }
+
+      var html = list.map(function(c) {
+        var isMastered = appState.masteredCards.indexOf(c.id) !== -1;
+        var isFlipped = Boolean(appState.flippedCards[c.id]);
+        var tagClass = isMastered ? `tag--positive` : `tag--info`;
+        var stateLabel = isMastered ? `已熟記` : `點擊翻面`;
+        var contentHtml = isFlipped
+          ? `<p class="flashcard-answer"><strong>【解析】</strong>` + c.answer + `</p>`
+          : `<div class="flashcard-number">` + c.num + `</div><p class="flashcard-prompt">` + c.prompt + `</p>`;
+
+        return `<article class="flashcard ` + (isMastered ? `is-mastered` : ``) + `">
+          <div class="flashcard-top">
+            <span class="tag">` + c.catLabel + `</span>
+            <span class="tag ` + tagClass + `">` + stateLabel + `</span>
+          </div>
+          <div class="flashcard-body" role="button" tabindex="0" aria-label="` + c.num + ` 記憶卡翻面" onclick="flipCard('` + c.id + `')" onkeydown="handleCardKey(event, '` + c.id + `')">
+            ` + contentHtml + `
+          </div>
+          <div class="flashcard-footer">
+            <button type="button" class="btn btn--sm" onclick="flipCard('` + c.id + `')">` + (isFlipped ? `顯示題目` : `翻看解析`) + `</button>
+            <button type="button" class="btn btn--sm ` + (isMastered ? `btn--secondary` : `btn--primary`) + `" onclick="toggleMastered('` + c.id + `')">` + (isMastered ? `取消熟記` : `標記已熟記`) + `</button>
+          </div>
+        </article>`;
+      }).join(``);
+
+      grid.innerHTML = html;
+    }
+
+    function handleCardKey(e, id) {
+      if (e.key === `Enter` || e.key === ` `) {
+        e.preventDefault();
+        flipCard(id);
+      }
+    }
+
+    function flipCard(id) {
+      appState.flippedCards[id] = !appState.flippedCards[id];
+      renderFlashcards();
+    }
+
+    function toggleMastered(id) {
+      var idx = appState.masteredCards.indexOf(id);
+      if (idx === -1) appState.masteredCards.push(id);
+      else appState.masteredCards.splice(idx, 1);
+      updateKpis();
+      renderFlashcards();
+      persistState();
+    }
+
+    function filterCards(cat) {
+      appState.cardCategory = cat;
+      var btns = document.querySelectorAll(`[data-cat]`);
+      btns.forEach(function(b) {
+        b.setAttribute(`aria-pressed`, b.getAttribute(`data-cat`) === cat ? `true` : `false`);
+      });
+      renderFlashcards();
+      persistState();
+    }
+
+    function toggleUnmasteredOnly() {
+      appState.unmasteredOnly = !appState.unmasteredOnly;
+      var btn = document.getElementById(`toggle-unmastered-btn`);
+      if (btn) btn.setAttribute(`aria-pressed`, appState.unmasteredOnly ? `true` : `false`);
+      renderFlashcards();
+      persistState();
+    }
+
+    /* =========================================================================
+       PANEL 2: SCALE SIMULATOR
+       ========================================================================= */
+    function selectScale(scaleKey) {
+      appState.selectedScale = scaleKey;
+      var btns = document.querySelectorAll(`[data-scale]`);
+      btns.forEach(function(b) {
+        b.setAttribute(`aria-pressed`, b.getAttribute(`data-scale`) === scaleKey ? `true` : `false`);
+      });
+      renderScaleDetail();
+      persistState();
+    }
+
+    function renderScaleDetail() {
+      var box = document.getElementById(`scale-detail-box`);
+      if (!box) return;
+      var data = SCALE_DATA[appState.selectedScale] || SCALE_DATA[`10`];
+      var lis = data.items.map(function(item) {
+        return `<li>` + item + `</li>`;
+      }).join(``);
+      box.innerHTML = `<div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:var(--space-sm); margin-bottom:var(--space-xs);">
+          <strong style="font-size:var(--subhead-size);">` + data.title + `</strong>
+          <span class="tag tag--gold">` + data.badge + `</span>
+        </div>
+        <ul class="fact-list">` + lis + `</ul>`;
+    }
+
+    /* =========================================================================
+       PANEL 3: MATRIX FILTER
+       ========================================================================= */
+    function filterMatrix(grp) {
+      appState.matrixFilter = grp;
+      var btns = document.querySelectorAll(`[data-lawgrp]`);
+      btns.forEach(function(b) {
+        b.setAttribute(`aria-pressed`, b.getAttribute(`data-lawgrp`) === grp ? `true` : `false`);
+      });
+      renderMatrix();
+      persistState();
+    }
+
+    function renderMatrix() {
+      var tbody = document.getElementById(`matrix-tbody`);
+      if (!tbody) return;
+      var rows = MATRIX_ROWS.filter(function(r) {
+        return appState.matrixFilter === `all` || r.grp === appState.matrixFilter;
+      });
+      tbody.innerHTML = rows.map(function(r) {
+        var badge = r.grp === `violence`
+          ? `<span class="tag tag--error">防暴三法</span>`
+          : `<span class="tag tag--info">性平三法</span>`;
+        return `<tr>
+          <td><strong>` + r.name + `</strong><br>` + badge + `</td>
+          <td>` + r.org.replace(/\n/g, `<br>`) + `</td>
+          <td>` + r.target.replace(/\n/g, `<br>`) + `</td>
+          <td>` + r.report.replace(/\n/g, `<br>`) + `</td>
+          <td>` + r.remedy.replace(/\n/g, `<br>`) + `</td>
+        </tr>`;
+      }).join(``);
+    }
+
+    /* =========================================================================
+       PANEL 5: SPECIAL FAMILY ACT DISTRACTOR QUIZ
+       ========================================================================= */
+    function renderSpecialItems() {
+      var grid = document.getElementById(`special-items-grid`);
+      if (!grid) return;
+      grid.innerHTML = SPECIAL_ITEMS.map(function(item) {
+        var revealed = Boolean(appState.revealedSpecial[item.id]);
+        var cls = ``;
+        var badge = `<span class="tag">點擊驗證是否為法定項目</span>`;
+        var desc = ``;
+        if (revealed) {
+          cls = item.statutory ? `is-statutory` : `is-distractor`;
+          badge = item.statutory
+            ? `<span class="tag tag--positive">法定七大扶助項目</span>`
+            : `<span class="tag tag--error">非法定干擾選項</span>`;
+          desc = `<span style="font-size:var(--label-size); color:var(--on-surface);">` + item.detail + `</span>`;
+        }
+        return `<button type="button" class="item-check-btn ` + cls + `" onclick="toggleSpecialItem('` + item.id + `')">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:var(--space-xs); width:100%;">
+            <strong>` + item.name + `</strong>
+            ` + badge + `
+          </div>
+          ` + desc + `
+        </button>`;
+      }).join(``);
+    }
+
+    function toggleSpecialItem(id) {
+      appState.revealedSpecial[id] = !appState.revealedSpecial[id];
+      renderSpecialItems();
+      persistState();
+    }
+
+    function revealAllSpecialItems() {
+      SPECIAL_ITEMS.forEach(function(item) {
+        appState.revealedSpecial[item.id] = true;
+      });
+      renderSpecialItems();
+      persistState();
+    }
+
+    /* =========================================================================
+       PANEL 6: GENDER MAINSTREAMING TOOLS
+       ========================================================================= */
+    function renderGmTools() {
+      var bar = document.getElementById(`gm-tools-bar`);
+      var detail = document.getElementById(`gm-tool-detail`);
+      if (!bar || !detail) return;
+
+      bar.innerHTML = GM_TOOLS.map(function(t) {
+        var pressed = (t.id === appState.selectedGmTool) ? `true` : `false`;
+        return `<button type="button" class="filter-chip" aria-pressed="` + pressed + `" onclick="selectGmTool('` + t.id + `')">` + t.name + `</button>`;
+      }).join(``);
+
+      var current = GM_TOOLS.find(function(t) { return t.id === appState.selectedGmTool; }) || GM_TOOLS[0];
+      detail.innerHTML = `<p class="aside-box-title">` + current.name + `</p>
+        <p style="margin:0 0 var(--space-xs) 0;"><strong>工具內涵：</strong>` + current.summary + `</p>
+        <p style="margin:0; color:var(--secondary);"><strong>國考辨識要訣：</strong>` + current.examTip + `</p>`;
+    }
+
+    function selectGmTool(id) {
+      appState.selectedGmTool = id;
+      renderGmTools();
+      persistState();
+    }
+
+    /* =========================================================================
+       PANEL 7: QUIZ
+       ========================================================================= */
+    function setQuizFilter(mode) {
+      appState.quizFilter = mode;
+      var allBtn = document.getElementById(`quiz-filter-all`);
+      var wrongBtn = document.getElementById(`quiz-filter-wrong`);
+      if (allBtn) allBtn.setAttribute(`aria-pressed`, mode === `all` ? `true` : `false`);
+      if (wrongBtn) wrongBtn.setAttribute(`aria-pressed`, mode === `wrong` ? `true` : `false`);
+      renderQuiz();
+      persistState();
+    }
+
+    function renderQuiz() {
+      var container = document.getElementById(`quiz-container`);
+      if (!container) return;
+
+      var list = QUIZ_QUESTIONS.filter(function(q) {
+        if (appState.quizFilter === `all`) return true;
+        var userChoice = appState.quizAnswers[q.id];
+        return userChoice === undefined || userChoice !== q.answer;
+      });
+
+      if (list.length === 0) {
+        container.innerHTML = `<div class="quiz-card"><p class="quiz-q-title">太棒了！全部 15 題皆已作答正確，目前沒有待複習錯題。</p><p class="section-desc">可切換回「全部題目 (15)」檢視解析，或點擊「清空測驗作答」重新模擬測驗。</p></div>`;
+        return;
+      }
+
+      var labels = [`(A)`, `(B)`, `(C)`, `(D)`];
+      container.innerHTML = list.map(function(q, idx) {
+        var userChoice = appState.quizAnswers[q.id];
+        var isAnswered = (userChoice !== undefined);
+        var isCorrect = (userChoice === q.answer);
+
+        var statusBadge = `<span class="tag">` + q.topic + `</span>`;
+        if (isAnswered) {
+          statusBadge = isCorrect
+            ? `<span class="tag tag--positive">` + q.topic + `・答對</span>`
+            : `<span class="tag tag--error">` + q.topic + `・誤入陷阱</span>`;
+        }
+
+        var optsHtml = q.options.map(function(optText, oIdx) {
+          var cls = ``;
+          if (isAnswered) {
+            if (oIdx === q.answer) cls = `is-correct`;
+            else if (oIdx === userChoice) cls = `is-wrong`;
+          }
+          return `<button type="button" class="quiz-opt ` + cls + `" ` + (isAnswered ? `disabled` : ``) + ` onclick="answerQuiz('` + q.id + `', ` + oIdx + `)">
+            <strong style="font-family:var(--font-label);">` + labels[oIdx] + `</strong>
+            <span>` + optText + `</span>
+          </button>`;
+        }).join(``);
+
+        var explainHtml = ``;
+        if (isAnswered) {
+          var expCls = isCorrect ? `is-correct-box` : `is-wrong-box`;
+          explainHtml = `<div class="quiz-explain ` + expCls + `">
+            <strong>` + (isCorrect ? `作答正確！` : `答錯了，正確答案為 ` + labels[q.answer] + `：`) + `</strong>
+            ` + q.explain + `
+          </div>`;
+        }
+
+        return `<article class="quiz-card">
+          <div class="quiz-q-header">
+            <span class="index-num">第 ` + (QUIZ_QUESTIONS.indexOf(q) + 1) + ` 題</span>
+            ` + statusBadge + `
+          </div>
+          <p class="quiz-q-title">` + q.q + `</p>
+          <div class="quiz-options">` + optsHtml + `</div>
+          ` + explainHtml + `
+        </article>`;
+      }).join(``);
+    }
+
+    function answerQuiz(qId, optIdx) {
+      appState.quizAnswers[qId] = optIdx;
+      updateKpis();
+      renderQuiz();
+      persistState();
+    }
+
+    function resetQuizAnswers(btn) {
+      if (btn.dataset.armed !== `true`) {
+        btn.dataset.armed = `true`;
+        btn.textContent = `再點一次確認清空`;
+        btn.classList.add(`btn--danger-armed`);
+        setTimeout(function() {
+          if (btn.dataset.armed === `true`) {
+            btn.dataset.armed = `false`;
+            btn.textContent = `清空測驗作答`;
+            btn.classList.remove(`btn--danger-armed`);
+          }
+        }, 3500);
+        return;
+      }
+      btn.dataset.armed = `false`;
+      btn.textContent = `清空測驗作答`;
+      btn.classList.remove(`btn--danger-armed`);
+      appState.quizAnswers = {};
+      appState.quizFilter = `all`;
+      setQuizFilter(`all`);
+      updateKpis();
+      persistState();
+    }
+
+    /* =========================================================================
+       GLOBAL RESET & FILE EXPORT
+       ========================================================================= */
+    function resetAllProgress(btn) {
+      if (btn.dataset.armed !== `true`) {
+        btn.dataset.armed = `true`;
+        btn.textContent = `再點一次確認重設`;
+        btn.classList.add(`btn--danger-armed`);
+        setTimeout(function() {
+          if (btn.dataset.armed === `true`) {
+            btn.dataset.armed = `false`;
+            btn.textContent = `重設學習進度`;
+            btn.classList.remove(`btn--danger-armed`);
+          }
+        }, 3500);
+        return;
+      }
+      btn.dataset.armed = `false`;
+      btn.textContent = `重設學習進度`;
+      btn.classList.remove(`btn--danger-armed`);
+
+      appState.masteredCards = [];
+      appState.flippedCards = {};
+      appState.revealedSpecial = {};
+      appState.quizAnswers = {};
+      appState.quizFilter = `all`;
+      updateKpis();
+      renderFlashcards();
+      renderSpecialItems();
+      setQuizFilter(`all`);
+      persistState();
+      showSaveNotice(`已重設全部進度`);
+    }
+
+    function exportStudyNotes() {
+      var unmastered = FLASHCARDS.filter(function(c) {
+        return appState.masteredCards.indexOf(c.id) === -1;
+      });
+      var wrongQs = QUIZ_QUESTIONS.filter(function(q) {
+        return appState.quizAnswers[q.id] !== undefined && appState.quizAnswers[q.id] !== q.answer;
+      });
+
+      var lines = [
+        `婦女福利政策與社會立法｜國考個人複習與錯題筆記`,
+        `熟記記憶卡：` + appState.masteredCards.length + ` / ` + FLASHCARDS.length,
+        `==================================================`,
+        `【待加強數字記憶卡 (` + unmastered.length + ` 張)】`
+      ];
+      unmastered.forEach(function(c) {
+        lines.push(`- [` + c.catLabel + `] ` + c.num + `：` + c.prompt + ` -> ` + c.answer);
+      });
+      lines.push(``);
+      lines.push(`【陷阱測驗錯題解析 (` + wrongQs.length + ` 題)】`);
+      if (wrongQs.length === 0) {
+        lines.push(`目前尚無紀錄在案之答錯題目。`);
+      } else {
+        wrongQs.forEach(function(q) {
+          lines.push(`- (` + q.topic + `) ` + q.q);
+          lines.push(`  解析：` + q.explain);
+        });
+      }
+
+      var text = lines.join(`\n`);
+      if (window.notebookAppApi && typeof window.notebookAppApi.triggerFileDownload === `function`) {
+        window.notebookAppApi.triggerFileDownload({
+          content: text,
+          contentType: `text/plain`,
+          encoding: `UTF-8`,
+          filename: `婦女福利與社會立法_國考筆記.txt`
+        });
+        showSaveNotice(`已匯出筆記檔`);
+      } else {
+        showSaveNotice(`預覽環境不支援下載`);
+      }
+    }
+
+    /* =========================================================================
+       INITIALIZATION
+       ========================================================================= */
+    async function initApp() {
+      try {
+        if (window.notebookAppApi && typeof window.notebookAppApi.getAppState === `function`) {
+          var saved = await window.notebookAppApi.getAppState();
+          if (saved && typeof saved === `object`) {
+            if (typeof saved.activeTab === `string`) appState.activeTab = saved.activeTab;
+            if (typeof saved.cardCategory === `string`) appState.cardCategory = saved.cardCategory;
+            if (typeof saved.unmasteredOnly === `boolean`) appState.unmasteredOnly = saved.unmasteredOnly;
+            if (Array.isArray(saved.masteredCards)) appState.masteredCards = saved.masteredCards;
+            if (typeof saved.selectedScale === `string`) appState.selectedScale = saved.selectedScale;
+            if (typeof saved.matrixFilter === `string`) appState.matrixFilter = saved.matrixFilter;
+            if (saved.revealedSpecial && typeof saved.revealedSpecial === `object`) appState.revealedSpecial = saved.revealedSpecial;
+            if (typeof saved.selectedGmTool === `string`) appState.selectedGmTool = saved.selectedGmTool;
+            if (typeof saved.quizFilter === `string`) appState.quizFilter = saved.quizFilter;
+            if (saved.quizAnswers && typeof saved.quizAnswers === `object`) appState.quizAnswers = saved.quizAnswers;
+          }
+        }
+      } catch (err) {
+        /* Fallback to initial defaults */
+      }
+
+      /* Sync filter UI states */
+      var catBtns = document.querySelectorAll(`[data-cat]`);
+      catBtns.forEach(function(b) {
+        b.setAttribute(`aria-pressed`, b.getAttribute(`data-cat`) === appState.cardCategory ? `true` : `false`);
+      });
+      var unmBtn = document.getElementById(`toggle-unmastered-btn`);
+      if (unmBtn) unmBtn.setAttribute(`aria-pressed`, appState.unmasteredOnly ? `true` : `false`);
+
+      var scaleBtns = document.querySelectorAll(`[data-scale]`);
+      scaleBtns.forEach(function(b) {
+        b.setAttribute(`aria-pressed`, b.getAttribute(`data-scale`) === appState.selectedScale ? `true` : `false`);
+      });
+
+      var lawBtns = document.querySelectorAll(`[data-lawgrp]`);
+      lawBtns.forEach(function(b) {
+        b.setAttribute(`aria-pressed`, b.getAttribute(`data-lawgrp`) === appState.matrixFilter ? `true` : `false`);
+      });
+
+      var allQBtn = document.getElementById(`quiz-filter-all`);
+      var wrongQBtn = document.getElementById(`quiz-filter-wrong`);
+      if (allQBtn) allQBtn.setAttribute(`aria-pressed`, appState.quizFilter === `all` ? `true` : `false`);
+      if (wrongQBtn) wrongQBtn.setAttribute(`aria-pressed`, appState.quizFilter === `wrong` ? `true` : `false`);
+
+      /* Render all panels */
+      updateKpis();
+      renderFlashcards();
+      renderScaleDetail();
+      renderMatrix();
+      renderSpecialItems();
+      renderGmTools();
+      renderQuiz();
+
+      /* Activate saved tab without triggering extra save loop */
+      var tabs = [`cards`, `genderwork`, `matrix`, `harassment`, `special`, `cedaw`, `quiz`];
+      var validTab = tabs.indexOf(appState.activeTab) !== -1 ? appState.activeTab : `cards`;
+      tabs.forEach(function(id) {
+        var btn = document.getElementById(`tab-btn-` + id);
+        var panel = document.getElementById(`panel-` + id);
+        var active = (id === validTab);
+        if (btn) btn.setAttribute(`aria-selected`, active ? `true` : `false`);
+        if (panel) {
+          if (active) panel.classList.add(`is-active`);
+          else panel.classList.remove(`is-active`);
+        }
+      });
+
+      if (window.notebookAppApi && typeof window.notebookAppApi.notifyAppReady === `function`) {
+        window.notebookAppApi.notifyAppReady();
+      }
+    }
+
+    initApp();
+  </script>
+</body>
+</html>
